@@ -52,16 +52,8 @@ const localhost8545 = {
 
 const { chains, provider } = configureChains(
   [
-    // mainnet,
-    // goerli,
-    polygon,
-    // polygonMumbai,
-    // optimism,
-    // optimismGoerli,
-    // arbitrum,
-    // arbitrumGoerli,
-    // polygonZkEvm,
-    // polygonZkEvmTestnet,
+    // polygon,
+    polygonMumbai,
     // localhost8545,
   ],
 
