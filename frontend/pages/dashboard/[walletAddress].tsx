@@ -59,6 +59,13 @@ const Dashboard: NextPage = () => {
   const router = useRouter();
   const { address, isDisconnected } = useAccount();
   const [data, setData] = useState({} as ProjectDataInterface);
+  const [userInfo, setUserInfo] = useState({
+    email: "",
+    profileImageUrl: "",
+    userType: "",
+    username: "",
+    projectNftIds: [],
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -82,8 +89,25 @@ const Dashboard: NextPage = () => {
         console.log("Error has occured with /api/project/[walletAddress].ts");
       }
     };
+
+    const fetchUserInfo = async () => {
+      try {
+        const res = await axios.get(`/api/user/${address}`);
+        console.log("userInfo: ", res.data);
+        setUserInfo({
+          email: res.data.email,
+          profileImageUrl: res.data.profileImageUrl,
+          userType: res.data.userType,
+          username: res.data.username,
+          projectNftIds: res.data.projectNftIds == undefined ? [] : res.data.projectNftIds,
+        });
+      } catch (error) {
+        console.log("Error has occured with /api/user/[walletAddress].ts");
+      }
+    };
   
     fetchData();
+    fetchUserInfo();
   }, []);
 
   useEffect(() => {
@@ -117,12 +141,14 @@ const Dashboard: NextPage = () => {
               >
                 Projects
               </motion.h1>
-              <CustomButton
-                text="+ Create Project"
-                styles="bg-[#DF57EA] lg:text-2xl sm:text-lg rounded-md text-center text-white px-3 py-2 md:px-6 md:py-3"
-                type="button"
-                onClick={() => router.push("/createProject")}
-              />
+              {userInfo.userType === "depositor" && (
+                <CustomButton
+                  text="+ Create Project"
+                  styles="bg-[#DF57EA] lg:text-2xl sm:text-lg rounded-md text-center text-white px-3 py-2 md:px-6 md:py-3"
+                  type="button"
+                  onClick={() => router.push("/createProject")}
+                />
+              )}
             </div>
             {/* Charts */}
             {/* TODO: Remove the charts temporarily for the final pitch (Issue#67) */}
