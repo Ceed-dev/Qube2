@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import axios from "axios";
 
 import { navLinks, aesthetics } from "../constants";
-import { arrow, MenuIcon, CrossIcon, Spinner } from "../assets";
+import { arrow, MenuIcon, CrossIcon, Spinner, Profile } from "../assets";
 import { Glow } from "./aesthetics";
 
 import dotenv from "dotenv";
@@ -35,10 +35,8 @@ const Navbar = (): JSX.Element => {
 
   const [userInfo, setUserInfo] = useState({
     email: "",
-    profileImageUrl: "",
     userType: "",
     username: "",
-    projectNftIds: [],
   });
 
   useEffect(() => {
@@ -51,7 +49,7 @@ const Navbar = (): JSX.Element => {
           if (docSnapshot.exists()) {
             const docData = docSnapshot.data();
   
-            if (!docData.profileImageUrl || !docData.username || !docData.email || !docData.userType) {
+            if (!docData.username || !docData.email || !docData.userType) {
               setShowEmailModal(true);
             }
           } else {
@@ -69,10 +67,10 @@ const Navbar = (): JSX.Element => {
         console.log("userInfo: ", res.data);
         setUserInfo({
           email: res.data.email,
-          profileImageUrl: res.data.profileImageUrl,
+          // profileImageUrl: res.data.profileImageUrl,
           userType: res.data.userType,
           username: res.data.username,
-          projectNftIds: res.data.projectNftIds == undefined ? [] : res.data.projectNftIds,
+          // projectNftIds: res.data.projectNftIds == undefined ? [] : res.data.projectNftIds,
         });
       } catch (error) {
         console.log("Error has occured with /api/user/[walletAddress].ts");
@@ -97,16 +95,16 @@ const Navbar = (): JSX.Element => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("image: ", imageSrc);
+    // console.log("image: ", imageSrc);
     console.log("username: ", username);
     console.log("email: ", email);
     console.log("confirmEmail: ", confirmEmail);
     console.log("userType: ", selectedUserType);
 
-    if (!imageSrc || !selectedFile) {
-      alert("Image upload is mandatory. Please select an image.");
-      return;
-    }
+    // if (!imageSrc || !selectedFile) {
+    //   alert("Image upload is mandatory. Please select an image.");
+    //   return;
+    // }
 
     if (email !== confirmEmail) {
       alert("The email addresses you entered do not match. Please ensure they are the same and try again.");
@@ -116,42 +114,42 @@ const Navbar = (): JSX.Element => {
     setIsLoading(true);
 
     try {
-      // Create a storage ref
-      const timestamp = Date.now();
-      const fileExtension = selectedFile.name.split(".").pop();
-      const storageRef = ref(storage, `users/${address}/profile_images/profile_${timestamp}.${fileExtension}`);
+      // // Create a storage ref
+      // const timestamp = Date.now();
+      // const fileExtension = selectedFile.name.split(".").pop();
+      // const storageRef = ref(storage, `users/${address}/profile_images/profile_${timestamp}.${fileExtension}`);
 
-      // Upload file
-      const uploadTask = uploadBytesResumable(storageRef, selectedFile);
+      // // Upload file
+      // const uploadTask = uploadBytesResumable(storageRef, selectedFile);
 
-      // Listen for state changes, errors, and completion of the upload.
-      await new Promise((resolve, reject) => {
-        uploadTask.on(
-          "state_changed",
-          (snapshot) => {
-            // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-            var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.log("Upload is " + progress + "% done");
-            switch (snapshot.state) {
-              case "paused":
-                console.log("Upload is paused");
-                break;
-              case "running":
-                console.log("Upload is running");
-                break;
-            }
-          }, 
-          (error) => reject(error), 
-          () => resolve(uploadTask.snapshot.ref)
-        );
-      });
+      // // Listen for state changes, errors, and completion of the upload.
+      // await new Promise((resolve, reject) => {
+      //   uploadTask.on(
+      //     "state_changed",
+      //     (snapshot) => {
+      //       // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+      //       var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+      //       console.log("Upload is " + progress + "% done");
+      //       switch (snapshot.state) {
+      //         case "paused":
+      //           console.log("Upload is paused");
+      //           break;
+      //         case "running":
+      //           console.log("Upload is running");
+      //           break;
+      //       }
+      //     }, 
+      //     (error) => reject(error), 
+      //     () => resolve(uploadTask.snapshot.ref)
+      //   );
+      // });
 
-      const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-      console.log("Upload is complete: ", downloadUrl);
+      // const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+      // console.log("Upload is complete: ", downloadUrl);
 
       const docRef = doc(database, "users", address);
       await setDoc(docRef, {
-        profileImageUrl: downloadUrl,
+        // profileImageUrl: downloadUrl,
         username: username,
         email: email,
         userType: selectedUserType,
@@ -164,7 +162,7 @@ const Navbar = (): JSX.Element => {
       setIsLoading(false);
     }
     
-    setImageSrc("");
+    // setImageSrc("");
     setUsername("");
     setEmail("");
     setConfirmEmail("");
@@ -189,23 +187,23 @@ const Navbar = (): JSX.Element => {
     }
   }, [router.asPath, router.query]);
 
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  // const [imageSrc, setImageSrc] = useState<string | null>(null);
+  // const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setSelectedFile(file);
-      const reader = new FileReader();
+  // const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   if (e.target.files && e.target.files[0]) {
+  //     const file = e.target.files[0];
+  //     setSelectedFile(file);
+  //     const reader = new FileReader();
       
-      reader.onload = (loadEvent) => {
-        const src = loadEvent.target?.result;
-        setImageSrc(src as string);
-      };
+  //     reader.onload = (loadEvent) => {
+  //       const src = loadEvent.target?.result;
+  //       setImageSrc(src as string);
+  //     };
 
-      reader.readAsDataURL(file);
-    }
-  };
+  //     reader.readAsDataURL(file);
+  //   }
+  // };
 
   return (
     <>
@@ -346,7 +344,7 @@ const Navbar = (): JSX.Element => {
                   <ConnectButton accountStatus={{ smallScreen: "avatar" }} label="CONNECT WALLET"/>
                 </div>
                 <Image
-                  src={userInfo.profileImageUrl}
+                  src={Profile}
                   alt="Profile Image"
                   className={`rounded-full bg-black border-2 border-pink-500 transition-transform duration-300 hover:scale-110 ${router.asPath.split("/")[1] === "dashboard" ? "block" : "hidden"}`}
                   width={50}
@@ -425,14 +423,13 @@ const Navbar = (): JSX.Element => {
                   </div>
                   {/* Main */}
                   <form onSubmit={handleSubmit} className="flex flex-col mt-8 gap-5">
-                    <h3 className="text-xl">Photo</h3>
+                    {/* <h3 className="text-xl">Photo</h3>
                     <div className="flex items-center space-x-4">
                       <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100">
                         {imageSrc ? (
                           <img src={imageSrc} alt="Profile preview" className="w-full h-full object-cover" />
                         ) : (
                           <div className="flex items-center justify-center h-full">
-                            {/* Placeholder icon or text */}
                             <span className="text-gray-300">No image</span>
                           </div>
                         )}
@@ -447,7 +444,7 @@ const Navbar = (): JSX.Element => {
                         />
                       </label>
                     </div>
-                    <div className="h-[1px] bg-gray-500"></div>
+                    <div className="h-[1px] bg-gray-500"></div> */}
                     <h3 className="text-xl">Username</h3>
                     <input 
                       type="text"
