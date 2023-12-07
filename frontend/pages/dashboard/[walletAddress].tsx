@@ -120,6 +120,24 @@ const Dashboard: NextPage = () => {
     return null;
   }
 
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const tokenTypes = ["USDC", "USDT", "MATIC", "JPYC"];
+  const [tokenType, setTokenType] = useState("USDC");
+  const [depositAmount, setDepositAmount] = useState(0);
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    if (depositAmount === 0) {
+      return;
+    }
+  
+    console.log("Form submitted with deposit amount:", depositAmount, tokenType);
+
+    setTokenType("USDC");
+    setDepositAmount(0);
+  };
+
   return (
     <div className="font-nunito text-secondary">
       {/* Dashboard Section */}
@@ -158,6 +176,55 @@ const Dashboard: NextPage = () => {
               )}
               {data.data?.length > 0 && <LineChart mockData={data.data} />}
             </div> */}
+            <form onSubmit={handleSubmit}>
+              <div className="flex w-full">
+                <input
+                  type="number"
+                  name="depositAmount"
+                  id="depositAmount"
+                  className="w-full h-full border-none bg-slate-800 focus:bg-slate-900 rounded-sm px-2 py-[0.3rem] text-sm outline-none text-white"
+                  placeholder="Deposit Amount"
+                  min={0}
+                  value={depositAmount}
+                  onChange={(e) => setDepositAmount(parseInt(e.target.value, 10))}
+                  required
+                />
+                <div className="relative grow">
+                  <button type="button" className="relative w-full rounded-md cursor-default bg-slate-800 h-full pr-10 pl-3 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6" aria-haspopup="listbox" aria-expanded="true" aria-labelledby="listbox-label" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+                    <span className="ml-3 block truncate font-bold">{tokenType}</span>
+                    <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
+                      <svg className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M10 3a.75.75 0 01.55.24l3.25 3.5a.75.75 0 11-1.1 1.02L10 4.852 7.3 7.76a.75.75 0 01-1.1-1.02l3.25-3.5A.75.75 0 0110 3zm-3.76 9.2a.75.75 0 011.06.04l2.7 2.908 2.7-2.908a.75.75 0 111.1 1.02l-3.25 3.5a.75.75 0 01-1.1 0l-3.25-3.5a.75.75 0 01.04-1.06z" clip-rule="evenodd" />
+                      </svg>
+                    </span>
+                  </button>
+                  {isDropdownOpen &&
+                    <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm" role="listbox" aria-labelledby="listbox-label" aria-activedescendant="listbox-option-3" tabIndex={-1}>
+                      {tokenTypes.filter(type => type !== tokenType).map((type, index) => (
+                        <li 
+                          key={index} 
+                          className="text-gray-900 relative cursor-default select-none py-2" 
+                          role="option"
+                          onClick={(e) => {
+                            setTokenType(type); 
+                            // updateFormField(type, "tokenSymbol");
+                            setIsDropdownOpen(false);
+                          }}
+                        >
+                          <p className="block truncate font-bold text-center">{type}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  }
+                </div>
+              </div>
+              <button 
+                type="submit" 
+                className="mt-4 w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Submit
+              </button>
+            </form>
           </div>
           {/* Table */}
           <motion.div
