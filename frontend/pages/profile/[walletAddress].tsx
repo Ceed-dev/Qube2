@@ -20,7 +20,7 @@ import {
 // Framer-Motion Imports
 import { motion } from "framer-motion";
 
-import { Envelope } from "../../assets";
+import { Envelope, ProfileImage } from "../../assets";
 
 const SectionWrapper: React.FC<SectionWrapperPropsInterface> = ({
   children,
@@ -46,13 +46,13 @@ const Profile: NextPage = () => {
 
   const [userInfo, setUserInfo] = useState({
     email: "",
-    profileImageUrl: "",
+    // profileImageUrl: "",
     userType: "",
     username: "",
-    projectNftIds: [],
+    // projectNftIds: [],
   });
-  const [projectNfts, setProjectNfts] = useState([]);
-  const [nftContract, setNftContract] = useState<SmartContract | null>(null);
+  // const [projectNfts, setProjectNfts] = useState([]);
+  // const [nftContract, setNftContract] = useState<SmartContract | null>(null);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -61,45 +61,45 @@ const Profile: NextPage = () => {
         console.log("userInfo: ", res.data);
         setUserInfo({
           email: res.data.email,
-          profileImageUrl: res.data.profileImageUrl,
+          // profileImageUrl: res.data.profileImageUrl,
           userType: res.data.userType,
           username: res.data.username,
-          projectNftIds: res.data.projectNftIds == undefined ? [] : res.data.projectNftIds,
+          // projectNftIds: res.data.projectNftIds == undefined ? [] : res.data.projectNftIds,
         });
       } catch (error) {
         console.log("Error has occured with /api/user/[walletAddress].ts");
       }
     };
 
-    const fetchContract = async () => {
-      const sdk = new ThirdwebSDK(process.env.NEXT_PUBLIC_CHAIN, {
-        clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
-      });
+    // const fetchContract = async () => {
+    //   const sdk = new ThirdwebSDK(process.env.NEXT_PUBLIC_CHAIN, {
+    //     clientId: process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+    //   });
 
-      const contract = await sdk.getContract(process.env.NEXT_PUBLIC_NFT_COLLECTION_CONTRACT_ADDRESS);
-      setNftContract(contract);
-    }
+    //   const contract = await sdk.getContract(process.env.NEXT_PUBLIC_NFT_COLLECTION_CONTRACT_ADDRESS);
+    //   setNftContract(contract);
+    // }
 
     if (walletAddress) {
       fetchUserInfo();
-      fetchContract();
+      // fetchContract();
     }
   }, [walletAddress]);
 
-  useEffect(() => {
-    async function fetchProjectNFTs() {
-      if (nftContract != null && userInfo.projectNftIds.length > 0) {
-        const nfts = await Promise.all(
-          userInfo.projectNftIds.map(projectNftId => 
-            nftContract.erc721.get(projectNftId)
-          )
-        );
-        setProjectNfts(nfts);
-      }
-    }
+  // useEffect(() => {
+  //   async function fetchProjectNFTs() {
+  //     if (nftContract != null && userInfo.projectNftIds.length > 0) {
+  //       const nfts = await Promise.all(
+  //         userInfo.projectNftIds.map(projectNftId => 
+  //           nftContract.erc721.get(projectNftId)
+  //         )
+  //       );
+  //       setProjectNfts(nfts);
+  //     }
+  //   }
   
-    fetchProjectNFTs();
-  }, [userInfo.projectNftIds, nftContract]);
+  //   fetchProjectNFTs();
+  // }, [userInfo.projectNftIds, nftContract]);
   
   return (
     <div className="font-nunito text-secondary">
@@ -108,7 +108,7 @@ const Profile: NextPage = () => {
         glowStyles={aesthetics.glow.dashboardGlowStyles}
       >
         <Image
-          src={userInfo.profileImageUrl}
+          src={ProfileImage}
           alt="Profile Image"
           className="rounded-full mx-auto bg-black border-2 border-pink-500"
           width={150}
@@ -125,7 +125,7 @@ const Profile: NextPage = () => {
             />
           </Link>
         </div>
-        <h1 className="text-4xl my-10">Proof of Work</h1>
+        {/* <h1 className="text-4xl my-10">Proof of Work</h1>
         <div className="grid gap-10 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {projectNfts.length > 0 ? (
             projectNfts.map((projectNft, index) => {
@@ -156,7 +156,7 @@ const Profile: NextPage = () => {
           ) : (
             <p className="text-3xl col-span-5 text-center">No NFTs available</p>
           )}
-        </div>
+        </div> */}
       </SectionWrapper>
     </div>
   );

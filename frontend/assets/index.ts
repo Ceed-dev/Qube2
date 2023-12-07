@@ -30,7 +30,7 @@ import X from "./X.svg";
 import Checkbox from "./Checkbox.svg";
 import Workflow from "./Workflow.svg";
 import Envelope from "./Envelope.svg";
-import Profile from "./Profile.png";
+import ProfileImage from "./Profile.png";
 
 export {
   arrow,
@@ -65,5 +65,5 @@ export {
   Checkbox,
   Workflow,
   Envelope,
-  Profile,
+  ProfileImage,
 };
