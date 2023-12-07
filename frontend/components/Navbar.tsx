@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import axios from "axios";
 
 import { navLinks, aesthetics } from "../constants";
-import { arrow, MenuIcon, CrossIcon, Spinner, Profile } from "../assets";
+import { arrow, MenuIcon, CrossIcon, Spinner, ProfileImage } from "../assets";
 import { Glow } from "./aesthetics";
 
 import dotenv from "dotenv";
@@ -344,7 +344,7 @@ const Navbar = (): JSX.Element => {
                   <ConnectButton accountStatus={{ smallScreen: "avatar" }} label="CONNECT WALLET"/>
                 </div>
                 <Image
-                  src={Profile}
+                  src={ProfileImage}
                   alt="Profile Image"
                   className={`rounded-full bg-black border-2 border-pink-500 transition-transform duration-300 hover:scale-110 ${router.asPath.split("/")[1] === "dashboard" ? "block" : "hidden"}`}
                   width={50}
