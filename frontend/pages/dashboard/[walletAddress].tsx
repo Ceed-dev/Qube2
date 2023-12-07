@@ -225,6 +225,12 @@ const Dashboard: NextPage = () => {
                 Submit
               </button>
             </form>
+            <p className="text-2xl mt-5 mb-2">Deposit Balance</p>
+            <div className="flex justify-between text-xl">
+              {tokenTypes.map((token, index) => (
+                <p key={index}>0 {token}</p>
+              ))}
+            </div>
           </div>
           {/* Table */}
           <motion.div
