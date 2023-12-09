@@ -4,6 +4,8 @@ import { signMetaTxRequest } from "../utils/signer";
 import deployedContracts from "../../backend/deploy.mumbai.json";
 import EscrowAbi from "./abi/escrow.json";
 import { getForwarderContract } from "./Forwarder";
+import { TokenAddress } from "../enums";
+import { Token } from "@thirdweb-dev/sdk";
 
 export function getEscrowContract(): Contract {
   const signer = getSigner();
@@ -46,6 +48,58 @@ async function sendMetaTx(contract: Contract, signer: ethers.providers.JsonRpcSi
   } catch (error) {
     console.error(`Failed to send meta-transaction: ${error}`);
     throw error;
+  }
+}
+
+export async function depositERC20Token(tokenAddress: string, amount: BigNumber): Promise<string> {
+  const signer = getSigner();
+  const contract = getEscrowContract();
+
+  try {
+    const txHash = await sendMetaTx(contract, signer, "depositERC20Token", [tokenAddress, amount]);
+    console.log(`Transaction successful: ${txHash}`);
+    return txHash;
+  } catch (error) {
+    console.error(`Transaction failed: ${error}`);
+  }
+}
+
+export async function depositNativeToken(amount: BigNumber): Promise<string> {
+  const contract = getEscrowContract();
+
+  try {
+    const transactionResponse = await contract.depositNativeToken({ value: amount });
+    console.log(transactionResponse);
+    const txHash = transactionResponse.hash;
+    console.log(`Transaction successful: ${txHash}`);
+    return txHash;
+  } catch (error) {
+    console.error(`Transaction failed: ${error}`);
+  }
+}
+
+export async function getTokenBalance(userAddress: string, tokenAddress: string): Promise<string> {
+  const contract = getEscrowContract();
+
+  try {
+    const balance = await contract.getTokenBalance(userAddress, tokenAddress);
+    const formattedBalance = ethers.utils.formatUnits(balance, (tokenAddress === TokenAddress["MATIC"]) ? 18 : 6);
+    return parseFloat(formattedBalance).toFixed(0);
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+export async function withdraw(tokenAddress: string, amount: BigNumber): Promise<string> {
+  const signer = getSigner();
+  const contract = getEscrowContract();
+
+  try {
+    const txHash = await sendMetaTx(contract, signer, "withdraw", [tokenAddress, amount]);
+    console.log(`Transaction successful: ${txHash}`);
+    return txHash;
+  } catch (error) {
+    console.error(`Transaction failed: ${error}`);
   }
 }
 
