@@ -83,7 +83,7 @@ export async function getTokenBalance(userAddress: string, tokenAddress: string)
 
   try {
     const balance = await contract.getTokenBalance(userAddress, tokenAddress);
-    const formattedBalance = ethers.utils.formatUnits(balance, (tokenAddress === TokenAddress["MATIC"]) ? 18 : 6);
+    const formattedBalance = ethers.utils.formatUnits(balance, (tokenAddress === TokenAddress["MATIC"] || tokenAddress === TokenAddress["JPYC"]) ? 18 : 6);
     return parseFloat(formattedBalance).toFixed(0);
   } catch (error) {
     alert(error.message);
