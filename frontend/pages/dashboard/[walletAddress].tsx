@@ -320,7 +320,7 @@ const Dashboard: NextPage = () => {
                   <button
                     className={`${tokenBalances[token] == 0 ? "bg-gray-500" : "bg-orange-700"} rounded-lg px-5 py-2`}
                     onClick={async () => {
-                      const balance = ethers.utils.parseUnits(tokenBalances[token].toString(), token === "MATIC" ? 18 : 6);
+                      const balance = ethers.utils.parseUnits(tokenBalances[token].toString(), (token === "MATIC" || token === "JPYC") ? 18 : 6);
                       console.log(token, balance);
                       const result = await withdraw(TokenAddress[token], balance);
                       console.log("Withdraw completed: ", result);
