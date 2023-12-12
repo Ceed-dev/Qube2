@@ -62,6 +62,10 @@ async function main() {
       const deployedToken = await deploy(hre, ContractNames.CustomToken, name, symbol, initialSupply, customDecimals);
       console.log(`${symbol} deployed to:`, deployedToken.address);
       deployedAddresses[symbol] = deployedToken.address;
+
+      console.log("Waiting for Polygonscan to catch up...");
+      await new Promise(resolve => setTimeout(resolve, 60000)); // Wait 60 seconds
+
       await verifyContract(hre, deployedToken.address, name, symbol, initialSupply, customDecimals);
     }
 
