@@ -42,9 +42,9 @@ contract Escrow is ERC2771Context, Ownable {
     //     _;
     // }
 
-    constructor(ERC2771Forwarder forwarder, address initialOwner) 
+    constructor(ERC2771Forwarder forwarder) 
         ERC2771Context(address(forwarder))
-        Ownable(initialOwner)
+        Ownable(msg.sender)
     {}
 
     function depositNativeToken() external payable {
