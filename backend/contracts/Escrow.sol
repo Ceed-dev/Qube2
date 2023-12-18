@@ -33,6 +33,7 @@ contract Escrow is ERC2771Context, Ownable {
     event ERC20TokenDeposited(address indexed depositor, address tokenAddress, uint256 amount);
     event DepositWithdrawn(address indexed depositor, address tokenAddress, uint256 amount);
     event OwnerAction(string indexed action, string indexed depositId);
+    event ProjectCreated(string indexed projectId, address indexed depositor, address indexed recipient, address tokenAddress, uint256 amount);
 
     // modifier validateDeposit(address _recipient, string memory _depositId) {
     //     require(_msgSender() != address(0), "createDeposit: Invalid depositor address");
@@ -42,9 +43,9 @@ contract Escrow is ERC2771Context, Ownable {
     //     _;
     // }
 
-    constructor(ERC2771Forwarder forwarder, address initialOwner) 
+    constructor(ERC2771Forwarder forwarder) 
         ERC2771Context(address(forwarder))
-        Ownable(initialOwner)
+        Ownable(msg.sender)
     {}
 
     function depositNativeToken() external payable {
@@ -171,6 +172,37 @@ contract Escrow is ERC2771Context, Ownable {
         return true;
     }
 
+    function createProject(string memory _projectId, address _recipient, address _tokenAddress, uint256 _amount) external {
+        require(keccak256(bytes(_projectId)) != keccak256(bytes("")), "createProject: Invalid project ID");
+        require(projects[_projectId].depositor == address(0), "createProject: Project ID already exists");
+        require(_recipient != address(0), "createProject: Recipient can't be zero address");
+        require(_tokenAddress != address(0), "createProject: Invalid token address");
+        require(_amount > 0, "createProject: Amount must be greater than 0");
+
+        // Check user deposit
+        Deposit storage userDeposit = deposits[_msgSender()];
+        require(userDeposit.tokenBalances[_tokenAddress] >= _amount, "createProject: Insufficient deposit");
+
+        // Subtract the reward amount from the deposit
+        userDeposit.tokenBalances[_tokenAddress] -= _amount;
+
+        // create project
+        projects[_projectId] = Project({
+            depositor: _msgSender(),
+            recipient: _recipient,
+            tokenAddress: _tokenAddress,
+            amount: _amount,
+            timestamp: block.timestamp
+        });
+        projectIds.push(_projectId);
+
+        // If the deposit reaches 0, delete the corresponding token from the token list.
+        if (userDeposit.tokenBalances[_tokenAddress] == 0) {
+            removeTokenFromList(_msgSender(), _tokenAddress);
+        }
+
+        emit ProjectCreated(_projectId, _msgSender(), _recipient, _tokenAddress, _amount);
+    }
 
     // function withdrawToRecipientByDepositor(string memory _depositId) external {
     //     require(deposits[_depositId].depositor == _msgSender(), "Not authorized to withdraw this deposit");
