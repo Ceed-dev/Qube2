@@ -334,6 +334,21 @@ contract Escrow is ERC2771Context {
         emit UserUnassignedFromProject(projectId, user);
     }
 
+    function changeProjectName(
+        string memory projectId, 
+        string memory newName
+    ) external updateLastUpdatedTimestamp(projectId) {
+        require(bytes(newName).length > 0, "New name cannot be empty");
+        
+        Project storage project = projects[projectId];
+        require(_msgSender() == project.owner, "Only the project owner can change the name");
+
+        project.name = newName;
+
+        // プロジェクト名が変更されたことを記録するイベントを発行
+        emit ProjectNameChanged(projectId, newName);
+    }
+
     function removeTokenAddress(address[] storage tokenAddresses, address tokenAddress) private {
         uint256 length = tokenAddresses.length;
         for (uint256 i = 0; i < length; i++) {
