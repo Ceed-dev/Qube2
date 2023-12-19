@@ -99,4 +99,9 @@ contract Escrow is ERC2771Context {
     constructor(ERC2771Forwarder forwarder) 
         ERC2771Context(address(forwarder))
     {}
+
+    modifier updateLastUpdatedTimestamp(string memory projectId) {
+        _;
+        projects[projectId].lastUpdatedTimestamp = block.timestamp;
+    }
 }
