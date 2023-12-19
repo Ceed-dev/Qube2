@@ -104,4 +104,42 @@ contract Escrow is ERC2771Context {
         _;
         projects[projectId].lastUpdatedTimestamp = block.timestamp;
     }
+
+    function getOwnerProjects(address owner) external view returns (string[] memory) {
+        return ownerProjects[owner];
+    }
+
+    function getProjectDetails(string memory projectId) external view returns (ProjectDetails memory) {
+        Project storage project = projects[projectId];
+        TokenDepositInfo[] memory tokenDeposits = new TokenDepositInfo[](project.tokenAddresses.length);
+
+        for (uint i = 0; i < project.tokenAddresses.length; i++) {
+            tokenDeposits[i] = TokenDepositInfo({
+                tokenAddress: project.tokenAddresses[i],
+                depositAmount: project.depositTokens[project.tokenAddresses[i]]
+            });
+        }
+
+        return ProjectDetails({
+            owner: project.owner,
+            name: project.name,
+            assignedUsers: project.assignedUsers,
+            tokenDeposits: tokenDeposits,
+            taskIds: project.taskIds,
+            startTimestamp: project.startTimestamp,
+            lastUpdatedTimestamp: project.lastUpdatedTimestamp
+        });
+    }
+
+    function getAssignedUserProjects(address user) external view returns (string[] memory) {
+        return assignedUserProjects[user];
+    }
+
+    function getProjectIdByTask(string memory taskId) external view returns (string memory) {
+        return taskToProject[taskId];
+    }
+
+    function getAllProjectIds() public view returns (string[] memory) {
+        return allProjectIds;
+    }
 }
