@@ -213,4 +213,36 @@ contract Escrow is ERC2771Context {
 
         emit ProjectCreated(projectId, _msgSender(), _name, block.timestamp);
     }
+
+    function depositAdditionalTokensToProject(
+        string memory projectId,
+        address[] memory tokenAddresses,
+        uint256[] memory amounts
+    ) external payable updateLastUpdatedTimestamp(projectId) {
+        require(tokenAddresses.length == amounts.length, "Token addresses and amounts must be the same length");
+        Project storage project = projects[projectId];
+        require(_msgSender() == project.owner, "Only the project owner can deposit additional tokens");
+
+        // ネイティブトークン（MATIC）の追加デポジット処理
+        if (msg.value > 0) {
+            project.depositTokens[address(0)] += msg.value;
+            if (project.depositTokens[address(0)] == msg.value) {
+                project.tokenAddresses.push(address(0));
+            }
+            emit TokenDeposited(projectId, address(0), msg.value);
+        }
+
+        // ERC20トークンの追加デポジット処理
+        for (uint i = 0; i < tokenAddresses.length; i++) {
+            require(tokenAddresses[i] != address(0), "Token address cannot be address(0)");
+            require(amounts[i] > 0, "Deposit amount must be greater than 0");
+            if (project.depositTokens[tokenAddresses[i]] == 0) {
+                project.tokenAddresses.push(tokenAddresses[i]);
+            }
+            project.depositTokens[tokenAddresses[i]] += amounts[i];
+            IERC20 token = IERC20(tokenAddresses[i]);
+            SafeERC20.safeTransferFrom(token, _msgSender(), address(this), amounts[i]);
+            emit TokenDeposited(projectId, tokenAddresses[i], amounts[i]);
+        }
+    }
 }
