@@ -349,6 +349,28 @@ contract Escrow is ERC2771Context {
         emit ProjectNameChanged(projectId, newName);
     }
 
+    function changeProjectOwner(
+        string memory projectId, 
+        address newOwner
+    ) external updateLastUpdatedTimestamp(projectId) {
+        require(newOwner != address(0), "Invalid new owner address");
+        Project storage project = projects[projectId];
+        require(_msgSender() == project.owner, "Only the current owner can change the project owner");
+        for (uint i = 0; i < project.assignedUsers.length; i++) {
+            require(project.assignedUsers[i] != newOwner, "New owner cannot be an assigned user");
+        }
+
+        // ownerProjects マッピングを更新
+        removeProjectFromOwnerProjects(project.owner, projectId);
+        ownerProjects[newOwner].push(projectId);
+
+        // オーナーを更新
+        project.owner = newOwner;
+
+        // プロジェクトのオーナーが変更されたことを記録するイベントを発行
+        emit ProjectOwnerChanged(projectId, newOwner);
+    }
+
     function removeTokenAddress(address[] storage tokenAddresses, address tokenAddress) private {
         uint256 length = tokenAddresses.length;
         for (uint256 i = 0; i < length; i++) {
@@ -380,6 +402,17 @@ contract Escrow is ERC2771Context {
             if (keccak256(bytes(assignedUserProjects[user][i])) == keccak256(bytes(projectId))) {
                 assignedUserProjects[user][i] = assignedUserProjects[user][length - 1];
                 assignedUserProjects[user].pop();
+                break;
+            }
+        }
+    }
+
+    function removeProjectFromOwnerProjects(address owner, string memory projectId) private {
+        uint256 length = ownerProjects[owner].length;
+        for (uint256 i = 0; i < length; i++) {
+            if (keccak256(bytes(ownerProjects[owner][i])) == keccak256(bytes(projectId))) {
+                ownerProjects[owner][i] = ownerProjects[owner][length - 1];
+                ownerProjects[owner].pop();
                 break;
             }
         }
