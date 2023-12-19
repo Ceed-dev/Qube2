@@ -371,6 +371,49 @@ contract Escrow is ERC2771Context {
         emit ProjectOwnerChanged(projectId, newOwner);
     }
 
+    function deleteProject(string memory projectId) external {
+        Project storage project = projects[projectId];
+        require(_msgSender() == project.owner, "Only the project owner can delete the project");
+        require(project.taskIds.length == 0, "Project cannot be deleted with remaining tasks");
+
+        // プロジェクト名を一時変数に保存
+        string memory projectName = project.name;
+
+        // デポジットの返却
+        for (uint i = 0; i < project.tokenAddresses.length; i++) {
+            address tokenAddress = project.tokenAddresses[i];
+            uint256 depositAmount = project.depositTokens[tokenAddress];
+
+            // マッピングの値を先にリセット
+            project.depositTokens[tokenAddress] = 0;
+
+            if (depositAmount > 0) {
+                if (tokenAddress != address(0)) { // 通常のERC20トークン
+                    IERC20 token = IERC20(tokenAddress);
+                    SafeERC20.safeTransfer(token, _msgSender(), depositAmount);
+                } else { // ネイティブトークン（MATIC）の場合
+                    (bool sent, ) = _msgSender().call{value: depositAmount}("");
+                    require(sent, "Failed to send native token");
+                }
+            }
+        }
+
+        // プロジェクト関連データのクリーンアップ
+        // すべてのプロジェクトIDのリストからプロジェクトIDを削除
+        removeProjectId(projectId);
+
+        // プロジェクトの割り当てられたユーザーからプロジェクトIDを削除
+        removeProjectFromAssignedUsers(projectId, project);
+
+        // ownerProjects からプロジェクトIDを削除
+        removeProjectFromOwnerProjects(_msgSender(), projectId);
+
+        // プロジェクトの削除
+        delete projects[projectId];
+
+        emit ProjectDeleted(projectId, _msgSender(), projectName);
+    }
+
     function removeTokenAddress(address[] storage tokenAddresses, address tokenAddress) private {
         uint256 length = tokenAddresses.length;
         for (uint256 i = 0; i < length; i++) {
@@ -413,6 +456,35 @@ contract Escrow is ERC2771Context {
             if (keccak256(bytes(ownerProjects[owner][i])) == keccak256(bytes(projectId))) {
                 ownerProjects[owner][i] = ownerProjects[owner][length - 1];
                 ownerProjects[owner].pop();
+                break;
+            }
+        }
+    }
+
+    function removeProjectId(string memory projectId) private {
+        uint256 length = allProjectIds.length;
+        for (uint256 i = 0; i < length; i++) {
+            if (keccak256(bytes(allProjectIds[i])) == keccak256(bytes(projectId))) {
+                allProjectIds[i] = allProjectIds[length - 1];
+                allProjectIds.pop();
+                break;
+            }
+        }
+    }
+
+    function removeProjectFromAssignedUsers(string memory projectId, Project storage project) private {
+        for (uint i = 0; i < project.assignedUsers.length; i++) {
+            address user = project.assignedUsers[i];
+            removeProjectFromUserProjects(user, projectId);
+        }
+    }
+
+    function removeProjectFromUserProjects(address user, string memory projectId) private {
+        uint256 length = assignedUserProjects[user].length;
+        for (uint256 i = 0; i < length; i++) {
+            if (keccak256(bytes(assignedUserProjects[user][i])) == keccak256(bytes(projectId))) {
+                assignedUserProjects[user][i] = assignedUserProjects[user][length - 1];
+                assignedUserProjects[user].pop();
                 break;
             }
         }
