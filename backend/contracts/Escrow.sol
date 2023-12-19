@@ -50,6 +50,52 @@ contract Escrow is ERC2771Context {
     // 存在する全てのプロジェクトID
     string[] private allProjectIds;
 
+    event ProjectCreated(
+        string indexed projectId,
+        address indexed owner,
+        string name,
+        uint256 startTimestamp
+    );
+
+    event TokenDeposited(
+        string indexed projectId,
+        address indexed tokenAddress,
+        uint256 amount
+    );
+
+    event TokensWithdrawn(
+        string indexed projectId,
+        address indexed owner,
+        address indexed tokenAddress,
+        uint256 amount
+    );
+
+    event UserAssignedToProject(
+        string indexed projectId, 
+        address indexed user
+    );
+
+    event UserUnassignedFromProject(
+        string indexed projectId, 
+        address indexed user
+    );
+
+    event ProjectNameChanged(
+        string indexed projectId, 
+        string newName
+    );
+
+    event ProjectOwnerChanged(
+        string indexed projectId, 
+        address indexed newOwner
+    );
+
+    event ProjectDeleted(
+        string indexed projectId, 
+        address indexed owner, 
+        string projectName
+    );
+
     constructor(ERC2771Forwarder forwarder) 
         ERC2771Context(address(forwarder))
     {}
