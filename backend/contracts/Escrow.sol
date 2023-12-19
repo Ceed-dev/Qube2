@@ -277,6 +277,34 @@ contract Escrow is ERC2771Context {
         emit TokensWithdrawn(projectId, _msgSender(), tokenAddress, amount);
     }
 
+    // TODO 追加の人数制限を設けるか？
+    function assignUserToProject(
+        string memory projectId, 
+        address user
+    ) external updateLastUpdatedTimestamp(projectId) {
+        require(isOwnerOrAssignedUser(projectId, _msgSender()), "Caller is not the owner or an assigned user");
+        require(user != address(0), "Invalid user address");
+
+        Project storage project = projects[projectId];
+
+        // TODO 確認：追加するユーザーがオーナーでないことを確認
+        require(user != project.owner, "Owner cannot be assigned as a user");
+
+        // ユーザーがすでに割り当てられていないことを確認
+        for (uint i = 0; i < project.assignedUsers.length; i++) {
+            require(project.assignedUsers[i] != user, "User already assigned");
+        }
+
+        // プロジェクトにユーザーを割り当て
+        project.assignedUsers.push(user);
+
+        // 割り当てられたユーザーのプロジェクトリストを更新
+        assignedUserProjects[user].push(projectId);
+
+        // プロジェクトにユーザーを割り当てたことを記録するイベントを発行
+        emit UserAssignedToProject(projectId, user);
+    }
+
     function removeTokenAddress(address[] storage tokenAddresses, address tokenAddress) private {
         uint256 length = tokenAddresses.length;
         for (uint256 i = 0; i < length; i++) {
@@ -286,5 +314,18 @@ contract Escrow is ERC2771Context {
                 break;
             }
         }
+    }
+
+    function isOwnerOrAssignedUser(string memory projectId, address user) private view returns (bool) {
+        Project storage project = projects[projectId];
+        if (user == project.owner) {
+            return true;
+        }
+        for (uint i = 0; i < project.assignedUsers.length; i++) {
+            if (project.assignedUsers[i] == user) {
+                return true;
+            }
+        }
+        return false;
     }
 }
