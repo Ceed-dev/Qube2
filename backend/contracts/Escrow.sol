@@ -305,6 +305,35 @@ contract Escrow is ERC2771Context {
         emit UserAssignedToProject(projectId, user);
     }
 
+    function unassignUserFromProject(
+        string memory projectId, 
+        address user
+    ) external updateLastUpdatedTimestamp(projectId) {
+        require(isOwnerOrAssignedUser(projectId, _msgSender()), "Caller is not the owner or an assigned user");
+        require(user != address(0), "Invalid user address");
+
+        Project storage project = projects[projectId];
+        // TODO 確認：1人になったら削除できない
+        require(project.assignedUsers.length > 1, "Cannot remove the last assigned user");
+
+        bool userFound = false;
+        for (uint i = 0; i < project.assignedUsers.length; i++) {
+            if (project.assignedUsers[i] == user) {
+                project.assignedUsers[i] = project.assignedUsers[project.assignedUsers.length - 1];
+                project.assignedUsers.pop();
+                userFound = true;
+                break;
+            }
+        }
+        require(userFound, "User not found");
+
+        // ユーザーが割り当てられたプロジェクトのリストからプロジェクトIDを削除
+        removeProjectFromAssignedUser(user, projectId);
+
+        // プロジェクトからユーザーを割り当て解除したことを記録するイベントを発行
+        emit UserUnassignedFromProject(projectId, user);
+    }
+
     function removeTokenAddress(address[] storage tokenAddresses, address tokenAddress) private {
         uint256 length = tokenAddresses.length;
         for (uint256 i = 0; i < length; i++) {
@@ -327,5 +356,17 @@ contract Escrow is ERC2771Context {
             }
         }
         return false;
+    }
+
+    function removeProjectFromAssignedUser(address user, string memory projectId) private {
+        uint256 length = assignedUserProjects[user].length;
+        for (uint256 i = 0; i < length; i++) {
+            // TODO OZ Stringsを利用できないか？
+            if (keccak256(bytes(assignedUserProjects[user][i])) == keccak256(bytes(projectId))) {
+                assignedUserProjects[user][i] = assignedUserProjects[user][length - 1];
+                assignedUserProjects[user].pop();
+                break;
+            }
+        }
     }
 }
