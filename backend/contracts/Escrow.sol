@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import "@openzeppelin/contracts/metatx/ERC2771Forwarder.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract Escrow is ERC2771Context {
     using SafeERC20 for IERC20;
@@ -243,6 +244,47 @@ contract Escrow is ERC2771Context {
             IERC20 token = IERC20(tokenAddresses[i]);
             SafeERC20.safeTransferFrom(token, _msgSender(), address(this), amounts[i]);
             emit TokenDeposited(projectId, tokenAddresses[i], amounts[i]);
+        }
+    }
+
+    function withdrawTokensFromProject(
+        string memory projectId,
+        address tokenAddress,
+        uint256 amount
+    ) external updateLastUpdatedTimestamp(projectId) {
+        require(amount > 0, "Withdrawal amount must be greater than 0");
+        Project storage project = projects[projectId];
+        require(_msgSender() == project.owner, "Only the project owner can withdraw tokens");
+        require(project.depositTokens[tokenAddress] >= amount, "Insufficient token balance");
+
+        // トークンの残高を更新
+        project.depositTokens[tokenAddress] -= amount;
+
+        // トークンアドレスの削除処理
+        if (project.depositTokens[tokenAddress] == 0) {
+            removeTokenAddress(project.tokenAddresses, tokenAddress);
+        }
+
+        // ERC20トークンの引き出し
+        if (tokenAddress != address(0)) { // 通常のERC20トークン
+            IERC20 token = IERC20(tokenAddress);
+            SafeERC20.safeTransfer(token, _msgSender(), amount);
+        } else { // ネイティブトークン（MATIC）の場合
+            (bool sent, ) = _msgSender().call{value: amount}("");
+            require(sent, "Failed to send native token");
+        }
+
+        emit TokensWithdrawn(projectId, _msgSender(), tokenAddress, amount);
+    }
+
+    function removeTokenAddress(address[] storage tokenAddresses, address tokenAddress) private {
+        uint256 length = tokenAddresses.length;
+        for (uint256 i = 0; i < length; i++) {
+            if (tokenAddresses[i] == tokenAddress) {
+                tokenAddresses[i] = tokenAddresses[length - 1];
+                tokenAddresses.pop();
+                break;
+            }
         }
     }
 }
