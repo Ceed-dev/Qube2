@@ -1032,6 +1032,10 @@ contract Escrow is ERC2771Context, Ownable {
         emit LockPeriodDaysUpdated(_days);
     }
 
+    function generateProjectId(string memory _name, address _owner) private view returns (string memory) {
+        return string(abi.encodePacked(_name, "_", Strings.toHexString(uint256(keccak256(abi.encodePacked(block.timestamp, _owner, block.prevrandao))), 20)));
+    }
+
     function removeTokenAddress(address[] storage tokenAddresses, address tokenAddress) private {
         uint256 length = tokenAddresses.length;
         for (uint256 i = 0; i < length; i++) {
@@ -1108,7 +1112,28 @@ contract Escrow is ERC2771Context, Ownable {
         }
     }
 
-    function generateProjectId(string memory _name, address _owner) private view returns (string memory) {
-        return string(abi.encodePacked(_name, "_", Strings.toHexString(uint256(keccak256(abi.encodePacked(block.timestamp, _owner, block.prevrandao))), 20)));
+    // 期限の検証を行うヘルパー関数
+    function validateTaskDeadlines(
+        uint256 submissionDeadline,
+        uint256 reviewDeadline,
+        uint256 paymentDeadline
+    ) private view {
+        // 提出期限は現在時刻から指定された日数後
+        require(
+            submissionDeadline >= block.timestamp + (minSubmissionDeadlineDays * 1 days), 
+            "Submission deadline must be at least minSubmissionDeadlineDays days in the future"
+        );
+
+        // レビュー期限は提出期限から指定された日数後
+        require(
+            reviewDeadline >= submissionDeadline + (minReviewDeadlineDays * 1 days), 
+            "Review deadline must be at least minReviewDeadlineDays days after submission deadline"
+        );
+
+        // 支払期限はレビュー期限から指定された日数後
+        require(
+            paymentDeadline >= reviewDeadline + (minPaymentDeadlineDays * 1 days), 
+            "Payment deadline must be at least minPaymentDeadlineDays days after review deadline"
+        );
     }
 }
