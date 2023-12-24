@@ -1290,4 +1290,19 @@ contract Escrow is ERC2771Context, Ownable {
         // タスク内のロックトークンをリセット
         task.lockedAmount = 0;
     }
+
+    // トークンを指定された期間ロックする関数
+    function lockTokens(string memory taskId) private {
+        Task storage task = tasks[taskId];
+        require(task.creator != address(0), "Task does not exist");
+
+        // ロック期間を設定（日数を秒数に変換）
+        task.lockReleaseTimestamp = block.timestamp + (lockPeriodDays * 1 days);
+
+        // ステータスをLockedに更新
+        task.status = TaskStatus.LockedByDisapproval;
+
+        // 必要に応じてイベントを発行
+        emit TokensLockedForDisapproval(taskId, task.tokenAddress, task.lockedAmount, task.lockReleaseTimestamp);
+    }
 }
