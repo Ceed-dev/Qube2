@@ -6,8 +6,9 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import "@openzeppelin/contracts/metatx/ERC2771Forwarder.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Escrow is ERC2771Context {
+contract Escrow is ERC2771Context, Ownable {
     using SafeERC20 for IERC20;
 
     enum TaskStatus {
@@ -246,9 +247,23 @@ contract Escrow is ERC2771Context {
         address requester
     );
 
-    constructor(ERC2771Forwarder forwarder) 
+    constructor(
+        ERC2771Forwarder forwarder, 
+        uint256 _minSubmissionDeadlineDays, 
+        uint256 _minReviewDeadlineDays, 
+        uint256 _minPaymentDeadlineDays, 
+        uint256 _lockPeriodDays, 
+        uint256 _deadlineExtensionPeriodDays
+    ) 
         ERC2771Context(address(forwarder))
-    {}
+        Ownable(msg.sender)
+    {
+        minSubmissionDeadlineDays = _minSubmissionDeadlineDays;
+        minReviewDeadlineDays = _minReviewDeadlineDays;
+        minPaymentDeadlineDays = _minPaymentDeadlineDays;
+        lockPeriodDays = _lockPeriodDays;
+        deadlineExtensionPeriodDays = _deadlineExtensionPeriodDays;
+    }
 
     modifier updateLastUpdatedTimestamp(string memory projectId) {
         _;
