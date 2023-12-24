@@ -1192,4 +1192,23 @@ contract Escrow is ERC2771Context, Ownable {
 
         return false;
     }
+
+    function deleteTask(string memory taskId) private {
+        // タスクが存在することを確認
+        require(tasks[taskId].creator != address(0), "Task does not exist");
+
+        // タスクに関連するデータを更新
+        string memory projectId = tasks[taskId].projectId;
+        uint256 taskIndex = findTaskIndexInProject(projectId, taskId);
+        removeTaskFromProject(projectId, taskIndex);
+
+        // allTaskIds 配列からタスクIDを削除
+        removeTaskId(taskId);
+
+        // タスクを削除
+        delete tasks[taskId];
+
+        // イベント発行
+        emit TaskDeleted(taskId);
+    }
 }
