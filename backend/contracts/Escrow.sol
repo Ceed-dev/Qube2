@@ -1025,6 +1025,13 @@ contract Escrow is ERC2771Context, Ownable {
         emit MinPaymentDeadlineDaysUpdated(_days);
     }
 
+    // ロック期間を設定する関数
+    function setLockPeriodDays(uint256 _days) external onlyOwner {
+        require(_days > 0, "Lock period days must be greater than 0");
+        lockPeriodDays = _days;
+        emit LockPeriodDaysUpdated(_days);
+    }
+
     function removeTokenAddress(address[] storage tokenAddresses, address tokenAddress) private {
         uint256 length = tokenAddresses.length;
         for (uint256 i = 0; i < length; i++) {
