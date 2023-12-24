@@ -1305,4 +1305,28 @@ contract Escrow is ERC2771Context, Ownable {
         // 必要に応じてイベントを発行
         emit TokensLockedForDisapproval(taskId, task.tokenAddress, task.lockedAmount, task.lockReleaseTimestamp);
     }
+
+    // タスクの期限を更新するヘルパー関数
+    function updateTaskDeadlines(
+        string memory taskId,
+        uint256 newSubmissionDeadline,
+        uint256 newReviewDeadline,
+        uint256 newPaymentDeadline
+    ) private {
+        Task storage task = tasks[taskId];
+
+        // タスクが存在することを確認
+        require(task.creator != address(0), "Task does not exist");
+
+        // 新しい期限が適切であることを確認
+        validateTaskDeadlines(newSubmissionDeadline, newReviewDeadline, newPaymentDeadline);
+
+        // タスクの期限を更新
+        task.submissionDeadline = newSubmissionDeadline;
+        task.reviewDeadline = newReviewDeadline;
+        task.paymentDeadline = newPaymentDeadline;
+
+        // 必要に応じてイベントを発行
+        emit TaskDeadlinesUpdated(taskId, newSubmissionDeadline, newReviewDeadline, newPaymentDeadline);
+    }
 }
