@@ -265,9 +265,20 @@ contract Escrow is ERC2771Context, Ownable {
         deadlineExtensionPeriodDays = _deadlineExtensionPeriodDays;
     }
 
-    modifier updateLastUpdatedTimestamp(string memory projectId) {
+    modifier updateProjectLastUpdatedTimestamp(string memory projectId) {
         _;
         projects[projectId].lastUpdatedTimestamp = block.timestamp;
+    }
+
+    modifier updateTaskLastUpdatedTimestamp(string memory taskId) {
+        _;
+        tasks[taskId].lastUpdatedTimestamp = block.timestamp;
+    }
+
+    // ステータス更新modifier
+    modifier updateStatus(string memory taskId) {
+        updateTaskStatus(taskId);
+        _;
     }
 
     function getOwnerProjects(address owner) external view returns (string[] memory) {
@@ -383,7 +394,7 @@ contract Escrow is ERC2771Context, Ownable {
         string memory projectId,
         address[] memory tokenAddresses,
         uint256[] memory amounts
-    ) external payable updateLastUpdatedTimestamp(projectId) {
+    ) external payable updateProjectLastUpdatedTimestamp(projectId) {
         require(tokenAddresses.length == amounts.length, "Token addresses and amounts must be the same length");
         Project storage project = projects[projectId];
         require(_msgSender() == project.owner, "Only the project owner can deposit additional tokens");
@@ -415,7 +426,7 @@ contract Escrow is ERC2771Context, Ownable {
         string memory projectId,
         address tokenAddress,
         uint256 amount
-    ) external updateLastUpdatedTimestamp(projectId) {
+    ) external updateProjectLastUpdatedTimestamp(projectId) {
         require(amount > 0, "Withdrawal amount must be greater than 0");
         Project storage project = projects[projectId];
         require(_msgSender() == project.owner, "Only the project owner can withdraw tokens");
@@ -445,7 +456,7 @@ contract Escrow is ERC2771Context, Ownable {
     function assignUserToProject(
         string memory projectId, 
         address user
-    ) external updateLastUpdatedTimestamp(projectId) {
+    ) external updateProjectLastUpdatedTimestamp(projectId) {
         require(isOwnerOrAssignedUser(projectId, _msgSender()), "Caller is not the owner or an assigned user");
         require(user != address(0), "Invalid user address");
 
@@ -472,7 +483,7 @@ contract Escrow is ERC2771Context, Ownable {
     function unassignUserFromProject(
         string memory projectId, 
         address user
-    ) external updateLastUpdatedTimestamp(projectId) {
+    ) external updateProjectLastUpdatedTimestamp(projectId) {
         require(isOwnerOrAssignedUser(projectId, _msgSender()), "Caller is not the owner or an assigned user");
         require(user != address(0), "Invalid user address");
 
@@ -501,7 +512,7 @@ contract Escrow is ERC2771Context, Ownable {
     function changeProjectName(
         string memory projectId, 
         string memory newName
-    ) external updateLastUpdatedTimestamp(projectId) {
+    ) external updateProjectLastUpdatedTimestamp(projectId) {
         require(bytes(newName).length > 0, "New name cannot be empty");
         
         Project storage project = projects[projectId];
@@ -516,7 +527,7 @@ contract Escrow is ERC2771Context, Ownable {
     function changeProjectOwner(
         string memory projectId, 
         address newOwner
-    ) external updateLastUpdatedTimestamp(projectId) {
+    ) external updateProjectLastUpdatedTimestamp(projectId) {
         require(newOwner != address(0), "Invalid new owner address");
         Project storage project = projects[projectId];
         require(_msgSender() == project.owner, "Only the current owner can change the project owner");
