@@ -137,6 +137,115 @@ contract Escrow is ERC2771Context {
         string projectName
     );
 
+    event TaskStatusUpdated(
+        string indexed taskId, 
+        TaskStatus newStatus
+    );
+
+    // タスク作成：firebaseへ保存 -> オンチェーンへ保存の順で行う。firebaseで作成されたユニークIDをタスクIDとして使う。
+    event TaskCreated(
+        string indexed taskId,
+        string indexed projectId,
+        address indexed creator,
+        address tokenAddress,
+        uint256 lockedAmount,
+        uint256 submissionDeadline,
+        uint256 reviewDeadline,
+        uint256 paymentDeadline
+    );
+
+    // 設定変更のイベント
+    event MinSubmissionDeadlineDaysUpdated(uint256 newDays);
+    event MinReviewDeadlineDaysUpdated(uint256 newDays);
+    event MinPaymentDeadlineDaysUpdated(uint256 newDays);
+
+    // イベントの定義
+    event TaskStatusUpdated(
+        string indexed taskId, 
+        TaskStatus newStatus
+    );
+
+    // ロック期間変更のイベント
+    event LockPeriodDaysUpdated(uint256 newDays);
+
+    event TaskDeleted(string indexed taskId);
+
+    // トークン移動とタスク削除の完了を示すイベント
+    event TaskProcessed(
+        string indexed taskId,
+        TaskStatus status,
+        address indexed sender,
+        address recipient,
+        bool tokensReleased
+    );
+
+    event TokensReturnedToProject(
+        string indexed taskId, 
+        address indexed tokenAddress, 
+        uint256 amount
+    );
+
+    event TokensLockedForDisapproval(
+        string indexed taskId, 
+        address indexed tokenAddress, 
+        uint256 amount, 
+        uint256 lockReleaseTimestamp
+    );
+
+    event TokensReleasedToRecipient(
+        string indexed taskId, 
+        address indexed tokenAddress, 
+        uint256 amount
+    );
+
+    event DeletionRequestRejected(
+        string indexed taskId, 
+        address indexed recipient
+    );
+
+    event RecipientAssignedToTask(
+        string indexed taskId,
+        address indexed recipient
+    );
+
+    event TaskSubmitted(string indexed taskId);
+
+    event TaskApproved(
+        string indexed taskId, 
+        address indexed approver
+    );
+
+    event DeadlineExtensionRequested(
+        string indexed taskId, 
+        address indexed requestor
+    );
+
+    event TaskDeadlinesUpdated(
+        string indexed taskId,
+        uint256 newSubmissionDeadline,
+        uint256 newReviewDeadline,
+        uint256 newPaymentDeadline
+    );
+
+    event TaskStatusChangedToCreatedFromUnconfirmed(
+        string indexed taskId,
+        bool changed
+    );
+
+    event SubmissionDisapproved(
+        string indexed taskId, 
+        address disapprover
+    );
+
+    event DeadlineExtensionApproved(string indexed taskId);
+
+    event DeadlineExtensionRejected(string indexed taskId);
+
+    event TaskDeletionRequested(
+        string indexed taskId, 
+        address requester
+    );
+
     constructor(ERC2771Forwarder forwarder) 
         ERC2771Context(address(forwarder))
     {}
