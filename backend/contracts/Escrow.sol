@@ -1241,4 +1241,30 @@ contract Escrow is ERC2771Context, Ownable {
         projects[projectId].taskIds[taskIndex] = projects[projectId].taskIds[length - 1];
         projects[projectId].taskIds.pop();
     }
+
+    // プロジェクトにトークンを戻す関数
+    function returnTokensToProject(string memory taskId) private {
+        Task storage task = tasks[taskId];
+        require(task.creator != address(0), "Task does not exist");
+
+        Project storage project = projects[task.projectId];
+        project.depositTokens[task.tokenAddress] += task.lockedAmount;
+
+        // トークンアドレスがまだプロジェクトのトークンアドレスリストに含まれていない場合、追加する
+        bool isTokenAddressExists = false;
+        for (uint256 i = 0; i < project.tokenAddresses.length; i++) {
+            if (project.tokenAddresses[i] == task.tokenAddress) {
+                isTokenAddressExists = true;
+                break;
+            }
+        }
+        if (!isTokenAddressExists) {
+            project.tokenAddresses.push(task.tokenAddress);
+        }
+
+        emit TokensReturnedToProject(taskId, task.tokenAddress, task.lockedAmount);
+
+        // タスク内のロックトークンをリセット
+        task.lockedAmount = 0;
+    }
 }
