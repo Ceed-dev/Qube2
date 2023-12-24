@@ -1223,4 +1223,15 @@ contract Escrow is ERC2771Context, Ownable {
             }
         }
     }
+
+    // プロジェクト内のタスクのインデックスを見つける補助関数
+    function findTaskIndexInProject(string memory projectId, string memory taskId) private view returns (uint256) {
+        uint256 length = projects[projectId].taskIds.length;
+        for (uint256 i = 0; i < length; i++) {
+            if (keccak256(bytes(projects[projectId].taskIds[i])) == keccak256(bytes(taskId))) {
+                return i;
+            }
+        }
+        revert("Task not found in project");
+    }
 }
