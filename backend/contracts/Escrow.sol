@@ -10,6 +10,20 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 contract Escrow is ERC2771Context {
     using SafeERC20 for IERC20;
 
+    enum TaskStatus {
+        Created, // タスクが作成され、フリーランサーがサインするまで
+        Unconfirmed, // フリーランサーがサインをせず、現時点での日時がsubmissionDeadlineを超過している場合（プロジェクトオーナーは必要に応じてタスクを期限の変更またはタスクの削除をする選択肢があります。）
+        InProgress, // フリーランサーが作業を進行中
+        DeletionRequested, // フリーランサーによってサインされた後にクリエイターがカードの削除依頼をした場合
+        SubmissionOverdue, // 提出期限超過
+        UnderReview, // 提出された成果物がレビュー中
+        ReviewOverdue, // レビュー期限超過
+        PendingPayment, // 支払い待ち
+        PaymentOverdue, // 支払い期限超過
+        DeadlineExtensionRequested, // 期限延長が要求された
+        LockedByDisapproval // 不承認によりトークンがロックされた状態
+    }
+
     struct Project {
         address owner;
         string name;
