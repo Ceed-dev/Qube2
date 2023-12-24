@@ -1011,6 +1011,13 @@ contract Escrow is ERC2771Context, Ownable {
         emit MinSubmissionDeadlineDaysUpdated(_days);
     }
 
+    // 最小レビュー期限日数を更新する関数
+    function setMinReviewDeadlineDays(uint256 _days) external onlyOwner {
+        require(_days > 0, "Minimum review deadline days must be greater than 0");
+        minReviewDeadlineDays = _days;
+        emit MinReviewDeadlineDaysUpdated(_days);
+    }
+
     function removeTokenAddress(address[] storage tokenAddresses, address tokenAddress) private {
         uint256 length = tokenAddresses.length;
         for (uint256 i = 0; i < length; i++) {
