@@ -993,6 +993,45 @@ contract Escrow is ERC2771Context, Ownable {
         emit TaskDeletionRequested(taskId, _msgSender());
     }
 
+    // 期限延長期間を更新する関数（オーナーのみアクセス可）
+    function setDeadlineExtensionPeriodDays(uint256 _newPeriod) external onlyOwner {
+        require(_newPeriod > 0, "Extension period must be greater than 0");
+        deadlineExtensionPeriodDays = _newPeriod;
+    }
+
+    // ステータス更新関数
+    function updateTaskStatusByOwner(string memory taskId) external onlyOwner {
+        updateTaskStatus(taskId);
+    }
+
+    // 最小提出期限日数を更新する関数
+    function setMinSubmissionDeadlineDays(uint256 _days) external onlyOwner {
+        require(_days > 0, "Minimum submission deadline days must be greater than 0");
+        minSubmissionDeadlineDays = _days;
+        emit MinSubmissionDeadlineDaysUpdated(_days);
+    }
+
+    // 最小レビュー期限日数を更新する関数
+    function setMinReviewDeadlineDays(uint256 _days) external onlyOwner {
+        require(_days > 0, "Minimum review deadline days must be greater than 0");
+        minReviewDeadlineDays = _days;
+        emit MinReviewDeadlineDaysUpdated(_days);
+    }
+
+    // 最小支払期限日数を更新する関数
+    function setMinPaymentDeadlineDays(uint256 _days) external onlyOwner {
+        require(_days > 0, "Minimum payment deadline days must be greater than 0");
+        minPaymentDeadlineDays = _days;
+        emit MinPaymentDeadlineDaysUpdated(_days);
+    }
+
+    // ロック期間を設定する関数
+    function setLockPeriodDays(uint256 _days) external onlyOwner {
+        require(_days > 0, "Lock period days must be greater than 0");
+        lockPeriodDays = _days;
+        emit LockPeriodDaysUpdated(_days);
+    }
+
     function removeTokenAddress(address[] storage tokenAddresses, address tokenAddress) private {
         uint256 length = tokenAddresses.length;
         for (uint256 i = 0; i < length; i++) {
