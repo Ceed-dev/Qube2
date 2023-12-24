@@ -796,6 +796,28 @@ contract Escrow is ERC2771Context, Ownable {
         emit TaskSubmitted(taskId);
     }
 
+    function approveTask(string memory taskId) 
+        external
+        updateStatus(taskId)
+        updateTaskLastUpdatedTimestamp(taskId)
+    {
+        // タスクが存在することを確認
+        Task storage task = tasks[taskId];
+        require(task.creator != address(0), "Task does not exist");
+
+        // 呼び出し元がタスクのプロジェクトにアサインされているユーザーであることを確認
+        require(isUserAssignedToProject(task.projectId, _msgSender()), "User is not assigned to the project");
+
+        // ステータスがUnderReviewであることを確認
+        require(task.status == TaskStatus.UnderReview, "Task is not under review");
+
+        // ステータスをPendingPaymentに変更
+        task.status = TaskStatus.PendingPayment;
+
+        // イベント発行
+        emit TaskApproved(taskId, _msgSender());
+    }
+
     function removeTokenAddress(address[] storage tokenAddresses, address tokenAddress) private {
         uint256 length = tokenAddresses.length;
         for (uint256 i = 0; i < length; i++) {
