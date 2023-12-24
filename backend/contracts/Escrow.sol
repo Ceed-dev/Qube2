@@ -993,6 +993,12 @@ contract Escrow is ERC2771Context, Ownable {
         emit TaskDeletionRequested(taskId, _msgSender());
     }
 
+    // 期限延長期間を更新する関数（オーナーのみアクセス可）
+    function setDeadlineExtensionPeriodDays(uint256 _newPeriod) external onlyOwner {
+        require(_newPeriod > 0, "Extension period must be greater than 0");
+        deadlineExtensionPeriodDays = _newPeriod;
+    }
+
     function removeTokenAddress(address[] storage tokenAddresses, address tokenAddress) private {
         uint256 length = tokenAddresses.length;
         for (uint256 i = 0; i < length; i++) {
