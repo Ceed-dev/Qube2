@@ -67,20 +67,29 @@ contract Escrow is ERC2771Context {
         uint256 lockReleaseTimestamp; // トークン解放のタイムスタンプ
     }
 
+    uint256 public minSubmissionDeadlineDays;
+    uint256 public minReviewDeadlineDays;
+    uint256 public minPaymentDeadlineDays;
+    uint256 public lockPeriodDays;
+    uint256 public deadlineExtensionPeriodDays;
+
     // ユーザーごとのプロジェクトIDリストを格納するマッピング
     mapping(address => string[]) private ownerProjects;
 
     // プロジェクトIDをキーとするプロジェクトの詳細を格納するマッピング
     mapping(string => Project) private projects;
 
+    // タスクIDをキーとするタスクの詳細を格納するマッピング
+    mapping(string => Task) private tasks;
+
     // アサインされているユーザーのアドレスに基づいて、関連するプロジェクトIDのリストを格納するマッピング
     mapping(address => string[]) private assignedUserProjects;
 
-    // タスクIDをキーとして、関連するプロジェクトのIDを格納するマッピング
-    mapping(string => string) private taskToProject;
-
     // 存在する全てのプロジェクトID
     string[] private allProjectIds;
+
+    // 存在する全てのタスクID
+    string[] private allTaskIds;
 
     event ProjectCreated(
         string indexed projectId,
