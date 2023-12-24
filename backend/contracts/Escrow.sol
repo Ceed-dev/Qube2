@@ -160,12 +160,6 @@ contract Escrow is ERC2771Context, Ownable {
     event MinReviewDeadlineDaysUpdated(uint256 newDays);
     event MinPaymentDeadlineDaysUpdated(uint256 newDays);
 
-    // イベントの定義
-    event TaskStatusUpdated(
-        string indexed taskId, 
-        TaskStatus newStatus
-    );
-
     // ロック期間変更のイベント
     event LockPeriodDaysUpdated(uint256 newDays);
 
