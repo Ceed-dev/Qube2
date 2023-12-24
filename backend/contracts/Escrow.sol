@@ -846,6 +846,42 @@ contract Escrow is ERC2771Context, Ownable {
         emit DeadlineExtensionRequested(taskId, _msgSender());
     }
 
+    // タスクの期限を変更する関数
+    function changeTaskDeadlines(
+        string memory taskId,
+        uint256 newSubmissionDeadline,
+        uint256 newReviewDeadline,
+        uint256 newPaymentDeadline
+    ) 
+        external 
+        updateStatus(taskId)
+        updateTaskLastUpdatedTimestamp(taskId)
+    {
+        Task storage task = tasks[taskId];
+
+        // タスクが存在することとステータスを確認
+        require(task.creator != address(0), "Task does not exist");
+        require(
+            task.status == TaskStatus.Created || task.status == TaskStatus.Unconfirmed,
+            "Task status must be Created or Unconfirmed"
+        );
+
+        // 呼び出し元がアサインされたユーザーであることを確認
+        require(isUserAssignedToProject(task.projectId, _msgSender()), "User is not assigned to the project");
+
+        // 期限が適切であることを確認し、期限を更新
+        updateTaskDeadlines(taskId, newSubmissionDeadline, newReviewDeadline, newPaymentDeadline);
+
+        TaskStatus oldStatus = task.status;
+
+        // ステータスがUnconfirmedだった場合はCreatedに戻す
+        if (task.status == TaskStatus.Unconfirmed) {
+            task.status = TaskStatus.Created;
+        }
+
+        emit TaskStatusChangedToCreatedFromUnconfirmed(taskId, oldStatus != task.status);
+    }
+
     function removeTokenAddress(address[] storage tokenAddresses, address tokenAddress) private {
         uint256 length = tokenAddresses.length;
         for (uint256 i = 0; i < length; i++) {
