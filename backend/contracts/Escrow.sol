@@ -1136,4 +1136,43 @@ contract Escrow is ERC2771Context, Ownable {
             "Payment deadline must be at least minPaymentDeadlineDays days after review deadline"
         );
     }
+
+    // ステータス更新ロジックの実装
+    function updateTaskStatus(string memory taskId) 
+        private
+        updateTaskLastUpdatedTimestamp(taskId)
+    {
+        Task storage task = tasks[taskId];
+
+        // タスクが存在することを確認
+        require(task.lockedAmount != 0, "Task does not exist");
+        
+        // 現在のステータスに基づいた条件判断とステータスの更新
+        if (task.status == TaskStatus.Created && block.timestamp > task.submissionDeadline) {
+            task.status = TaskStatus.Unconfirmed;
+        } else if (task.status == TaskStatus.InProgress && block.timestamp > task.submissionDeadline) {
+            task.status = TaskStatus.SubmissionOverdue;
+        } else if (task.status == TaskStatus.DeletionRequested && block.timestamp > task.submissionDeadline) {
+            task.status = TaskStatus.SubmissionOverdue;
+        } else if (task.status == TaskStatus.UnderReview && block.timestamp > task.reviewDeadline) {
+            task.status = TaskStatus.ReviewOverdue;
+        } else if (task.status == TaskStatus.PendingPayment && block.timestamp > task.paymentDeadline) {
+            task.status = TaskStatus.PaymentOverdue;
+        } else if (task.status == TaskStatus.DeadlineExtensionRequested && block.timestamp > task.deadlineExtensionTimestamp + 1 weeks) {
+            // 新しい期限を計算
+            uint256 newSubmissionDeadline = task.submissionDeadline + (deadlineExtensionPeriodDays * 1 days);
+            uint256 newReviewDeadline = task.reviewDeadline + (deadlineExtensionPeriodDays * 1 days);
+            uint256 newPaymentDeadline = task.paymentDeadline + (deadlineExtensionPeriodDays * 1 days);
+
+            // タスクの期限を更新
+            updateTaskDeadlines(taskId, newSubmissionDeadline, newReviewDeadline, newPaymentDeadline);
+
+            // ステータスをInProgressに変更
+            task.status = TaskStatus.InProgress;
+        } else if (task.deadlineExtensionTimestamp != 0 && task.status == TaskStatus.InProgress && block.timestamp > task.submissionDeadline) {
+            task.status = TaskStatus.UnderReview;
+        }
+
+        emit TaskStatusUpdated(taskId, task.status);
+    }
 }
