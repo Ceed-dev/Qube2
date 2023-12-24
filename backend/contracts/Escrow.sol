@@ -311,16 +311,35 @@ contract Escrow is ERC2771Context, Ownable {
         return assignedUserProjects[user];
     }
 
-    function getProjectIdByTask(string memory taskId) external view returns (string memory) {
-        return taskToProject[taskId];
-    }
-
     function getAllProjectIds() public view returns (string[] memory) {
         return allProjectIds;
     }
 
-    function generateProjectId(string memory _name, address _owner) private view returns (string memory) {
-        return string(abi.encodePacked(_name, "_", Strings.toHexString(uint256(keccak256(abi.encodePacked(block.timestamp, _owner, block.prevrandao))), 20)));
+    function getTaskDetails(string memory taskId) external view returns (Task memory) {
+        require(bytes(taskId).length > 0, "Task ID cannot be empty");
+        Task storage task = tasks[taskId];
+        require(task.tokenAddress != address(0), "Task does not exist");
+
+        return Task({
+            projectId: task.projectId,
+            creator: task.creator,
+            recipient: task.recipient,
+            tokenAddress: task.tokenAddress,
+            lockedAmount: task.lockedAmount,
+            submissionDeadline: task.submissionDeadline,
+            reviewDeadline: task.reviewDeadline,
+            paymentDeadline: task.paymentDeadline,
+            deletionRequestTimestamp: task.deletionRequestTimestamp, 
+            deadlineExtensionTimestamp: task.deadlineExtensionTimestamp,
+            status: task.status,
+            startTimestamp: task.startTimestamp,
+            lastUpdatedTimestamp: task.lastUpdatedTimestamp,
+            lockReleaseTimestamp: task.lockReleaseTimestamp
+        });
+    }
+
+    function getAllTaskIds() public view returns (string[] memory) {
+        return allTaskIds;
     }
 
     function createAndDepositProject(
@@ -663,5 +682,9 @@ contract Escrow is ERC2771Context, Ownable {
                 break;
             }
         }
+    }
+
+    function generateProjectId(string memory _name, address _owner) private view returns (string memory) {
+        return string(abi.encodePacked(_name, "_", Strings.toHexString(uint256(keccak256(abi.encodePacked(block.timestamp, _owner, block.prevrandao))), 20)));
     }
 }
