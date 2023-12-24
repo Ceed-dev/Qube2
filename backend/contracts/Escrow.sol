@@ -1175,4 +1175,21 @@ contract Escrow is ERC2771Context, Ownable {
 
         emit TaskStatusUpdated(taskId, task.status);
     }
+
+    function isUserAssignedToProject(string memory projectId, address user) private view returns (bool) {
+        // プロジェクトが存在するか確認
+        Project storage project = projects[projectId];
+        if (project.owner == address(0)) {
+            return false; // プロジェクトが存在しない場合、偽を返す
+        }
+
+        // ユーザーがアサインされているか確認
+        for (uint256 i = 0; i < project.assignedUsers.length; i++) {
+            if (project.assignedUsers[i] == user) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
