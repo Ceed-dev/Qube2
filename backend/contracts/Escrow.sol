@@ -914,6 +914,33 @@ contract Escrow is ERC2771Context, Ownable {
         emit DeadlineExtensionApproved(taskId);
     }
 
+    // 成果物をdisapproveする関数
+    function disapproveSubmission(string memory taskId)
+        external
+        updateStatus(taskId)
+        updateTaskLastUpdatedTimestamp(taskId)
+    {
+        Task storage task = tasks[taskId];
+        
+        // タスクが存在することを確認
+        require(task.creator != address(0), "Task does not exist");
+        
+        // ステータスがUnderReviewであることを確認
+        require(task.status == TaskStatus.UnderReview, "Task is not under review");
+
+        // 呼び出し元がタスクのプロジェクトにアサインされているユーザーであることを確認
+        require(isUserAssignedToProject(task.projectId, _msgSender()), "User is not assigned to the project");
+
+        // 期限延長が過去に行われたことを確認（deadlineExtensionTimestampがデフォルト値でない）
+        require(task.deadlineExtensionTimestamp != 0, "Deadline extension has not been used");
+
+        // タスクをロック
+        lockTokens(taskId);
+
+        // 必要に応じてイベントを発行
+        emit SubmissionDisapproved(taskId, _msgSender());
+    }
+
     function removeTokenAddress(address[] storage tokenAddresses, address tokenAddress) private {
         uint256 length = tokenAddresses.length;
         for (uint256 i = 0; i < length; i++) {
