@@ -1211,4 +1211,16 @@ contract Escrow is ERC2771Context, Ownable {
         // イベント発行
         emit TaskDeleted(taskId);
     }
+
+    // allTaskIds 配列から特定のタスクIDを削除する補助関数
+    function removeTaskId(string memory taskId) private {
+        uint256 length = allTaskIds.length;
+        for (uint256 i = 0; i < length; i++) {
+            if (keccak256(bytes(allTaskIds[i])) == keccak256(bytes(taskId))) {
+                allTaskIds[i] = allTaskIds[length - 1];
+                allTaskIds.pop();
+                break;
+            }
+        }
+    }
 }
