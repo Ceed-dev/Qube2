@@ -50,6 +50,23 @@ contract Escrow is ERC2771Context {
         uint256 lastUpdatedTimestamp;
     }
 
+    struct Task {
+        string projectId; // タスクが属するプロジェクトのID
+        address creator; // タスクを作成したアドレス
+        address recipient; // 報酬の受取人アドレス
+        address tokenAddress; // ロックされるトークンのアドレス
+        uint256 lockedAmount; // ロックされるトークンの量
+        uint256 submissionDeadline; // 提出期限
+        uint256 reviewDeadline; // レビュー期限
+        uint256 paymentDeadline; // 支払期限
+        uint256 deletionRequestTimestamp; // ステータスがInProgress（recipientのサイン後かつ成果物の提出前）のとき、タスク削除申請が作成されたタイムスタンプ（デフォルトでは0のため、0の場合は使用されてない）
+        uint256 deadlineExtensionTimestamp; // 期限延長申請が作成されたタイムスタンプ（デフォルトでは0のため、0の場合は使用されてない）
+        TaskStatus status; // タスクのステータス
+        uint256 startTimestamp;
+        uint256 lastUpdatedTimestamp;
+        uint256 lockReleaseTimestamp; // トークン解放のタイムスタンプ
+    }
+
     // ユーザーごとのプロジェクトIDリストを格納するマッピング
     mapping(address => string[]) private ownerProjects;
 
