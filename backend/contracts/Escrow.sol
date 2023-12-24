@@ -1329,4 +1329,16 @@ contract Escrow is ERC2771Context, Ownable {
         // 必要に応じてイベントを発行
         emit TaskDeadlinesUpdated(taskId, newSubmissionDeadline, newReviewDeadline, newPaymentDeadline);
     }
+
+    function _msgSender() internal view override(Context, ERC2771Context) returns (address) {
+        return ERC2771Context._msgSender();
+    }
+
+    function _msgData() internal view override(Context, ERC2771Context) returns (bytes calldata) {
+        return ERC2771Context._msgData();
+    }
+
+    function _contextSuffixLength() internal view override(Context, ERC2771Context) returns (uint256) {
+        return ERC2771Context._contextSuffixLength();
+    }
 }
