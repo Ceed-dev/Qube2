@@ -188,7 +188,8 @@ contract Escrow is ERC2771Context, Ownable {
     );
 
     event TokensReleasedToRecipient(
-        string indexed taskId, 
+        string indexed taskId,
+        address indexed recipient, 
         address indexed tokenAddress, 
         uint256 amount
     );
