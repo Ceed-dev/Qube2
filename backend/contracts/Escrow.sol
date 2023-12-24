@@ -471,7 +471,6 @@ contract Escrow is ERC2771Context, Ownable {
         emit TokensWithdrawn(projectId, _msgSender(), tokenAddress, amount);
     }
 
-    // TODO 追加の人数制限を設けるか？
     function assignUserToProject(
         string memory projectId, 
         address user
@@ -606,6 +605,69 @@ contract Escrow is ERC2771Context, Ownable {
         delete projects[projectId];
 
         emit ProjectDeleted(projectId, _msgSender(), projectName);
+    }
+
+    function createTask(
+        string memory taskId,
+        string memory projectId,
+        address tokenAddress,
+        uint256 lockedAmount,
+        uint256 submissionDeadline,
+        uint256 reviewDeadline,
+        uint256 paymentDeadline
+    ) external updateProjectLastUpdatedTimestamp(projectId) {
+        // タスクが既に存在しないことを確認
+        require(tasks[taskId].creator == address(0), "Task already exists");
+
+        // msg.senderがプロジェクトにアサインされていることを確認
+        require(isUserAssignedToProject(projectId, _msgSender()), "Sender is not assigned to the project");
+
+        // tokenAddressとlockedAmountが適切であることを確認
+        Project storage project = projects[projectId];
+        require(lockedAmount > 0, "Locked amount must be greater than zero");
+        require(project.depositTokens[tokenAddress] >= lockedAmount, "Insufficient funds in project");
+
+        // 期限の検証
+        validateTaskDeadlines(submissionDeadline, reviewDeadline, paymentDeadline);
+
+        // タスクの作成
+        Task storage task = tasks[taskId];
+        task.projectId = projectId;
+        task.creator = _msgSender();
+        task.tokenAddress = tokenAddress; // 仮定: プロジェクトには1種類のトークンのみ
+        task.lockedAmount = lockedAmount;
+        task.submissionDeadline = submissionDeadline;
+        task.reviewDeadline = reviewDeadline;
+        task.paymentDeadline = paymentDeadline;
+        task.status = TaskStatus.Created;
+        task.startTimestamp = block.timestamp;
+        task.lastUpdatedTimestamp = block.timestamp;
+
+        // 新しいタスクIDを追加
+        allTaskIds.push(taskId);
+
+        // プロジェクトにタスクIDを追加
+        projects[projectId].taskIds.push(taskId);
+
+        // プロジェクトの報酬ロック
+        project.depositTokens[tokenAddress] -= lockedAmount;
+
+        // トークンアドレスの削除処理
+        if (project.depositTokens[tokenAddress] == 0) {
+            removeTokenAddress(project.tokenAddresses, tokenAddress);
+        }
+
+        // イベント発行
+        emit TaskCreated(
+            taskId,
+            projectId,
+            _msgSender(),
+            tokenAddress,
+            lockedAmount,
+            submissionDeadline,
+            reviewDeadline,
+            paymentDeadline
+        );
     }
 
     function removeTokenAddress(address[] storage tokenAddresses, address tokenAddress) private {
