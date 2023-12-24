@@ -670,6 +670,61 @@ contract Escrow is ERC2771Context, Ownable {
         );
     }
 
+    // タスクを削除する外部関数
+    function transferTokensAndDeleteTask(string memory taskId) 
+        external 
+        updateStatus(taskId) 
+        updateProjectLastUpdatedTimestamp(tasks[taskId].projectId) 
+    {
+        Task storage task = tasks[taskId];
+        require(task.creator != address(0), "Task does not exist");
+
+        bool shouldReleaseTokensToRecipient = false;
+
+        // ステータスとユーザーの権限を確認
+        if (task.status == TaskStatus.Created || task.status == TaskStatus.Unconfirmed || task.status == TaskStatus.SubmissionOverdue) {
+            // タスクが作成された状態、または提出期限が過ぎて未確認の状態、あるいは提出期限超過の場合、
+            // プロジェクトにアサインされているユーザーのみがタスクを削除できる
+            require(isUserAssignedToProject(task.projectId, _msgSender()), "User is not assigned to the project");
+        } else if (task.status == TaskStatus.DeletionRequested) {
+            // タスクの削除がリクエストされた状態の場合、受取人のみがタスクを削除できる
+            require(task.recipient == _msgSender(), "Only the recipient can delete the task in this status");
+        } else if (task.status == TaskStatus.LockedByDisapproval) {
+            // タスクが不承認によりロックされている場合、ロック解除タイムスタンプを過ぎている必要があり、
+            // プロジェクトにアサインされているユーザーのみがタスクを削除できる
+            require(block.timestamp > task.lockReleaseTimestamp, "Lock period has not ended");
+            require(isUserAssignedToProject(task.projectId, _msgSender()), "User is not assigned to the project");
+        } else if (task.status == TaskStatus.ReviewOverdue || task.status == TaskStatus.PaymentOverdue) {
+            require(task.recipient == _msgSender(), "Only the recipient can perform this action");
+            shouldReleaseTokensToRecipient = true;
+        } else if (task.status == TaskStatus.PendingPayment) {
+            require(project.owner == _msgSender(), "Only the project owner can perform this action");
+            shouldReleaseTokensToRecipient = true;
+        } else {
+            // 上記のいずれの状態にも当てはまらない場合、タスクは削除できない
+            revert("Transfer of tokens and deletion of task cannot be performed in the current status");
+        }
+
+        // トークンを受取人に引き渡すか、プロジェクトに戻す
+        if (shouldReleaseTokensToRecipient) {
+            releaseTokensToRecipient(taskId);
+        } else {
+            returnTokensToProject(taskId);
+        }
+
+        // イベント発行
+        emit TaskProcessed(
+            taskId,
+            task.status,
+            _msgSender(),
+            task.recipient,
+            shouldReleaseTokensToRecipient
+        );
+
+        // タスクを削除
+        deleteTask(taskId);
+    }
+
     function removeTokenAddress(address[] storage tokenAddresses, address tokenAddress) private {
         uint256 length = tokenAddresses.length;
         for (uint256 i = 0; i < length; i++) {
