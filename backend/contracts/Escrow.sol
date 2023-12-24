@@ -999,6 +999,11 @@ contract Escrow is ERC2771Context, Ownable {
         deadlineExtensionPeriodDays = _newPeriod;
     }
 
+    // ステータス更新関数
+    function updateTaskStatusByOwner(string memory taskId) external onlyOwner {
+        updateTaskStatus(taskId);
+    }
+
     function removeTokenAddress(address[] storage tokenAddresses, address tokenAddress) private {
         uint256 length = tokenAddresses.length;
         for (uint256 i = 0; i < length; i++) {
