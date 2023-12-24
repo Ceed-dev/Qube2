@@ -965,6 +965,34 @@ contract Escrow is ERC2771Context, Ownable {
         emit DeadlineExtensionRejected(taskId);
     }
 
+    // タスクの削除依頼を申請する関数
+    function requestTaskDeletion(string memory taskId) 
+        external 
+        updateStatus(taskId)
+        updateTaskLastUpdatedTimestamp(taskId)
+    {
+        Task storage task = tasks[taskId];
+
+        // タスクが存在することを確認
+        require(task.creator != address(0), "Task does not exist");
+
+        // 削除依頼がまだ行われていないことを確認（deletionRequestTimestampが0の場合）
+        require(task.deletionRequestTimestamp == 0, "Deletion request already made");
+
+        // 呼び出し元がタスクのプロジェクトにアサインされているユーザーであることを確認
+        require(isUserAssignedToProject(task.projectId, _msgSender()), "User is not assigned to the project");
+
+        // タスクがInProgressステータスであることを確認
+        require(task.status == TaskStatus.InProgress, "Task is not in progress");
+
+        // ステータスをDeletionRequestedに変更し、削除依頼タイムスタンプを記録
+        task.status = TaskStatus.DeletionRequested;
+        task.deletionRequestTimestamp = block.timestamp;
+
+        // イベント発行
+        emit TaskDeletionRequested(taskId, _msgSender());
+    }
+
     function removeTokenAddress(address[] storage tokenAddresses, address tokenAddress) private {
         uint256 length = tokenAddresses.length;
         for (uint256 i = 0; i < length; i++) {
