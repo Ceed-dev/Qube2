@@ -749,6 +749,31 @@ contract Escrow is ERC2771Context, Ownable {
         emit DeletionRequestRejected(taskId, _msgSender());
     }
 
+    function assignRecipientToTask(string memory taskId) 
+        external 
+        updateStatus(taskId)
+        updateTaskLastUpdatedTimestamp(taskId)
+    {
+        // タスクが存在することを確認
+        Task storage task = tasks[taskId];
+        require(task.creator != address(0), "Task does not exist");
+
+        // ステータスがCreatedであることを確認
+        require(task.status == TaskStatus.Created, "Task is not in Created status");
+
+        // 呼び出し元がプロジェクトのオーナーやアサインされたユーザー以外であることを確認
+        require(!isOwnerOrAssignedUser(task.projectId, _msgSender()), "Owner or assigned user cannot be recipient");
+
+        // recipientアドレスを登録
+        task.recipient = _msgSender();
+
+        // ステータスをInProgressに変更
+        task.status = TaskStatus.InProgress;
+
+        // イベント発行
+        emit RecipientAssignedToTask(taskId, _msgSender());
+    }
+
     function removeTokenAddress(address[] storage tokenAddresses, address tokenAddress) private {
         uint256 length = tokenAddresses.length;
         for (uint256 i = 0; i < length; i++) {
