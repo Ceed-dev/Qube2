@@ -698,7 +698,7 @@ contract Escrow is ERC2771Context, Ownable {
             require(task.recipient == _msgSender(), "Only the recipient can perform this action");
             shouldReleaseTokensToRecipient = true;
         } else if (task.status == TaskStatus.PendingPayment) {
-            require(project.owner == _msgSender(), "Only the project owner can perform this action");
+            require(projects[task.projectId].owner == _msgSender(), "Only the project owner can perform this action");
             shouldReleaseTokensToRecipient = true;
         } else {
             // 上記のいずれの状態にも当てはまらない場合、タスクは削除できない
