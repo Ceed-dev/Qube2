@@ -34,8 +34,42 @@ module.exports = {
         "custom-pink": "0px 0px 20px 0px rgba(223, 87, 234, 1)",
         "custom-pink-rb": "5px 5px 20px 0px rgba(223, 87, 234, 1)",
       },
+      // 下線の色を追加
+      textDecorationColor: {
+        "custom-color": "#9775FB", // ここで好きな色を指定
+      },
+      // 下線の太さを追加
+      textDecorationThickness: {
+        "1": "1px",
+        "2": "2px",
+        "3": "3px",
+        // 他の太さもここに追加可能
+      },
     },
   },
-  plugins: [],
+  plugins: [
+    // textDecorationColorユーティリティを有効にするためのプラグインを追加
+    function({ addUtilities, theme, variants }) {
+      const newUtilities = {
+        ".underline": {
+          textDecoration: "underline",
+        },
+        ".underline-custom-color": {
+          textDecorationColor: theme("textDecorationColor.custom-color"),
+        },
+        ".underline-thickness-1": { 
+          textDecorationThickness: theme("textDecorationThickness.1") 
+        },
+        ".underline-thickness-2": { 
+          textDecorationThickness: theme("textDecorationThickness.2") 
+        },
+        ".underline-thickness-3": { 
+          textDecorationThickness: theme("textDecorationThickness.3") 
+        },
+        // 他の太さのユーティリティもここに追加
+      };
+      addUtilities(newUtilities, variants("textDecoration"));
+    },
+  ],
 }
 
