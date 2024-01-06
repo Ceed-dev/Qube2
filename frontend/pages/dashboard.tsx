@@ -1,7 +1,8 @@
+import React, { useState } from 'react';
 import Head from 'next/head';
 import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
-import { Block } from '../assets';
+import { Block, Trash } from '../assets';
 import Image from 'next/image';
 
 // ここで型定義やインターフェースを追加します
@@ -30,14 +31,108 @@ const budgetItems = [
   { token: 'JPYC', amount: '3,000' },
 ];
 
+interface Member {
+  name: string;
+  email: string;
+  walletAddress: string;
+}
+
 const Dashboard: NextPage = () => {
   const router = useRouter();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    console.log("hello");
+    setIsModalOpen(false);
+  };
+
+  const [members, setMembers] = useState<Member[]>([
+    {
+      name: 'Badhan',
+      email: 'badhan998877@gmail.com',
+      walletAddress: '0x2Ed4a43bF11049c78E171A9c3F4A7ea1e6EDfBD4',
+    },
+    // 他のメンバーデータ...
+  ]);
+
+  // メンバーを削除する関数
+  const removeMember = (index: number) => {
+    setMembers(members => members.filter((_, i) => i !== index));
+  };
 
   return (
     <>
       <Head>
         <title>Dashboard</title>
       </Head>
+
+      {/* モーダルが開いている場合、背景をぼやけさせるバックドロップを表示 */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-10 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg m-4 max-w-3xl w-full relative">
+            {/* モーダルのヘッダー */}
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-center flex-1">Project Details</h2>
+              <button 
+                className="text-lg p-2" 
+                onClick={closeModal} 
+                aria-label="Close"
+              >
+                &times;
+              </button>
+            </div>
+    
+            {/* モーダルのコンテンツ */}
+            <div>
+              <div className="mb-4">
+                <label className="block text-gray-700">Title</label>
+                <div className="p-2 bg-gray-100 rounded-md text-gray-700">
+                  Project Name
+                </div>
+              </div>
+    
+              <div className="mb-4">
+                <label className="block text-gray-700">Members</label>
+                <p className="text-slate-400">*Each member you add will be able to create task and get notification for every updates. other wont be able to see it too.</p>
+                {/* メンバーリスト */}
+                <div className="space-y-2">
+                  {members.map((member, index) => (
+                    <div key={index} className="flex items-center justify-between bg-gray-100 p-2 rounded-md">
+                      <span className='flex-1 truncate'>{member.name}</span>
+                      <span className='flex-1 truncate'>{member.email}</span>
+                      <span className='flex-1 truncate'>{member.walletAddress}</span>
+                      <Image
+                        src={Trash}
+                        alt="trash"
+                        height={30} 
+                        onClick={() => removeMember(index)} 
+                        className="ml-4 hover:bg-red-400 text-white p-1 rounded"
+                        aria-label="Remove member"
+                      />
+                    </div>
+                  ))}
+                </div>
+                {/* メンバー追加フォーム */}
+                <div className="mt-4 flex items-center gap-5">
+                  <input
+                    type="text"
+                    placeholder="Put the wallet address of the member..."
+                    className="form-input flex-1 rounded-md border border-gray-200 px-5 py-3"
+                  />
+                  <button className="bg-indigo-500 hover:bg-indigo-600 text-white rounded-md px-5 py-3">
+                    Add Member
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white min-h-screen p-20">
         <div className="flex justify-between items-center mb-20">
@@ -48,7 +143,10 @@ const Dashboard: NextPage = () => {
             Back
           </button>
           <div>
-            <button className="text-indigo-600 hover:text-indigo-800">
+            <button 
+              onClick={openModal}
+              className="text-indigo-600 hover:text-indigo-800"
+            >
               Project Name
               <span className="ml-2">⚙️</span>
             </button>
