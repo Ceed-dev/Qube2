@@ -43,9 +43,13 @@ const Projects: NextPage = () => {
       <main>
         {projects.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-            {projects.map((project, index) => (
-              <div key={index} className="h-[100px] sm:h-[150px] lg:h-[200px] bg-[#F6F3F8] p-6 rounded-md border border-gray-300 hover:shadow-lg flex items-center justify-center">
-                <h3 className="text-gray-800 text-lg font-semibold text-center underline underline-custom-color underline-thickness-3 break-words overflow-hidden">{project.split("_")[0]}</h3>
+            {projects.map((projectId, index) => (
+              <div 
+                key={index} 
+                className="h-[100px] sm:h-[150px] lg:h-[200px] bg-[#F6F3F8] p-6 rounded-md border border-gray-300 hover:shadow-lg flex items-center justify-center" 
+                onClick={() => router.push(`/projectDetails/${projectId}`)}
+              >
+                <h3 className="text-gray-800 text-lg font-semibold text-center underline underline-custom-color underline-thickness-3 break-words overflow-hidden">{projectId.split("_")[0]}</h3>
               </div>
             ))}
           </div>

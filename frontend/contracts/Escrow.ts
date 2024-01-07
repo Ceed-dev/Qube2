@@ -156,3 +156,16 @@ export async function getAssignedUserProjects(userAddress: string) {
     throw error;
   }
 }
+
+export async function getProjectDetails(projectId: string) {
+  const contract = getEscrowContract();
+  
+  try {
+    const projectDetails = await contract.getProjectDetails(projectId);
+    console.log('Project Details:', JSON.stringify(projectDetails, null, 2));
+    return projectDetails;
+  } catch (error) {
+    console.error('Error fetching project details:', error);
+    throw error;
+  }
+}
