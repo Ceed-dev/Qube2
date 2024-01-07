@@ -142,3 +142,17 @@ export async function withdrawToRecipientByDepositor(depositId: string) {
     console.error(`Transaction failed: ${error}`);
   }
 }
+
+export async function getAssignedUserProjects(userAddress: string) {
+  const contract = getEscrowContract();
+
+  try {
+    // スマートコントラクトの関数を呼び出す
+    const projects = await contract.getAssignedUserProjects(userAddress);
+    console.log('Assigned projects:', projects);
+    return projects;
+  } catch (error) {
+    console.error('Error fetching assigned user projects:', error);
+    throw error;
+  }
+}
