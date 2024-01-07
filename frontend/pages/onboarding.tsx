@@ -2,9 +2,13 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useAccount } from 'wagmi';
 import { useRouter } from 'next/router';
+import { doc, setDoc } from "firebase/firestore";
+import { database } from '../utils';
+import Image from 'next/image';
+import { Spinner } from '../assets';
 
 const OnboardingScreen: React.FC = () => {
-  const { isDisconnected } = useAccount();
+  const { address, isDisconnected } = useAccount();
   const router = useRouter();
 
   useEffect(() => {
@@ -24,14 +28,41 @@ const OnboardingScreen: React.FC = () => {
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     } else {
-      // ここで最終的なアクションを実行する
-      // 例: フォームの送信、APIへのデータ送信、またはユーザーをアプリにリダイレクトする
+      handleSubmit();
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setUserInfo({ ...userInfo, [name]: value });
+  };
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    console.info("userInfo:", userInfo);
+
+    if (userInfo.email !== userInfo.confirmEmail) {
+      alert("The email addresses you entered do not match. Please ensure they are the same and try again.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const docRef = doc(database, "users", address);
+      await setDoc(docRef, {
+        username: userInfo.name,
+        email: userInfo.email,
+      });
+
+      router.push(`/projects/${address}`);
+
+    } catch (error) {
+      console.error("Error setting document: ", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -118,12 +149,23 @@ const OnboardingScreen: React.FC = () => {
                 By pressing the button you agree to the Terms and Conditions and Privacy Policy.
               </p>
               <div className="w-full text-right">
-                <button
-                  onClick={handleNextStep}
-                  className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-2 px-4 rounded shadow"
-                >
-                  Go To the app
-                </button>
+                {isLoading ? (
+                  <div className="flex flex-row items-center justify-center text-2xl text-green-400">
+                    <Image
+                      src={Spinner}
+                      alt="spinner"
+                      className="animate-spin-slow h-20 w-auto"
+                    />
+                    Processing...
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleNextStep}
+                    className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold py-2 px-4 rounded shadow"
+                  >
+                    Go To the app
+                  </button>
+                )}
               </div>
             </div>
           </div>
