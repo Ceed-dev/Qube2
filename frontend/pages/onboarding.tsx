@@ -1,7 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
+import { useAccount } from 'wagmi';
+import { useRouter } from 'next/router';
 
 const OnboardingScreen: React.FC = () => {
+  const { isDisconnected } = useAccount();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isDisconnected) {
+      router.push("/");
+    }
+  }, [isDisconnected]);
+
   const [currentStep, setCurrentStep] = useState(1);
   const [userInfo, setUserInfo] = useState({
     name: '',
