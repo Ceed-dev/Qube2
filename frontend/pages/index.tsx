@@ -60,7 +60,8 @@ export default function Home() {
     // TODO: Fix this whitelist feature
     // if (isConnected && whitelist.includes(address)) {
     if (isConnected) {
-      router.push(`/dashboard/${address}`);
+      // router.push(`/dashboard/${address}`);
+      router.push(`/projects/${address}`);
     }
     // else if (isConnected && !whitelist.includes(address)) {
     //   disconnect();
