@@ -35,7 +35,7 @@ const Navbar = (): JSX.Element => {
 
   const [userInfo, setUserInfo] = useState({
     email: "",
-    userType: "",
+    // userType: "",
     username: "",
   });
 
@@ -49,11 +49,13 @@ const Navbar = (): JSX.Element => {
           if (docSnapshot.exists()) {
             const docData = docSnapshot.data();
   
-            if (!docData.username || !docData.email || !docData.userType) {
-              setShowEmailModal(true);
+            if (!docData.username || !docData.email) {
+              // setShowEmailModal(true);
+              router.push("/onboarding");
             }
           } else {
-            setShowEmailModal(true);
+            // setShowEmailModal(true);
+            router.push("/onboarding");
           }
         } catch (error) {
           console.error("Error checking document existence: ", error);
@@ -68,7 +70,7 @@ const Navbar = (): JSX.Element => {
         setUserInfo({
           email: res.data.email,
           // profileImageUrl: res.data.profileImageUrl,
-          userType: res.data.userType,
+          // userType: res.data.userType,
           username: res.data.username,
           // projectNftIds: res.data.projectNftIds == undefined ? [] : res.data.projectNftIds,
         });
