@@ -1,6 +1,8 @@
 import Head from "next/head";
-import React from "react";
+import React, { useEffect } from "react";
 import type { NextPage } from "next";
+import { useAccount } from "wagmi";
+import { useRouter } from "next/router";
 
 interface ProjectProps {
   name: string;
@@ -14,6 +16,15 @@ const projects: ProjectProps[] = [
 ];
 
 const Projects: NextPage = () => {
+  const { address, isDisconnected } = useAccount();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isDisconnected) {
+      router.push("/");
+    }
+  }, [isDisconnected]);
+
   return (
     <div className="bg-blue-50 min-h-screen pt-20 pb-10 px-16">
       <Head>
