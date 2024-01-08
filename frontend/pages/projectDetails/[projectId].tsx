@@ -156,7 +156,7 @@ const Dashboard: NextPage = () => {
       {/* モーダルが開いている場合、背景をぼやけさせるバックドロップを表示 */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-10 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg m-4 max-w-3xl w-full relative">
+          <div className="bg-white p-6 rounded-lg shadow-lg m-4 max-w-4xl w-full relative">
             {/* モーダルのヘッダー */}
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-center flex-1">Project Details</h2>
@@ -184,16 +184,16 @@ const Dashboard: NextPage = () => {
                 {/* メンバーリスト */}
                 <div className="space-y-2">
                   {members.map((member, index) => (
-                    <div key={index} className="flex items-center justify-between bg-gray-100 p-2 rounded-md">
+                    <div key={index} className="flex items-center justify-between bg-gray-100 p-2 rounded-md gap-3">
                       <span className='flex-1 truncate'>{member.name}</span>
-                      <span className='flex-1 truncate'>{member.email}</span>
-                      <span className='flex-1 truncate'>{member.walletAddress}</span>
+                      <span className='flex-2 truncate'>{member.email}</span>
+                      <span className='flex-2 truncate'>{member.walletAddress}</span>
                       <Image
                         src={Trash}
                         alt="trash"
                         height={30} 
                         onClick={() => {}} 
-                        className="ml-4 hover:bg-red-400 text-white p-1 rounded"
+                        className="hover:bg-red-400 text-white p-1 rounded"
                         aria-label="Remove member"
                       />
                     </div>
