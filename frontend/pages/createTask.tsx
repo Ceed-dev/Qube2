@@ -121,6 +121,34 @@ const CreateTask: React.FC = () => {
     }
   };
 
+  const [title, setTitle] = useState(''); // タイトルのための状態変数
+  const [details, setDetails] = useState(''); // タスク詳細のための状態変数
+  const [rewardAmount, setRewardAmount] = useState(''); // 報酬の量のための状態変数
+  const [isRewardOverLimit, setIsRewardOverLimit] = useState(false); // 報酬の量が残高を超えているかどうか
+
+  // タイトルが変更されたときに呼ばれる関数
+  const handleTitleChange = (e) => {
+    setTitle(e.target.value);
+  };
+
+  // タスク詳細が変更されたときに呼ばれる関数
+  const handleDetailsChange = (e) => {
+    setDetails(e.target.value);
+  };
+
+  // 報酬の量が変更されたときに呼ばれる関数
+  const handleRewardAmountChange = (e) => {
+    const inputAmount = e.target.value;
+    setRewardAmount(inputAmount);
+
+    // 報酬の量がデポジット残高を超えているかどうかを確認
+    if (amount && !isNaN(inputAmount) && parseFloat(inputAmount) > parseFloat(amount)) {
+      setIsRewardOverLimit(true);
+    } else {
+      setIsRewardOverLimit(false);
+    }
+  };
+
   return (
     <>
       <Head>
@@ -141,6 +169,8 @@ const CreateTask: React.FC = () => {
               <label className="block text-gray-700">
                 Title
                 <input
+                  value={title}
+                  onChange={handleTitleChange}
                   type="text"
                   placeholder="Give a title to the contract"
                   className="form-input mt-1 block w-full rounded-md border border-gray-200"
@@ -152,6 +182,8 @@ const CreateTask: React.FC = () => {
               <label className="block text-gray-700">
                 Details
                 <textarea
+                  value={details}
+                  onChange={handleDetailsChange}
                   placeholder="Explain the task"
                   className="form-textarea mt-1 block w-full rounded-md border border-gray-200"
                 />
@@ -209,14 +241,18 @@ const CreateTask: React.FC = () => {
               <label className="block text-gray-700">Reward</label>
               <div className="flex mt-1">
                 <input
-                  type="text"
+                  type="number"
+                  value={rewardAmount}
+                  onChange={handleRewardAmountChange}
                   placeholder="Put the amount of the reward"
-                  className="form-input rounded-l-md border border-r-0 border-gray-200 flex-1"
+                  className={`form-input rounded-l-md border border-r-0 ${isRewardOverLimit ? "border-red-500" : "border-gray-200"} flex-1 focus:outline-none`}
+                  min={1}
+                  step={1}
                 />
                 <button
                   type="button"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="form-input rounded-r-md border border-gray-200 bg-gray-100 px-4 focus:outline-none"
+                  className={`form-input rounded-r-md border border-l-0 ${isRewardOverLimit ? "border-red-500" : "border-gray-200"} bg-gray-100 px-4 focus:outline-none`}
                 >
                   {symbol} ▼
                 </button>
@@ -235,7 +271,7 @@ const CreateTask: React.FC = () => {
                 )}
               </div>
               <p className="text-sm text-slate-400">Token Address: {tokenAddress}</p>
-              <p className="text-sm text-slate-400">Deposit Amount: {amount}</p>
+              <p className={`text-sm ${isRewardOverLimit ? "text-red-500 underline" : "text-slate-400"}`}>Deposit Amount: {amount}</p>
             </div>
 
             <button
