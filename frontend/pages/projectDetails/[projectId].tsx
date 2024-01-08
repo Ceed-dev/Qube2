@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
-import { Block, Trash } from '../../assets';
+import { Block, Trash, Spinner } from '../../assets';
 import Image from 'next/image';
-import { getProjectDetails } from "../../contracts/Escrow";
+import { getProjectDetails, assignUserToProject } from "../../contracts/Escrow";
 import { getTokenDetails, formatTokenAmount } from "../../contracts/MockToken";
 import { useAccount } from 'wagmi';
 import { BigNumber } from 'ethers';
@@ -58,6 +58,24 @@ const Dashboard: NextPage = () => {
   // フォーマットされたトークンデポジット情報を格納するための状態変数
   const [formattedTokenDeposits, setFormattedTokenDeposits] = useState([]);
   const [members, setMembers] = useState<Member[]>([]);
+  const [newMemberAddress, setNewMemberAddress] = useState("");
+  const [isAssigningNewMemberAddress, setIsAssigningNewMemberAddress] = useState(false);
+
+  // メンバーをプロジェクトに追加する処理
+  const handleAddMember = async () => {
+    try {
+      setIsAssigningNewMemberAddress(true);
+      const txHash = await assignUserToProject(projectId as string, newMemberAddress);
+      console.log('Member successfully added with transaction hash:', txHash);
+      // 新しいメンバーが正常に追加されたことを確認した後にプロジェクトの詳細を再読み込み
+      setNewMemberAddress("");
+      await loadProjectDetails();
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setIsAssigningNewMemberAddress(false);
+    }
+  };
 
   useEffect(() => {
     const fetchTokenDetails = async () => {
@@ -81,51 +99,51 @@ const Dashboard: NextPage = () => {
     }
   }, [projectDetails?.tokenDeposits]);
 
-  useEffect(() => {
-    const loadProjectDetails = async () => {
-      try {
-        const response = await getProjectDetails(projectId as string);
-        const details: ProjectDetails = {
-          owner: response.owner,
-          name: response.name,
-          assignedUsers: response.assignedUsers,
-          tokenDeposits: response.tokenDeposits.map(deposit => ({
-            tokenAddress: deposit.tokenAddress,
-            depositAmount: deposit.depositAmount,
-          })),
-          taskIds: response.taskIds,
-          startTimestamp: response.startTimestamp,
-        };
-        setProjectDetails(details);
+  const loadProjectDetails = async () => {
+    try {
+      const response = await getProjectDetails(projectId as string);
+      const details: ProjectDetails = {
+        owner: response.owner,
+        name: response.name,
+        assignedUsers: response.assignedUsers,
+        tokenDeposits: response.tokenDeposits.map(deposit => ({
+          tokenAddress: deposit.tokenAddress,
+          depositAmount: deposit.depositAmount,
+        })),
+        taskIds: response.taskIds,
+        startTimestamp: response.startTimestamp,
+      };
+      setProjectDetails(details);
 
-        // assignedUsersのウォレットアドレスを使ってFirebaseからユーザーデータを取得
-        const memberData = await Promise.all(
-          details.assignedUsers.map(async (walletAddress) => {
-            const docRef = doc(database, "users", walletAddress);
-            const docSnapshot = await getDoc(docRef);
-            if (docSnapshot.exists()) {
-              const docData = docSnapshot.data();
-              return {
-                name: docData.username,
-                email: docData.email,
-                walletAddress: walletAddress
-              }
-            } else {
-              return {
-                name: "",
-                email: "",
-                walletAddress: walletAddress,
-              }
+      // assignedUsersのウォレットアドレスを使ってFirebaseからユーザーデータを取得
+      const memberData = await Promise.all(
+        details.assignedUsers.map(async (walletAddress) => {
+          const docRef = doc(database, "users", walletAddress);
+          const docSnapshot = await getDoc(docRef);
+          if (docSnapshot.exists()) {
+            const docData = docSnapshot.data();
+            return {
+              name: docData.username,
+              email: docData.email,
+              walletAddress: walletAddress
             }
-          })
-        );
-        console.log("member:", memberData);
-        setMembers(memberData);
-      } catch (error) {
-        console.error('Could not fetch project details', error);
-      }
-    };
+          } else {
+            return {
+              name: "Unknown User",
+              email: "",
+              walletAddress: walletAddress,
+            }
+          }
+        })
+      );
+      console.log("member:", memberData);
+      setMembers(memberData);
+    } catch (error) {
+      console.error('Could not fetch project details', error);
+    }
+  };
 
+  useEffect(() => {
     if (projectId) {
       loadProjectDetails();
     }
@@ -205,10 +223,26 @@ const Dashboard: NextPage = () => {
                     type="text"
                     placeholder="Put the wallet address of the member..."
                     className="form-input flex-1 rounded-md border border-gray-200 px-5 py-3"
+                    value={newMemberAddress}
+                    onChange={(e) => setNewMemberAddress(e.target.value)}
                   />
-                  <button className="bg-indigo-500 hover:bg-indigo-600 text-white rounded-md px-5 py-3">
-                    Add Member
-                  </button>
+                  {isAssigningNewMemberAddress ? (
+                    <div className="flex flex-row items-center justify-center text-lg text-green-400">
+                      <Image
+                        src={Spinner}
+                        alt="spinner"
+                        className="animate-spin-slow h-20 w-auto"
+                      />
+                      Processing...
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={handleAddMember}
+                      className="bg-indigo-500 hover:bg-indigo-600 text-white rounded-md px-5 py-3"
+                    >
+                      Add Member
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

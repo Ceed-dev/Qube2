@@ -169,3 +169,19 @@ export async function getProjectDetails(projectId: string) {
     throw error;
   }
 }
+
+export async function assignUserToProject(projectId: string, userAddress: string): Promise<string> {
+  if (!ethers.utils.isAddress(userAddress)) {
+    throw new Error('Invalid wallet address.');
+  }
+
+  const contract = getEscrowContract();
+  try {
+    const tx = await contract.assignUserToProject(projectId, userAddress);
+    await tx.wait(); // トランザクションの確定を待つ
+    return tx.hash; // トランザクションのハッシュを返す
+  } catch (error) {
+    console.error('Error in assignUserToProject:', error);
+    throw new Error('Failed to assign user to project.');
+  }
+}
