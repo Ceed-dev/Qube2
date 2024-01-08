@@ -162,7 +162,7 @@ const Dashboard: NextPage = () => {
               <div className="mb-4">
                 <label className="block text-gray-700">Title</label>
                 <div className="p-2 bg-gray-100 rounded-md text-gray-700">
-                  Project Name
+                  {projectDetails?.name}
                 </div>
               </div>
     
