@@ -5,6 +5,7 @@ import { BigNumber } from 'ethers';
 import { getTokenDetails, formatTokenAmount } from '../contracts/MockToken';
 import { getProjectDetails } from '../contracts/Escrow';
 import { useAccount } from 'wagmi';
+import Datepicker from "react-tailwindcss-datepicker";
 
 interface TokenDepositInfo {
   tokenAddress: string;
@@ -35,6 +36,22 @@ const CreateTask: React.FC = () => {
     setTokenAddress(newTokenAddress);
     setIsDropdownOpen(false);
   };
+
+  const getTomorrow = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow;
+  }
+
+  const getDatePlusDays = (inputDate: string, daysToAdd: number) => {
+    const date = new Date(inputDate);
+    date.setDate(date.getDate() + daysToAdd);
+    return {
+      startDate: date.toString(),
+      endDate: date.toString(),
+    };
+  };
+
 
   const [projectDetails, setProjectDetails] = useState<ProjectDetails | null>(null);
   const [formattedTokenDeposits, setFormattedTokenDeposits] = useState([]);
@@ -94,6 +111,16 @@ const CreateTask: React.FC = () => {
     }
   }, [isDisconnected, router]);
 
+  // 日付の状態を管理する
+  const [selectedDate, setSelectedDate] = useState(getTomorrow()); // 初期値を設定
+
+  // 日付が変更されたときの処理
+  const handleDateChange = (newDate) => {
+    if (newDate && newDate.startDate) {
+      setSelectedDate(newDate.startDate);
+    }
+  };
+
   return (
     <>
       <Head>
@@ -134,19 +161,46 @@ const CreateTask: React.FC = () => {
             <div className="mb-4">
               <label className="block text-gray-700">
                 Submission Deadline
-                <input
-                  type="date"
-                  className="form-input mt-1 block w-full rounded-md border border-gray-200"
+                <Datepicker
+                  inputClassName="form-input mt-1 w-full rounded-md border border-gray-200"
+                  value={{ startDate: selectedDate, endDate: selectedDate }}
+                  onChange={handleDateChange}
+                  asSingle={true}
+                  useRange={false}
+                  minDate={getTomorrow()}
+                  startFrom={getTomorrow()}
+                  placeholder="Press to choose the date"
+                  displayFormat="YYYY/MM/DD 21:00"
                 />
               </label>
             </div>
 
             <div className="mb-4">
-              <label className="block text-gray-700">
+              <label className="block text-gray-400">
+                Review Deadline
+                <Datepicker
+                  inputClassName="form-input mt-1 w-full rounded-md border border-gray-200 text-gray-400"
+                  value={getDatePlusDays(selectedDate.toString(), 7)}
+                  onChange={() => {}}
+                  asSingle={true}
+                  placeholder="YYYY/MM/DD 21:30"
+                  displayFormat="YYYY/MM/DD 21:30"
+                  disabled={true}
+                />
+              </label>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-gray-400">
                 Payment Deadline
-                <input
-                  type="date"
-                  className="form-input mt-1 block w-full rounded-md border border-gray-200"
+                <Datepicker
+                  inputClassName="form-input mt-1 w-full rounded-md border border-gray-200 text-gray-400"
+                  value={getDatePlusDays(selectedDate.toString(), 14)}
+                  onChange={() => {}}
+                  asSingle={true}
+                  placeholder="YYYY/MM/DD 21:30"
+                  displayFormat="YYYY/MM/DD 21:30"
+                  disabled={true}
                 />
               </label>
             </div>
