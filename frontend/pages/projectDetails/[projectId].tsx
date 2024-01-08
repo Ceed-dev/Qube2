@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
-import { Block, Trash } from '../../assets';
+import { Block, Trash, Spinner } from '../../assets';
 import Image from 'next/image';
-import { getProjectDetails } from "../../contracts/Escrow";
+import { getProjectDetails, assignUserToProject, unassignUserFromProject } from "../../contracts/Escrow";
 import { getTokenDetails, formatTokenAmount } from "../../contracts/MockToken";
 import { useAccount } from 'wagmi';
 import { BigNumber } from 'ethers';
+import { doc, getDoc } from "firebase/firestore";
+import { database } from '../../utils';
 
 // ここで型定義やインターフェースを追加します
 interface Contract {
@@ -55,6 +57,25 @@ const Dashboard: NextPage = () => {
   const [projectDetails, setProjectDetails] = useState<ProjectDetails | null>(null);
   // フォーマットされたトークンデポジット情報を格納するための状態変数
   const [formattedTokenDeposits, setFormattedTokenDeposits] = useState([]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [newMemberAddress, setNewMemberAddress] = useState("");
+  const [isAssigningNewMemberAddress, setIsAssigningNewMemberAddress] = useState(false);
+
+  // メンバーをプロジェクトに追加する処理
+  const handleAddMember = async () => {
+    try {
+      setIsAssigningNewMemberAddress(true);
+      const txHash = await assignUserToProject(projectId as string, newMemberAddress);
+      console.log('Member successfully added with transaction hash:', txHash);
+      // 新しいメンバーが正常に追加されたことを確認した後にプロジェクトの詳細を再読み込み
+      setNewMemberAddress("");
+      await loadProjectDetails();
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setIsAssigningNewMemberAddress(false);
+    }
+  };
 
   useEffect(() => {
     const fetchTokenDetails = async () => {
@@ -78,27 +99,51 @@ const Dashboard: NextPage = () => {
     }
   }, [projectDetails?.tokenDeposits]);
 
-  useEffect(() => {
-    const loadProjectDetails = async () => {
-      try {
-        const response = await getProjectDetails(projectId as string);
-        const details: ProjectDetails = {
-          owner: response.owner,
-          name: response.name,
-          assignedUsers: response.assignedUsers,
-          tokenDeposits: response.tokenDeposits.map(deposit => ({
-            tokenAddress: deposit.tokenAddress,
-            depositAmount: deposit.depositAmount,
-          })),
-          taskIds: response.taskIds,
-          startTimestamp: response.startTimestamp,
-        };
-        setProjectDetails(details);
-      } catch (error) {
-        console.error('Could not fetch project details', error);
-      }
-    };
+  const loadProjectDetails = async () => {
+    try {
+      const response = await getProjectDetails(projectId as string);
+      const details: ProjectDetails = {
+        owner: response.owner,
+        name: response.name,
+        assignedUsers: response.assignedUsers,
+        tokenDeposits: response.tokenDeposits.map(deposit => ({
+          tokenAddress: deposit.tokenAddress,
+          depositAmount: deposit.depositAmount,
+        })),
+        taskIds: response.taskIds,
+        startTimestamp: response.startTimestamp,
+      };
+      setProjectDetails(details);
 
+      // assignedUsersのウォレットアドレスを使ってFirebaseからユーザーデータを取得
+      const memberData = await Promise.all(
+        details.assignedUsers.map(async (walletAddress) => {
+          const docRef = doc(database, "users", walletAddress);
+          const docSnapshot = await getDoc(docRef);
+          if (docSnapshot.exists()) {
+            const docData = docSnapshot.data();
+            return {
+              name: docData.username,
+              email: docData.email,
+              walletAddress: walletAddress
+            }
+          } else {
+            return {
+              name: "Unknown User",
+              email: "",
+              walletAddress: walletAddress,
+            }
+          }
+        })
+      );
+      console.log("member:", memberData);
+      setMembers(memberData);
+    } catch (error) {
+      console.error('Could not fetch project details', error);
+    }
+  };
+
+  useEffect(() => {
     if (projectId) {
       loadProjectDetails();
     }
@@ -117,22 +162,34 @@ const Dashboard: NextPage = () => {
   };
 
   const closeModal = () => {
-    console.log("hello");
     setIsModalOpen(false);
   };
 
-  const [members, setMembers] = useState<Member[]>([
-    {
-      name: 'Badhan',
-      email: 'badhan998877@gmail.com',
-      walletAddress: '0x2Ed4a43bF11049c78E171A9c3F4A7ea1e6EDfBD4',
-    },
-    // 他のメンバーデータ...
-  ]);
+  const [removingMember, setRemovingMember] = useState<string | null>(null);
 
   // メンバーを削除する関数
-  const removeMember = (index: number) => {
-    setMembers(members => members.filter((_, i) => i !== index));
+  const removeMember = async (index: number) => {
+    const memberToRemove = members[index];
+    
+    if (!memberToRemove) {
+      return console.error('Member not found');
+    }
+
+    setRemovingMember(memberToRemove.walletAddress);
+
+    try {
+      // スマートコントラクトからユーザーを削除
+      await unassignUserFromProject(projectId as string, memberToRemove.walletAddress);
+
+      await loadProjectDetails();
+      
+      console.log(`Member ${memberToRemove.walletAddress} has been removed successfully.`);
+    } catch (error) {
+      console.error('Error removing member:', error);
+      alert('Failed to remove member.');
+    } finally {
+      setRemovingMember(null);
+    }
   };
 
   return (
@@ -144,7 +201,7 @@ const Dashboard: NextPage = () => {
       {/* モーダルが開いている場合、背景をぼやけさせるバックドロップを表示 */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-10 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg m-4 max-w-3xl w-full relative">
+          <div className="bg-white p-6 rounded-lg shadow-lg m-4 max-w-4xl w-full relative">
             {/* モーダルのヘッダー */}
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-center flex-1">Project Details</h2>
@@ -162,7 +219,7 @@ const Dashboard: NextPage = () => {
               <div className="mb-4">
                 <label className="block text-gray-700">Title</label>
                 <div className="p-2 bg-gray-100 rounded-md text-gray-700">
-                  Project Name
+                  {projectDetails?.name}
                 </div>
               </div>
     
@@ -172,18 +229,31 @@ const Dashboard: NextPage = () => {
                 {/* メンバーリスト */}
                 <div className="space-y-2">
                   {members.map((member, index) => (
-                    <div key={index} className="flex items-center justify-between bg-gray-100 p-2 rounded-md">
+                    <div key={index} className="flex items-center justify-between bg-gray-100 p-2 rounded-md gap-3">
                       <span className='flex-1 truncate'>{member.name}</span>
-                      <span className='flex-1 truncate'>{member.email}</span>
-                      <span className='flex-1 truncate'>{member.walletAddress}</span>
-                      <Image
-                        src={Trash}
-                        alt="trash"
-                        height={30} 
-                        onClick={() => removeMember(index)} 
-                        className="ml-4 hover:bg-red-400 text-white p-1 rounded"
-                        aria-label="Remove member"
-                      />
+                      <span className='flex-2 truncate'>{member.email}</span>
+                      <span className='flex-2 truncate'>{member.walletAddress}</span>
+                      {members.length > 1 && ( // メンバーが1人以上の場合のみ削除アイコンを表示
+                        removingMember === member.walletAddress ? (
+                          <div className="flex flex-row items-center justify-center text-lg text-green-400">
+                            <Image
+                              src={Spinner}
+                              alt="spinner"
+                              className="animate-spin-slow h-10 w-full"
+                            />
+                            Processing...
+                          </div>
+                        ) : (
+                          <Image
+                            src={Trash}
+                            alt="trash"
+                            height={30}
+                            onClick={() => removeMember(index)}
+                            className="hover:bg-red-400 text-white p-1 rounded"
+                            aria-label="Remove member"
+                          />
+                        )
+                      )}
                     </div>
                   ))}
                 </div>
@@ -193,10 +263,26 @@ const Dashboard: NextPage = () => {
                     type="text"
                     placeholder="Put the wallet address of the member..."
                     className="form-input flex-1 rounded-md border border-gray-200 px-5 py-3"
+                    value={newMemberAddress}
+                    onChange={(e) => setNewMemberAddress(e.target.value)}
                   />
-                  <button className="bg-indigo-500 hover:bg-indigo-600 text-white rounded-md px-5 py-3">
-                    Add Member
-                  </button>
+                  {isAssigningNewMemberAddress ? (
+                    <div className="flex flex-row items-center justify-center text-lg text-green-400">
+                      <Image
+                        src={Spinner}
+                        alt="spinner"
+                        className="animate-spin-slow h-20 w-auto"
+                      />
+                      Processing...
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={handleAddMember}
+                      className="bg-indigo-500 hover:bg-indigo-600 text-white rounded-md px-5 py-3"
+                    >
+                      Add Member
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
