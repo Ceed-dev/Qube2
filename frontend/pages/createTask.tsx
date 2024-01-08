@@ -112,7 +112,7 @@ const CreateTask: React.FC = () => {
   }, [isDisconnected, router]);
 
   // 日付の状態を管理する
-  const [selectedDate, setSelectedDate] = useState(getTomorrow()); // 初期値を設定
+  const [selectedDate, setSelectedDate] = useState(null); // 初期値を設定
 
   // 日付が変更されたときの処理
   const handleDateChange = (newDate) => {
@@ -149,6 +149,59 @@ const CreateTask: React.FC = () => {
     }
   };
 
+  // フォーム送信時のイベントハンドラー
+  const handleSubmit = (event) => {
+    event.preventDefault(); // デフォルトのフォーム送信を防止
+
+    // チェック開始
+    if (!title.trim()) {
+      return alert("タイトルを入力してください。");
+    }
+
+    if (!details.trim()) {
+      return alert("詳細を入力してください。");
+    }
+
+    if (!selectedDate) {
+      return alert("提出期限を選択してください。");
+    }
+
+    if (!tokenAddress) {
+      return alert("トークンを選択してください。");
+    }
+
+    // 報酬の量が適切かどうかをチェックする
+    const numericRewardAmount = parseFloat(rewardAmount);
+    const numericAmount = parseFloat(amount);
+
+    if (isNaN(numericRewardAmount) || numericRewardAmount <= 0 || numericRewardAmount > numericAmount) {
+      return alert("報酬の量を正しく入力してください。");
+    }
+
+    // チェック終了
+
+    // フォームのデータをコンソールに表示（デバッグ用）
+    console.log("Form Data:", {
+      title, // タイトル
+      details, // 詳細
+      selectedDate, // 選択された提出期限
+      rewardAmount,
+      symbol,
+      tokenAddress,
+    });
+
+    // ここでFirebaseへのアップロード処理を実行
+
+    // フォームの値をリセット
+    setTitle("");
+    setDetails("");
+    setSelectedDate(null);
+    setRewardAmount("");
+    setSymbol("");
+    setAmount("");
+    setTokenAddress("");
+  };
+
   return (
     <>
       <Head>
@@ -164,7 +217,7 @@ const CreateTask: React.FC = () => {
 
         <div className="max-w-xl mx-auto bg-white p-8 rounded-lg shadow-md">
           <h1 className="text-xl font-bold text-center mb-6">Create Contract</h1>
-          <form>
+          <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <label className="block text-gray-700">
                 Title
@@ -212,7 +265,7 @@ const CreateTask: React.FC = () => {
                 Review Deadline
                 <Datepicker
                   inputClassName="form-input mt-1 w-full rounded-md border border-gray-200 text-gray-400"
-                  value={getDatePlusDays(selectedDate.toString(), 7)}
+                  value={getDatePlusDays(selectedDate?.toString(), 7)}
                   onChange={() => {}}
                   asSingle={true}
                   placeholder="YYYY/MM/DD 21:30"
@@ -227,7 +280,7 @@ const CreateTask: React.FC = () => {
                 Payment Deadline
                 <Datepicker
                   inputClassName="form-input mt-1 w-full rounded-md border border-gray-200 text-gray-400"
-                  value={getDatePlusDays(selectedDate.toString(), 14)}
+                  value={getDatePlusDays(selectedDate?.toString(), 14)}
                   onChange={() => {}}
                   asSingle={true}
                   placeholder="YYYY/MM/DD 21:30"
