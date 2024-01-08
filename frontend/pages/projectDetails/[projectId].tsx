@@ -4,7 +4,7 @@ import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { Block, Trash, Spinner } from '../../assets';
 import Image from 'next/image';
-import { getProjectDetails, assignUserToProject } from "../../contracts/Escrow";
+import { getProjectDetails, assignUserToProject, unassignUserFromProject } from "../../contracts/Escrow";
 import { getTokenDetails, formatTokenAmount } from "../../contracts/MockToken";
 import { useAccount } from 'wagmi';
 import { BigNumber } from 'ethers';
@@ -165,6 +165,33 @@ const Dashboard: NextPage = () => {
     setIsModalOpen(false);
   };
 
+  const [removingMember, setRemovingMember] = useState<string | null>(null);
+
+  // メンバーを削除する関数
+  const removeMember = async (index: number) => {
+    const memberToRemove = members[index];
+    
+    if (!memberToRemove) {
+      return console.error('Member not found');
+    }
+
+    setRemovingMember(memberToRemove.walletAddress);
+
+    try {
+      // スマートコントラクトからユーザーを削除
+      await unassignUserFromProject(projectId as string, memberToRemove.walletAddress);
+
+      await loadProjectDetails();
+      
+      console.log(`Member ${memberToRemove.walletAddress} has been removed successfully.`);
+    } catch (error) {
+      console.error('Error removing member:', error);
+      alert('Failed to remove member.');
+    } finally {
+      setRemovingMember(null);
+    }
+  };
+
   return (
     <>
       <Head>
@@ -206,14 +233,27 @@ const Dashboard: NextPage = () => {
                       <span className='flex-1 truncate'>{member.name}</span>
                       <span className='flex-2 truncate'>{member.email}</span>
                       <span className='flex-2 truncate'>{member.walletAddress}</span>
-                      <Image
-                        src={Trash}
-                        alt="trash"
-                        height={30} 
-                        onClick={() => {}} 
-                        className="hover:bg-red-400 text-white p-1 rounded"
-                        aria-label="Remove member"
-                      />
+                      {members.length > 1 && ( // メンバーが1人以上の場合のみ削除アイコンを表示
+                        removingMember === member.walletAddress ? (
+                          <div className="flex flex-row items-center justify-center text-lg text-green-400">
+                            <Image
+                              src={Spinner}
+                              alt="spinner"
+                              className="animate-spin-slow h-10 w-full"
+                            />
+                            Processing...
+                          </div>
+                        ) : (
+                          <Image
+                            src={Trash}
+                            alt="trash"
+                            height={30}
+                            onClick={() => removeMember(index)}
+                            className="hover:bg-red-400 text-white p-1 rounded"
+                            aria-label="Remove member"
+                          />
+                        )
+                      )}
                     </div>
                   ))}
                 </div>

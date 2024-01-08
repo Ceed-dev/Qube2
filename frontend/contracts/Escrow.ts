@@ -185,3 +185,21 @@ export async function assignUserToProject(projectId: string, userAddress: string
     throw new Error('Failed to assign user to project.');
   }
 }
+
+export async function unassignUserFromProject(projectId: string, userAddress: string) {
+  const contract = getEscrowContract();
+
+  try {
+    // スマートコントラクトのunassignUserFromProject関数を呼び出します。
+    const transaction = await contract.unassignUserFromProject(projectId, userAddress);
+    
+    // トランザクションがマイニングされるのを待ちます。
+    await transaction.wait();
+    
+    console.log(`User ${userAddress} has been unassigned from project ${projectId}`);
+  } catch (error) {
+    // エラーをハンドリングします。
+    console.error(`Failed to unassign user: ${error.message}`);
+    throw error;
+  }
+}
