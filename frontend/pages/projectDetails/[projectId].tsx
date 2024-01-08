@@ -8,6 +8,8 @@ import { getProjectDetails } from "../../contracts/Escrow";
 import { getTokenDetails, formatTokenAmount } from "../../contracts/MockToken";
 import { useAccount } from 'wagmi';
 import { BigNumber } from 'ethers';
+import { doc, getDoc } from "firebase/firestore";
+import { database } from '../../utils';
 
 // ここで型定義やインターフェースを追加します
 interface Contract {
@@ -55,6 +57,7 @@ const Dashboard: NextPage = () => {
   const [projectDetails, setProjectDetails] = useState<ProjectDetails | null>(null);
   // フォーマットされたトークンデポジット情報を格納するための状態変数
   const [formattedTokenDeposits, setFormattedTokenDeposits] = useState([]);
+  const [members, setMembers] = useState<Member[]>([]);
 
   useEffect(() => {
     const fetchTokenDetails = async () => {
@@ -94,6 +97,30 @@ const Dashboard: NextPage = () => {
           startTimestamp: response.startTimestamp,
         };
         setProjectDetails(details);
+
+        // assignedUsersのウォレットアドレスを使ってFirebaseからユーザーデータを取得
+        const memberData = await Promise.all(
+          details.assignedUsers.map(async (walletAddress) => {
+            const docRef = doc(database, "users", walletAddress);
+            const docSnapshot = await getDoc(docRef);
+            if (docSnapshot.exists()) {
+              const docData = docSnapshot.data();
+              return {
+                name: docData.username,
+                email: docData.email,
+                walletAddress: walletAddress
+              }
+            } else {
+              return {
+                name: "",
+                email: "",
+                walletAddress: walletAddress,
+              }
+            }
+          })
+        );
+        console.log("member:", memberData);
+        setMembers(memberData);
       } catch (error) {
         console.error('Could not fetch project details', error);
       }
@@ -117,22 +144,7 @@ const Dashboard: NextPage = () => {
   };
 
   const closeModal = () => {
-    console.log("hello");
     setIsModalOpen(false);
-  };
-
-  const [members, setMembers] = useState<Member[]>([
-    {
-      name: 'Badhan',
-      email: 'badhan998877@gmail.com',
-      walletAddress: '0x2Ed4a43bF11049c78E171A9c3F4A7ea1e6EDfBD4',
-    },
-    // 他のメンバーデータ...
-  ]);
-
-  // メンバーを削除する関数
-  const removeMember = (index: number) => {
-    setMembers(members => members.filter((_, i) => i !== index));
   };
 
   return (
@@ -180,7 +192,7 @@ const Dashboard: NextPage = () => {
                         src={Trash}
                         alt="trash"
                         height={30} 
-                        onClick={() => removeMember(index)} 
+                        onClick={() => {}} 
                         className="ml-4 hover:bg-red-400 text-white p-1 rounded"
                         aria-label="Remove member"
                       />
