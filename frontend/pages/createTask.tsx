@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 
 const CreateTask: React.FC = () => {
   const router = useRouter();
-  const [projectName, setProjectName] = useState('Project name');
   const [currency, setCurrency] = useState('MATIC');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -21,24 +20,12 @@ const CreateTask: React.FC = () => {
         <title>Create Contract</title>
       </Head>
       <div className="bg-blue-50 min-h-screen p-20">
-        <div className="flex justify-between items-center mb-6">
-          <button
-            onClick={() => router.back()}
-            className="text-white bg-indigo-500 hover:bg-indigo-600 px-4 py-1 rounded-md transition duration-300 ease-in-out"
-          >
-            Back
-          </button>
-          <div className="relative">
-            <button
-              onClick={() => {}}
-              className="text-indigo-600 hover:text-indigo-800"
-            >
-              {projectName}
-              <span className="ml-2">▼</span>
-            </button>
-            {/* Dropdown logic can be implemented here */}
-          </div>
-        </div>
+        <button
+          onClick={() => router.back()}
+          className="text-white bg-indigo-500 hover:bg-indigo-600 px-4 py-1 rounded-md transition duration-300 ease-in-out"
+        >
+          Back
+        </button>
 
         <div className="max-w-lg mx-auto bg-white p-8 rounded-lg shadow-md">
           <h1 className="text-xl font-bold text-center mb-6">Create Contract</h1>
