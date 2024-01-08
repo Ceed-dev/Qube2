@@ -1,18 +1,98 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { BigNumber } from 'ethers';
+import { getTokenDetails, formatTokenAmount } from '../contracts/MockToken';
+import { getProjectDetails } from '../contracts/Escrow';
+import { useAccount } from 'wagmi';
+
+interface TokenDepositInfo {
+  tokenAddress: string;
+  depositAmount: BigNumber; // または number または BigNumber など、実際のデータ型に合わせて調整してください
+}
+
+interface ProjectDetails {
+  owner: string;
+  name: string;
+  assignedUsers: string[]; // ユーザーアドレスの配列と仮定
+  tokenDeposits: TokenDepositInfo[];
+  taskIds: string[]; // タスクIDの配列と仮定
+  startTimestamp: BigNumber; // Unixタイムスタンプと仮定
+}
 
 const CreateTask: React.FC = () => {
   const router = useRouter();
-  const [currency, setCurrency] = useState('MATIC');
+  const { isDisconnected } = useAccount();
+  const { projectId } = router.query;
+  const [symbol, setSymbol] = useState("");
+  const [amount, setAmount] = useState("");
+  const [tokenAddress, setTokenAddress] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const currencies = ['MATIC', 'USDT', 'USDC', 'JPYC']; // 利用可能な通貨のリスト
-
-  const handleCurrencyChange = (newCurrency: string) => {
-    setCurrency(newCurrency);
+  const handleCurrencyChange = (newSymbol: string, newAmount: string, newTokenAddress: string) => {
+    setSymbol(newSymbol);
+    setAmount(newAmount);
+    setTokenAddress(newTokenAddress);
     setIsDropdownOpen(false);
   };
+
+  const [projectDetails, setProjectDetails] = useState<ProjectDetails | null>(null);
+  const [formattedTokenDeposits, setFormattedTokenDeposits] = useState([]);
+
+  useEffect(() => {
+    const fetchTokenDetails = async () => {
+      const formattedDeposits = await Promise.all(
+        projectDetails?.tokenDeposits.map(async (deposit) => {
+          if (deposit.tokenAddress != "0x0000000000000000000000000000000000000000") {
+            const { decimals, symbol } = await getTokenDetails(deposit.tokenAddress);
+            const formattedAmount = formatTokenAmount(deposit.depositAmount, decimals);
+            return { amount: formattedAmount, symbol: symbol, address: deposit.tokenAddress };
+          } else {
+            const formattedAmount = formatTokenAmount(deposit.depositAmount, 18);
+            return { amount: formattedAmount, symbol: "MATIC", address: "0x0000000000000000000000000000000000000000" };
+          }
+        })
+      );
+      setFormattedTokenDeposits(formattedDeposits);
+    };
+
+    if (projectDetails?.tokenDeposits) {
+      fetchTokenDetails();
+      
+    }
+  }, [projectDetails?.tokenDeposits]);
+
+  const loadProjectDetails = async () => {
+    try {
+      const response = await getProjectDetails(projectId as string);
+      const details: ProjectDetails = {
+        owner: response.owner,
+        name: response.name,
+        assignedUsers: response.assignedUsers,
+        tokenDeposits: response.tokenDeposits.map(deposit => ({
+          tokenAddress: deposit.tokenAddress,
+          depositAmount: deposit.depositAmount,
+        })),
+        taskIds: response.taskIds,
+        startTimestamp: response.startTimestamp,
+      };
+      setProjectDetails(details);
+    } catch (error) {
+      console.error('Could not fetch project details', error);
+    }
+  };
+
+  useEffect(() => {
+    if (projectId) {
+      loadProjectDetails();
+    }
+  }, [projectId]);
+
+  useEffect(() => {
+    if (isDisconnected) {
+      router.push("/");
+    }
+  }, [isDisconnected, router]);
 
   return (
     <>
@@ -27,7 +107,7 @@ const CreateTask: React.FC = () => {
           Back
         </button>
 
-        <div className="max-w-lg mx-auto bg-white p-8 rounded-lg shadow-md">
+        <div className="max-w-xl mx-auto bg-white p-8 rounded-lg shadow-md">
           <h1 className="text-xl font-bold text-center mb-6">Create Contract</h1>
           <form>
             <div className="mb-4">
@@ -84,22 +164,24 @@ const CreateTask: React.FC = () => {
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className="form-input rounded-r-md border border-gray-200 bg-gray-100 px-4 focus:outline-none"
                 >
-                  {currency} ▼
+                  {symbol} ▼
                 </button>
                 {isDropdownOpen && (
                   <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md mt-1">
-                    {currencies.map((item) => (
+                    {formattedTokenDeposits.map((deposit, index) => (
                       <li
-                        key={item}
-                        onClick={() => handleCurrencyChange(item)}
+                        key={index}
+                        onClick={() => handleCurrencyChange(deposit.symbol, deposit.amount, deposit.address)}
                         className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                       >
-                        {item}
+                        {deposit.symbol}
                       </li>
                     ))}
                   </ul>
                 )}
               </div>
+              <p className="text-sm text-slate-400">Token Address: {tokenAddress}</p>
+              <p className="text-sm text-slate-400">Deposit Amount: {amount}</p>
             </div>
 
             <button
