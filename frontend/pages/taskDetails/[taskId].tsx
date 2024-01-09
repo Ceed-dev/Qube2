@@ -6,7 +6,7 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { database } from '../../utils';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { assignRecipientToTask } from "../../contracts/Escrow";
+import { assignRecipientToTask, submitTask } from "../../contracts/Escrow";
 
 interface Task {
   taskId: string,
@@ -19,6 +19,7 @@ interface Task {
   submissionDeadline: Date,
   reviewDeadline: Date,
   paymentDeadline: Date,
+  textDeliverable: string,
 }
 
 const TaskDetailsPage: React.FC = () => {
@@ -41,6 +42,10 @@ const TaskDetailsPage: React.FC = () => {
       const docSnapshot = await getDoc(docRef);
       if (docSnapshot.exists()) {
         const docData = docSnapshot.data();
+        let textDeliverable;
+        if (docData.textDeliverable) {
+          textDeliverable = docData.textDeliverable;
+        }
         setTask({
           taskId: taskId as string,
           projectId: docData.projectId,
@@ -52,6 +57,7 @@ const TaskDetailsPage: React.FC = () => {
           submissionDeadline: docData.submissionDeadline.toDate(),
           reviewDeadline: docData.reviewDeadline.toDate(),
           paymentDeadline: docData.paymentDeadline.toDate(),
+          textDeliverable: textDeliverable,
         });
         setIsContractSignedOpen(true);
         if (docData.recipient) {
@@ -112,7 +118,25 @@ const TaskDetailsPage: React.FC = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    console.log(text);
+    try {
+      if (isConnected) {
+        setIsSubmitting(true);
+        await submitTask(taskId as string);
+
+        const docRef = doc(database, "tasks", taskId as string);
+        await updateDoc(docRef, {textDeliverable: text});
+
+        await loadTaskDetails();
+      } else {
+        openConnectModal();
+      }
+    } catch (error) {
+      console.error("Error submitting a task: ", error);
+      alert("Error submitting a task");
+    } finally {
+      setIsSubmitting(false);
+    }
+
     setText("");
   }
 
@@ -228,6 +252,7 @@ const TaskDetailsPage: React.FC = () => {
                   />
                 </label>
               </div>
+              <p>{task.textDeliverable}</p>
 
               <button
                 type="submit"
