@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { BigNumber } from 'ethers';
+import { ethers, BigNumber } from 'ethers';
 import { getTokenDetails, formatTokenAmount } from '../contracts/MockToken';
-import { getProjectDetails } from '../contracts/Escrow';
+import { getProjectDetails, createTask } from '../contracts/Escrow';
 import { useAccount } from 'wagmi';
 import Datepicker from "react-tailwindcss-datepicker";
+import { collection, addDoc, deleteDoc, doc } from "firebase/firestore";
+import { database } from '../utils';
+import Image from 'next/image';
+import { Spinner } from '../assets';
+import { CreateProjectModal } from '../components/project';
 
 interface TokenDepositInfo {
   tokenAddress: string;
@@ -27,12 +32,14 @@ const CreateTask: React.FC = () => {
   const { projectId } = router.query;
   const [symbol, setSymbol] = useState("");
   const [amount, setAmount] = useState("");
+  const [decimals, setDecimals] = useState(0);
   const [tokenAddress, setTokenAddress] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const handleCurrencyChange = (newSymbol: string, newAmount: string, newTokenAddress: string) => {
+  const handleCurrencyChange = (newSymbol: string, newAmount: string, newDecimals: number, newTokenAddress: string) => {
     setSymbol(newSymbol);
     setAmount(newAmount);
+    setDecimals(newDecimals);
     setTokenAddress(newTokenAddress);
     setIsDropdownOpen(false);
   };
@@ -63,10 +70,10 @@ const CreateTask: React.FC = () => {
           if (deposit.tokenAddress != "0x0000000000000000000000000000000000000000") {
             const { decimals, symbol } = await getTokenDetails(deposit.tokenAddress);
             const formattedAmount = formatTokenAmount(deposit.depositAmount, decimals);
-            return { amount: formattedAmount, symbol: symbol, address: deposit.tokenAddress };
+            return { amount: formattedAmount, symbol: symbol, address: deposit.tokenAddress, decimals: decimals };
           } else {
             const formattedAmount = formatTokenAmount(deposit.depositAmount, 18);
-            return { amount: formattedAmount, symbol: "MATIC", address: "0x0000000000000000000000000000000000000000" };
+            return { amount: formattedAmount, symbol: "MATIC", address: "0x0000000000000000000000000000000000000000", decimals: 18 };
           }
         })
       );
@@ -149,8 +156,10 @@ const CreateTask: React.FC = () => {
     }
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // フォーム送信時のイベントハンドラー
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault(); // デフォルトのフォーム送信を防止
 
     // チェック開始
@@ -188,9 +197,59 @@ const CreateTask: React.FC = () => {
       rewardAmount,
       symbol,
       tokenAddress,
+      decimals,
     });
 
+    // Firestoreに保存するデータ
+    const taskData = {
+      title,
+      details,
+      submissionDeadline: new Date(selectedDate),
+      reviewDeadline: new Date(getDatePlusDays(selectedDate.toString(), 7).startDate),
+      paymentDeadline: new Date(getDatePlusDays(selectedDate.toString(), 14).startDate),
+      rewardAmount: numericRewardAmount,
+      symbol,
+      tokenAddress,
+      decimals,
+      projectId,
+      createdAt: new Date(),
+    };
+
     // ここでFirebaseへのアップロード処理を実行
+    setIsSubmitting(true);
+    try {
+      // Firestoreのコレクションにデータを追加
+      const docRef = await addDoc(collection(database, "tasks"), taskData);
+      console.log("Document written with ID: ", docRef.id);
+
+      try {
+        // Firebaseでの保存が成功したら、スマートコントラクトにタスクを作成
+        await createTask(
+          docRef.id,
+          projectId as string,
+          tokenAddress,
+          ethers.utils.parseUnits(rewardAmount, decimals),
+          Math.floor((new Date(selectedDate)).getTime() / 1000),
+          Math.floor((new Date(getDatePlusDays(selectedDate.toString(), 7).startDate)).getTime() / 1000),
+          Math.floor((new Date(getDatePlusDays(selectedDate.toString(), 14).startDate)).getTime() / 1000),
+        );
+
+        console.log("Task created on blockchain");
+      } catch (error) {
+        // ブロックチェーン上でのタスク作成が失敗した場合、Firebaseのデータを削除
+        await deleteDoc(doc(database, "tasks", docRef.id));
+        console.error("Error creating task on blockchain, removed Firebase document: ", error);
+        alert("タスクの作成に失敗しました。");
+      }
+      
+      setTaskDetailLink(`https://${window.location.host}/taskDetails/${docRef.id}`);
+      setShowTaskModal(true);
+    } catch (e) {
+      console.error("Error adding document: ", e);
+      alert("タスクの作成に失敗しました。");
+    } finally {
+      setIsSubmitting(false);
+    }
 
     // フォームの値をリセット
     setTitle("");
@@ -199,8 +258,12 @@ const CreateTask: React.FC = () => {
     setRewardAmount("");
     setSymbol("");
     setAmount("");
+    setDecimals(0);
     setTokenAddress("");
   };
+
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [taskDetailLink, setTaskDetailLink] = useState(undefined as string);
 
   return (
     <>
@@ -314,7 +377,7 @@ const CreateTask: React.FC = () => {
                     {formattedTokenDeposits.map((deposit, index) => (
                       <li
                         key={index}
-                        onClick={() => handleCurrencyChange(deposit.symbol, deposit.amount, deposit.address)}
+                        onClick={() => handleCurrencyChange(deposit.symbol, deposit.amount, deposit.decimals, deposit.address)}
                         className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                       >
                         {deposit.symbol}
@@ -330,13 +393,30 @@ const CreateTask: React.FC = () => {
             <button
               type="submit"
               className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-md"
+              disabled={isSubmitting}
             >
-              Create Contract
+              {isSubmitting ? (
+                <div className="flex flex-row items-center justify-center text-lg text-green-400">
+                  <Image
+                    src={Spinner}
+                    alt="spinner"
+                    className="animate-spin-slow h-8 w-auto"
+                  />
+                  Processing...
+                </div>
+              ) : "Create Contract"}
             </button>
           </form>
         </div>
 
       </div>
+
+      <CreateProjectModal
+        showProjectModal={showTaskModal}
+        setShowProjectModal={setShowTaskModal}
+        projectDetailLink={taskDetailLink}
+        userType={"depositor"}
+      />
     </>
   );
 };
