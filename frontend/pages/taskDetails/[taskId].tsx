@@ -33,6 +33,7 @@ const TaskDetailsPage: React.FC = () => {
   const [isSigning, setIsSigning] = useState(false);
   const [task, setTask] = useState<Task>();
   const [recipientName, setRecipientName] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loadTaskDetails = async () => {
     try {
@@ -101,6 +102,19 @@ const TaskDetailsPage: React.FC = () => {
       setIsSigning(false);
     }
   };
+
+  const [text, setText] = useState("");
+
+  const handleTextChange = (e) => {
+    setText(e.target.value);
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    console.log(text);
+    setText("");
+  }
 
   return (
     <div className="bg-blue-50 min-h-screen p-20">
@@ -193,13 +207,45 @@ const TaskDetailsPage: React.FC = () => {
         <div className="pt-4">
           <button
             onClick={toggleSubmissionApprovedOpen}
-            className="hover:text-indigo-800 w-full">
-            Approve Submission
-          </button>
-          {isSubmissionApproved && (
-            <div className="mt-4">
-              {/* Submission approval content goes here */}
+            className="hover:text-indigo-800 font-bold flex items-center justify-between w-full"
+          >
+            <div className="w-10 h-10 border border-black rounded-full">
+              {isSubmissionApproved && <Image src={Checkmark} alt="Checkmark" />}
             </div>
+            <p>Approve Submission</p>
+            <Image src={isSubmissionApprovedOpen ? ToggleClose : ToggleOpen} alt="Toggle" />
+          </button>
+          {isSubmissionApprovedOpen && (
+            <form onSubmit={handleSubmit}>
+              <div className="my-4">
+                <label className="block text-gray-700">
+                  Text
+                  <input
+                    value={text}
+                    onChange={handleTextChange}
+                    type="text"
+                    className="form-input mt-1 block w-full rounded-md border border-gray-200"
+                  />
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-md mt-4"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <div className="flex flex-row items-center justify-center text-lg text-green-400">
+                    <Image
+                      src={Spinner}
+                      alt="spinner"
+                      className="animate-spin-slow h-8 w-auto"
+                    />
+                    Processing...
+                  </div>
+                ) : "Submit"}
+              </button>
+            </form>
           )}
         </div>
       </div>
