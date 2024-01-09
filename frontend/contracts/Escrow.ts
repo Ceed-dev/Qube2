@@ -203,3 +203,37 @@ export async function unassignUserFromProject(projectId: string, userAddress: st
     throw error;
   }
 }
+
+export async function createTask(
+  taskId: string, 
+  projectId: string, 
+  tokenAddress: string, 
+  lockedAmount: BigNumber, 
+  submissionDeadline: number, 
+  reviewDeadline: number, 
+  paymentDeadline: number,
+): Promise<string> {
+  const contract = getEscrowContract();
+  
+  try {
+    // スマートコントラクトの関数を呼び出し
+    const transaction = await contract.createTask(
+      taskId,
+      projectId,
+      tokenAddress,
+      lockedAmount,
+      submissionDeadline,
+      reviewDeadline,
+      paymentDeadline
+    );
+
+    // トランザクションの完了を待つ
+    await transaction.wait();
+
+    console.log("Task created on blockchain with ID:", taskId);
+    return taskId;
+  } catch (error) {
+    console.error("Error creating task on blockchain:", error);
+    throw error;
+  }
+}
