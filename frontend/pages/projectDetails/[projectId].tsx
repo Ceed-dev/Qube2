@@ -32,6 +32,7 @@ interface ProjectDetails {
 }
 
 interface Task {
+  id: string,
   title: string,
   recipient: string,
   rewardAmount: number,
@@ -139,6 +140,7 @@ const Dashboard: NextPage = () => {
           if (docSnapshot.exists()) {
             const docData = docSnapshot.data();
             return {
+              id: taskId,
               title: docData.title,
               recipient: docData.recipient,
               rewardAmount: docData.rewardAmount,
@@ -369,7 +371,11 @@ const Dashboard: NextPage = () => {
                 </tr>
               ) : (
                 tasks.map((task, index) => (
-                  <tr key={index} className="h-[50px] hover:shadow-lg duration-300">
+                  <tr 
+                    key={index} 
+                    className="h-[50px] hover:shadow-lg duration-300"
+                    onClick={() => router.push(`/taskDetails/${task.id}`)}
+                  >
                     <td>{task.title}</td>
                     <td>{task.recipient}</td>
                     <td>{task.rewardAmount} {task.symbol}</td>
