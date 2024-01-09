@@ -56,7 +56,7 @@ const OnboardingScreen: React.FC = () => {
         email: userInfo.email,
       });
 
-      router.push(`/projects/${address}`);
+      router.back();
 
     } catch (error) {
       console.error("Error setting document: ", error);

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useAccount } from 'wagmi';
 import { ToggleOpen, ToggleClose, Checkmark, Spinner } from '../../assets';
 import Image from 'next/image';
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { database } from '../../utils';
+import { useAccount } from 'wagmi';
+import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { assignRecipientToTask } from "../../contracts/Escrow";
 
 interface Task {
   taskId: string,
@@ -22,8 +24,11 @@ interface Task {
 const TaskDetailsPage: React.FC = () => {
   const router = useRouter();
   const { taskId } = router.query;
-  const { isDisconnected } = useAccount();
+  const { address, isConnected } = useAccount();
+  const { openConnectModal } = useConnectModal();
+  const [isContractSigned, setIsContractSigned] = useState(false);
   const [isContractSignedOpen, setIsContractSignedOpen] = useState(false);
+  const [isSubmissionApproved, setIsSubmissionApproved] = useState(false);
   const [isSubmissionApprovedOpen, setIsSubmissionApprovedOpen] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
   const [task, setTask] = useState<Task>();
@@ -47,6 +52,17 @@ const TaskDetailsPage: React.FC = () => {
           reviewDeadline: docData.reviewDeadline.toDate(),
           paymentDeadline: docData.paymentDeadline.toDate(),
         });
+        setIsContractSignedOpen(true);
+        if (docData.recipient) {
+          setIsContractSigned(true);
+          setIsContractSignedOpen(false);
+          const docRef = doc(database, "users", docData.recipient);
+          const docSnapshot = await getDoc(docRef);
+          if (docSnapshot.exists()) {
+            const docData = docSnapshot.data();
+            setRecipientName(docData.username);
+          }
+        }
       }
     } catch (error) {
       console.error('Could not fetch task details', error);
@@ -60,14 +76,31 @@ const TaskDetailsPage: React.FC = () => {
   }, [taskId]);
 
   // トグルの状態を切り替えるハンドラー
-  const toggleContractSigned = () => setIsContractSignedOpen(!isContractSignedOpen);
-  const toggleSubmissionApproved = () => setIsSubmissionApprovedOpen(!isSubmissionApprovedOpen);
+  const toggleContractSignedOpen = () => setIsContractSignedOpen(!isContractSignedOpen);
+  const toggleSubmissionApprovedOpen = () => setIsSubmissionApprovedOpen(!isSubmissionApprovedOpen);
 
-  useEffect(() => {
-    if (isDisconnected) {
-      router.push("/");
+  const handleSign = async (event) => {
+    event.preventDefault();
+      
+    try {
+      if (isConnected) {
+        setIsSigning(true);
+        await assignRecipientToTask(taskId as string);
+
+        const docRef = doc(database, "tasks", taskId as string);
+        await updateDoc(docRef, {recipient: address});
+
+        await loadTaskDetails();
+      } else {
+        openConnectModal();
+      }
+    } catch (error) {
+      console.error("Error signing the contract: ", error);
+      alert("Error signing the contract");
+    } finally {
+      setIsSigning(false);
     }
-  }, [isDisconnected, router]);
+  };
 
   return (
     <div className="bg-blue-50 min-h-screen p-20">
@@ -82,11 +115,11 @@ const TaskDetailsPage: React.FC = () => {
         {/* Sign to the contract トグル */}
         <div className="border-b pb-4">
           <button
-            onClick={toggleContractSigned}
+            onClick={toggleContractSignedOpen}
             className="hover:text-indigo-800 font-bold flex items-center justify-between w-full"
           >
             <div className="w-10 h-10 border border-black rounded-full">
-              <Image src={Checkmark} alt="Checkmark" />
+              {isContractSigned && <Image src={Checkmark} alt="Checkmark" />}
             </div>
             <p>Sign to the contract</p>
             <Image src={isContractSignedOpen ? ToggleClose : ToggleOpen} alt="Toggle" />
@@ -109,7 +142,7 @@ const TaskDetailsPage: React.FC = () => {
                 <span className="bg-purple-600 text-white py-1 px-3 rounded-full">{task.symbol}</span>
               </div>
 
-              {task.recipient ?? (
+              {isContractSigned && (
                 <div>
                   <div className="font-semibold text-lg mt-4">Creator</div>
                   <div className="flex gap-2 items-center">
@@ -134,10 +167,11 @@ const TaskDetailsPage: React.FC = () => {
                 <span className="flex-1">{task.paymentDeadline.toDateString()}</span>
               </div>
 
-              <button
+              {!isContractSigned && <button
                 type="submit"
                 className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-md mt-4"
                 disabled={isSigning}
+                onClick={handleSign}
               >
                 {isSigning ? (
                   <div className="flex flex-row items-center justify-center text-lg text-green-400">
@@ -149,7 +183,7 @@ const TaskDetailsPage: React.FC = () => {
                     Processing...
                   </div>
                 ) : "Sign The Contract"}
-              </button>
+              </button>}
 
             </div>
           )}
@@ -158,11 +192,11 @@ const TaskDetailsPage: React.FC = () => {
         {/* Approve Submission トグル */}
         <div className="pt-4">
           <button
-            onClick={toggleSubmissionApproved}
+            onClick={toggleSubmissionApprovedOpen}
             className="hover:text-indigo-800 w-full">
             Approve Submission
           </button>
-          {isSubmissionApprovedOpen && (
+          {isSubmissionApproved && (
             <div className="mt-4">
               {/* Submission approval content goes here */}
             </div>
