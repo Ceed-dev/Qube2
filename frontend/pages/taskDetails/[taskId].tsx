@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useAccount } from 'wagmi';
 import { ToggleOpen, ToggleClose, Checkmark, Spinner } from '../../assets';
 import Image from 'next/image';
 import { doc, getDoc } from "firebase/firestore";
@@ -22,7 +21,6 @@ interface Task {
 const TaskDetailsPage: React.FC = () => {
   const router = useRouter();
   const { taskId } = router.query;
-  const { isDisconnected } = useAccount();
   const [isContractSignedOpen, setIsContractSignedOpen] = useState(false);
   const [isSubmissionApprovedOpen, setIsSubmissionApprovedOpen] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
@@ -62,12 +60,6 @@ const TaskDetailsPage: React.FC = () => {
   // トグルの状態を切り替えるハンドラー
   const toggleContractSigned = () => setIsContractSignedOpen(!isContractSignedOpen);
   const toggleSubmissionApproved = () => setIsSubmissionApprovedOpen(!isSubmissionApprovedOpen);
-
-  useEffect(() => {
-    if (isDisconnected) {
-      router.push("/");
-    }
-  }, [isDisconnected, router]);
 
   return (
     <div className="bg-blue-50 min-h-screen p-20">
