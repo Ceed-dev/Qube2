@@ -11,24 +11,6 @@ import { BigNumber } from 'ethers';
 import { doc, getDoc } from "firebase/firestore";
 import { database } from '../../utils';
 
-// ここで型定義やインターフェースを追加します
-interface Contract {
-  title: string;
-  recipient: string;
-  amount: string;
-  token: string;
-  submissionDeadline: string;
-  reviewDeadline: string;
-}
-
-// これはダミーデータです。実際にはAPIからデータを取得するなどして埋める必要があります。
-const contracts: Contract[] = [
-  { title: "NFT Giveaway Tweet", recipient: "Badhan", amount: "300", token: "MATIC", submissionDeadline: "2023/12/20", reviewDeadline: "2023/12/27" },
-  { title: "NFT Giveaway Tweet", recipient: "Badhan", amount: "300", token: "MATIC", submissionDeadline: "2023/12/20", reviewDeadline: "2023/12/27" },
-  { title: "NFT Giveaway Tweet", recipient: "Badhan", amount: "300", token: "MATIC", submissionDeadline: "2023/12/20", reviewDeadline: "2023/12/27" },
-  // 他のコントラクトデータ...
-];
-
 interface Member {
   name: string;
   email: string;
@@ -49,6 +31,16 @@ interface ProjectDetails {
   startTimestamp: BigNumber; // Unixタイムスタンプと仮定
 }
 
+interface Task {
+  title: string,
+  recipient: string,
+  rewardAmount: number,
+  symbol: string,
+  submissionDeadline: Date,
+  reviewDeadline: Date,
+  paymentDeadline: Date,
+}
+
 const Dashboard: NextPage = () => {
   const router = useRouter();
   const { isDisconnected } = useAccount();
@@ -58,6 +50,7 @@ const Dashboard: NextPage = () => {
   // フォーマットされたトークンデポジット情報を格納するための状態変数
   const [formattedTokenDeposits, setFormattedTokenDeposits] = useState([]);
   const [members, setMembers] = useState<Member[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [newMemberAddress, setNewMemberAddress] = useState("");
   const [isAssigningNewMemberAddress, setIsAssigningNewMemberAddress] = useState(false);
 
@@ -138,6 +131,27 @@ const Dashboard: NextPage = () => {
       );
       console.log("member:", memberData);
       setMembers(memberData);
+
+      const taskData = await Promise.all(
+        details.taskIds.map(async (taskId) => {
+          const docRef = doc(database, "tasks", taskId);
+          const docSnapshot = await getDoc(docRef);
+          if (docSnapshot.exists()) {
+            const docData = docSnapshot.data();
+            return {
+              title: docData.title,
+              recipient: docData.recipient,
+              rewardAmount: docData.rewardAmount,
+              symbol: docData.symbol,
+              submissionDeadline: docData.submissionDeadline.toDate(),
+              reviewDeadline: docData.reviewDeadline.toDate(),
+              paymentDeadline: docData.paymentDeadline.toDate(),
+            }
+          }
+        })
+      );
+      console.log("tasks:", taskData);
+      setTasks(taskData);
     } catch (error) {
       console.error('Could not fetch project details', error);
     }
@@ -340,26 +354,28 @@ const Dashboard: NextPage = () => {
           <table className="min-w-full">
             <thead>
               <tr>
-                <th className="text-left text-gray-600">Contract</th>
-                <th className="text-left text-gray-600">Name</th>
-                <th className="text-left text-gray-600">Amount</th>
-                <th className="text-left text-gray-600">Start Date</th>
-                <th className="text-left text-gray-600">End Date</th>
+                <th className="text-left text-gray-600 w-1/6">Contract</th>
+                <th className="text-left text-gray-600 w-1/6">Name</th>
+                <th className="text-left text-gray-600 w-1/6">Amount</th>
+                <th className="text-left text-gray-600 w-1/6">Submission Deadline</th>
+                <th className="text-left text-gray-600 w-1/6">Review Deadline</th>
+                <th className="text-left text-gray-600 w-1/6">Payment Deadline</th>
               </tr>
             </thead>
             <tbody>
-              {contracts.length === 0 ? (
+              {tasks.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="text-center text-gray-500">No contracts available.</td>
                 </tr>
               ) : (
-                contracts.map((contract, index) => (
+                tasks.map((task, index) => (
                   <tr key={index} className="h-[50px] hover:shadow-lg duration-300">
-                    <td>{contract.title}</td>
-                    <td>{contract.recipient}</td>
-                    <td>{contract.amount} {contract.token}</td>
-                    <td>{contract.submissionDeadline}</td>
-                    <td>{contract.reviewDeadline}</td>
+                    <td>{task.title}</td>
+                    <td>{task.recipient}</td>
+                    <td>{task.rewardAmount} {task.symbol}</td>
+                    <td>{task.submissionDeadline.toDateString()}</td>
+                    <td>{task.reviewDeadline.toDateString()}</td>
+                    <td>{task.paymentDeadline.toDateString()}</td>
                   </tr>
                 ))
               )}
