@@ -12,7 +12,12 @@ const TaskDetailsPage: React.FC = () => {
 
   return (
     <div className="bg-blue-50 min-h-screen p-20">
-      {/* ... 上部のナビゲーションボタンなど ... */}
+      <button
+        onClick={() => router.back()}
+        className="text-white bg-indigo-500 hover:bg-indigo-600 px-4 py-1 rounded-md transition duration-300 ease-in-out"
+      >
+        Back
+      </button>
 
       <div className="bg-white rounded-lg shadow-lg max-w-4xl mx-auto p-10">
         {/* Sign to the contract トグル */}
