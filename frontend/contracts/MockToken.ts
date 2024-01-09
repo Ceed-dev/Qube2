@@ -44,8 +44,14 @@ export async function allowance(owner: string, spender: string, tokenAddress: st
   return await contract.allowance(owner, spender);
 }
 
+// トークンの詳細を表すインターフェース
+interface TokenDetails {
+  decimals: number;
+  symbol: string;
+}
+
 // トークンのディテールを取得する関数
-export async function getTokenDetails(tokenAddress) {
+export async function getTokenDetails(tokenAddress: string): Promise<TokenDetails | undefined> {
   const signer = getSigner();
   const contract = getMockTokenContract(signer, tokenAddress);
 
@@ -55,6 +61,7 @@ export async function getTokenDetails(tokenAddress) {
     return { decimals, symbol };
   } catch (error) {
     console.error('Error fetching token details:', error);
+    return undefined;
   }
 }
 
