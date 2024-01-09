@@ -273,3 +273,21 @@ export async function submitTask(taskId: string): Promise<boolean> {
     throw error;
   }
 }
+
+export async function approveTask(taskId: string): Promise<boolean> {
+  const contract = getEscrowContract();
+
+  try {
+    // スマートコントラクトの関数を呼び出し
+    const transaction = await contract.approveTask(taskId);
+
+    // トランザクションの完了を待つ
+    await transaction.wait();
+
+    console.log("Approve Task:", taskId);
+    return true;
+  } catch (error) {
+    console.error("Error approving task:", error);
+    throw error;
+  }
+}

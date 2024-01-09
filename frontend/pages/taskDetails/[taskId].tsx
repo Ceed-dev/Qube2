@@ -6,7 +6,7 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { database } from '../../utils';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { assignRecipientToTask, submitTask } from "../../contracts/Escrow";
+import { assignRecipientToTask, submitTask, approveTask } from "../../contracts/Escrow";
 
 interface Task {
   taskId: string,
@@ -20,6 +20,7 @@ interface Task {
   reviewDeadline: Date,
   paymentDeadline: Date,
   textDeliverable: string,
+  isApproved: boolean,
 }
 
 const TaskDetailsPage: React.FC = () => {
@@ -35,6 +36,7 @@ const TaskDetailsPage: React.FC = () => {
   const [task, setTask] = useState<Task>();
   const [recipientName, setRecipientName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
 
   const loadTaskDetails = async () => {
     try {
@@ -58,7 +60,12 @@ const TaskDetailsPage: React.FC = () => {
           reviewDeadline: docData.reviewDeadline.toDate(),
           paymentDeadline: docData.paymentDeadline.toDate(),
           textDeliverable: textDeliverable,
+          isApproved: docData.isApproved,
         });
+        if (docData.isApproved) {
+          setIsSubmissionApproved(true);
+          setIsSubmissionApprovedOpen(false);
+        }
         setIsContractSignedOpen(true);
         if (docData.recipient) {
           setIsContractSigned(true);
@@ -135,6 +142,31 @@ const TaskDetailsPage: React.FC = () => {
       alert("Error submitting a task");
     } finally {
       setIsSubmitting(false);
+    }
+
+    setText("");
+  }
+
+  const handleApprove = async (event) => {
+    event.preventDefault();
+
+    try {
+      if (isConnected) {
+        setIsApproving(true);
+        await approveTask(taskId as string);
+
+        const docRef = doc(database, "tasks", taskId as string);
+        await updateDoc(docRef, {isApproved: true});
+
+        await loadTaskDetails();
+      } else {
+        openConnectModal();
+      }
+    } catch (error) {
+      console.error("Error approving a task: ", error);
+      alert("Error approving a task");
+    } finally {
+      setIsApproving(false);
     }
 
     setText("");
@@ -254,7 +286,7 @@ const TaskDetailsPage: React.FC = () => {
               </div>
               <p>{task.textDeliverable}</p>
 
-              <button
+              {!task.textDeliverable && <button
                 type="submit"
                 className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-md mt-4"
                 disabled={isSubmitting}
@@ -269,7 +301,25 @@ const TaskDetailsPage: React.FC = () => {
                     Processing...
                   </div>
                 ) : "Submit"}
-              </button>
+              </button>}
+
+              {task.textDeliverable && !isSubmissionApproved && <button
+                type="button"
+                className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-md mt-4"
+                disabled={isApproving}
+                onClick={handleApprove}
+              >
+                {isApproving ? (
+                  <div className="flex flex-row items-center justify-center text-lg text-green-400">
+                    <Image
+                      src={Spinner}
+                      alt="spinner"
+                      className="animate-spin-slow h-8 w-auto"
+                    />
+                    Processing...
+                  </div>
+                ) : "Approve Submission"}
+              </button>}
             </form>
           )}
         </div>
