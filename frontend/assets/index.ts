@@ -33,6 +33,7 @@ import Envelope from "./Envelope.svg";
 import ProfileImage from "./Profile.png";
 import Block from "./block.svg";
 import Trash from "./trash.svg";
+import Checkmark from "./Checkmark.svg";
 
 export {
   arrow,
@@ -70,4 +71,5 @@ export {
   ProfileImage,
   Block,
   Trash,
+  Checkmark,
 };
