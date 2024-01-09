@@ -34,6 +34,8 @@ import ProfileImage from "./Profile.png";
 import Block from "./block.svg";
 import Trash from "./trash.svg";
 import Checkmark from "./Checkmark.svg";
+import ToggleOpen from "./ToggleOpen.svg";
+import ToggleClose from "./ToggleClose.svg";
 
 export {
   arrow,
@@ -72,4 +74,6 @@ export {
   Block,
   Trash,
   Checkmark,
+  ToggleOpen,
+  ToggleClose,
 };
