@@ -35,6 +35,7 @@ interface Task {
   id: string,
   title: string,
   recipient: string,
+  recipientName: string,
   rewardAmount: number,
   symbol: string,
   submissionDeadline: Date,
@@ -139,10 +140,20 @@ const Dashboard: NextPage = () => {
           const docSnapshot = await getDoc(docRef);
           if (docSnapshot.exists()) {
             const docData = docSnapshot.data();
+            let recipientName;
+            if (docData.recipient) {
+              const docRef = doc(database, "users", docData.recipient);
+              const docSnapshot = await getDoc(docRef);
+              if (docSnapshot.exists()) {
+                const docData = docSnapshot.data();
+                recipientName = docData.username;
+              }
+            }
             return {
               id: taskId,
               title: docData.title,
               recipient: docData.recipient,
+              recipientName: recipientName,
               rewardAmount: docData.rewardAmount,
               symbol: docData.symbol,
               submissionDeadline: docData.submissionDeadline.toDate(),
@@ -377,7 +388,7 @@ const Dashboard: NextPage = () => {
                     onClick={() => router.push(`/taskDetails/${task.id}`)}
                   >
                     <td>{task.title}</td>
-                    <td>{task.recipient}</td>
+                    <td>{task.recipientName}</td>
                     <td>{task.rewardAmount} {task.symbol}</td>
                     <td>{task.submissionDeadline.toDateString()}</td>
                     <td>{task.reviewDeadline.toDateString()}</td>
