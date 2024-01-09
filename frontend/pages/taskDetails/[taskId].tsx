@@ -1,14 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { useAccount } from 'wagmi';
 
 const TaskDetailsPage: React.FC = () => {
   const router = useRouter();
+  const { isDisconnected } = useAccount();
   const [isContractSigned, setIsContractSigned] = useState(false);
   const [isSubmissionApproved, setIsSubmissionApproved] = useState(false);
 
   // トグルの状態を切り替えるハンドラー
   const toggleContractSigned = () => setIsContractSigned(!isContractSigned);
   const toggleSubmissionApproved = () => setIsSubmissionApproved(!isSubmissionApproved);
+
+  useEffect(() => {
+    if (isDisconnected) {
+      router.push("/");
+    }
+  }, [isDisconnected, router]);
 
   return (
     <div className="bg-blue-50 min-h-screen p-20">
