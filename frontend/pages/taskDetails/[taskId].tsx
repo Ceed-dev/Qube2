@@ -3,13 +3,61 @@ import { useRouter } from 'next/router';
 import { useAccount } from 'wagmi';
 import { ToggleOpen, ToggleClose, Checkmark, Spinner } from '../../assets';
 import Image from 'next/image';
+import { doc, getDoc } from "firebase/firestore";
+import { database } from '../../utils';
+
+interface Task {
+  taskId: string,
+  projectId: string,
+  title: string,
+  details: string,
+  recipient: string,
+  rewardAmount: number,
+  symbol: string,
+  submissionDeadline: Date,
+  reviewDeadline: Date,
+  paymentDeadline: Date,
+}
 
 const TaskDetailsPage: React.FC = () => {
   const router = useRouter();
+  const { taskId } = router.query;
   const { isDisconnected } = useAccount();
   const [isContractSignedOpen, setIsContractSignedOpen] = useState(false);
   const [isSubmissionApprovedOpen, setIsSubmissionApprovedOpen] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
+  const [task, setTask] = useState<Task>();
+  const [recipientName, setRecipientName] = useState("");
+
+  const loadTaskDetails = async () => {
+    try {
+      const docRef = doc(database, "tasks", taskId as string);
+      const docSnapshot = await getDoc(docRef);
+      if (docSnapshot.exists()) {
+        const docData = docSnapshot.data();
+        setTask({
+          taskId: taskId as string,
+          projectId: docData.projectId,
+          title: docData.title,
+          details: docData.details,
+          recipient: docData.recipient,
+          rewardAmount: docData.rewardAmount,
+          symbol: docData.symbol,
+          submissionDeadline: docData.submissionDeadline.toDate(),
+          reviewDeadline: docData.reviewDeadline.toDate(),
+          paymentDeadline: docData.paymentDeadline.toDate(),
+        });
+      }
+    } catch (error) {
+      console.error('Could not fetch task details', error);
+    }
+  };
+
+  useEffect(() => {
+    if (taskId) {
+      loadTaskDetails();
+    }
+  }, [taskId]);
 
   // トグルの状態を切り替えるハンドラー
   const toggleContractSigned = () => setIsContractSignedOpen(!isContractSignedOpen);
@@ -47,36 +95,43 @@ const TaskDetailsPage: React.FC = () => {
             <div className="mt-4">
               {/* Contract signing content */}
               <div className="font-semibold text-lg">Project ID</div>
-              <p>project1_0xe41add49e335dbe9dee18ebba71ab606d948989a9c3b393cbcd285e6d9025cea</p>
+              <p>{task.projectId}</p>
+
+              <div className="font-semibold text-lg mt-4">Title</div>
+              <p>{task.title}</p>
 
               <div className="font-semibold text-lg mt-4">Description</div>
-              <p>Make a promotion tweet of Qube. Don't forget to use the brand kit for images.</p>
+              <p>{task.details}</p>
               
               <div className="font-semibold text-lg mt-4">Reward</div>
               <div className="flex items-center gap-2">
-                <span className="text-lg">300</span>
-                <span className="bg-purple-600 text-white py-1 px-3 rounded-full">MATIC</span>
+                <span className="text-lg">{task.rewardAmount}</span>
+                <span className="bg-purple-600 text-white py-1 px-3 rounded-full">{task.symbol}</span>
               </div>
 
-              <div className="font-semibold text-lg mt-4">Creator</div>
-              <div className="flex gap-2 items-center">
-                <span>Badhan</span>
-                <span className="text-gray-500">0x2Ed4a43bF11049c78E171A9c3F4A7ea1e6EDfBD4</span>
-              </div>
+              {task.recipient ?? (
+                <div>
+                  <div className="font-semibold text-lg mt-4">Creator</div>
+                  <div className="flex gap-2 items-center">
+                    <span>{recipientName}</span>
+                    <span className="text-gray-500">{task.recipient}</span>
+                  </div>
+                </div>
+              )}
 
               <div className="mt-4 flex items-center">
                 <span className="font-semibold text-lg flex-1">Submission Deadline</span>
-                <span className="flex-1">2023/12/20 21:00</span>
+                <span className="flex-1">{task.submissionDeadline.toDateString()}</span>
               </div>
 
               <div className="mt-4 flex items-center">
                 <span className="font-semibold text-lg flex-1">Review Deadline</span>
-                <span className="flex-1">2023/12/20 21:00</span>
+                <span className="flex-1">{task.reviewDeadline.toDateString()}</span>
               </div>
 
               <div className="mt-4 flex items-center">
                 <span className="font-semibold text-lg flex-1">Payment Deadline</span>
-                <span className="flex-1">2023/12/20 21:00</span>
+                <span className="flex-1">{task.paymentDeadline.toDateString()}</span>
               </div>
 
               <button
