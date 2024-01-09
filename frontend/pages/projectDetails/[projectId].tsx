@@ -325,7 +325,13 @@ const Dashboard: NextPage = () => {
 
         <div className="flex justify-between items-center my-4">
           <h2 className="text-2xl font-semibold">Contracts</h2>
-          <button className="text-indigo-600 hover:text-indigo-800">
+          <button 
+            onClick={() => router.push({
+              pathname:"/createTask",
+              query: { projectId: projectId }
+            })}
+            className="text-indigo-600 hover:text-indigo-800"
+          >
             Add New +
           </button>
         </div>
