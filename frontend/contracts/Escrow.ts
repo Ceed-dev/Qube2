@@ -237,3 +237,21 @@ export async function createTask(
     throw error;
   }
 }
+
+export async function assignRecipientToTask(taskId: string): Promise<boolean> {
+  const contract = getEscrowContract();
+
+  try {
+    // スマートコントラクトの関数を呼び出し
+    const transaction = await contract.assignRecipientToTask(taskId);
+
+    // トランザクションの完了を待つ
+    await transaction.wait();
+
+    console.log("Recipient assigned to task with ID:", taskId);
+    return true;
+  } catch (error) {
+    console.error("Error assigning recipient to task:", error);
+    throw error;
+  }
+}
