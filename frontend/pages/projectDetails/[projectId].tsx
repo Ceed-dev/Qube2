@@ -348,15 +348,21 @@ const Dashboard: NextPage = () => {
               </tr>
             </thead>
             <tbody>
-              {contracts.map((contract, index) => (
-                <tr key={index} className="h-[50px] hover:shadow-lg duration-300">
-                  <td>{contract.title}</td>
-                  <td>{contract.recipient}</td>
-                  <td>{contract.amount} {contract.token}</td>
-                  <td>{contract.submissionDeadline}</td>
-                  <td>{contract.reviewDeadline}</td>
+              {contracts.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center text-gray-500">No contracts available.</td>
                 </tr>
-              ))}
+              ) : (
+                contracts.map((contract, index) => (
+                  <tr key={index} className="h-[50px] hover:shadow-lg duration-300">
+                    <td>{contract.title}</td>
+                    <td>{contract.recipient}</td>
+                    <td>{contract.amount} {contract.token}</td>
+                    <td>{contract.submissionDeadline}</td>
+                    <td>{contract.reviewDeadline}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
