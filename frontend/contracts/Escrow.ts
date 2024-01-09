@@ -255,3 +255,21 @@ export async function assignRecipientToTask(taskId: string): Promise<boolean> {
     throw error;
   }
 }
+
+export async function submitTask(taskId: string): Promise<boolean> {
+  const contract = getEscrowContract();
+
+  try {
+    // スマートコントラクトの関数を呼び出し
+    const transaction = await contract.submitTask(taskId);
+
+    // トランザクションの完了を待つ
+    await transaction.wait();
+
+    console.log("Submit Task:", taskId);
+    return true;
+  } catch (error) {
+    console.error("Error submitting task:", error);
+    throw error;
+  }
+}
