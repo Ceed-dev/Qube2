@@ -64,20 +64,21 @@ const TaskDetailsPage: React.FC = () => {
           textDeliverable: textDeliverable,
           isApproved: docData.isApproved,
         });
-        if (docData.isApproved) {
-          setIsSubmissionApproved(true);
-          setIsSubmissionApprovedOpen(false);
-        }
         setIsContractSignedOpen(true);
         if (docData.recipient) {
           setIsContractSigned(true);
           setIsContractSignedOpen(false);
+          setIsSubmissionApprovedOpen(true);
           const docRef = doc(database, "users", docData.recipient);
           const docSnapshot = await getDoc(docRef);
           if (docSnapshot.exists()) {
             const docData = docSnapshot.data();
             setRecipientName(docData.username);
           }
+        }
+        if (docData.isApproved) {
+          setIsSubmissionApproved(true);
+          setIsSubmissionApprovedOpen(false);
         }
       }
     } catch (error) {
