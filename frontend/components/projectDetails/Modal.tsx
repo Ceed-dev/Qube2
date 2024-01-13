@@ -10,8 +10,8 @@ import { CrossIcon, Spinner } from "../../assets";
 import { AnimatePresence, motion } from "framer-motion";
 import { modalVariant } from "../../utils";
 
-import { StoreProjectDetailsInterface } from "../../interfaces";
-import { updateProjectDetails } from "../../utils";
+// import { StoreProjectDetailsInterface } from "../../interfaces";
+// import { updateProjectDetails } from "../../utils";
 
 const Modal = ({
   showModal,
@@ -19,14 +19,14 @@ const Modal = ({
   title,
   description,
   onConfirm,
-  projectId,
+  // projectId,
 }: {
   showModal: boolean;
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
   title: string;
   description: string;
   onConfirm: () => Promise<void>;
-  projectId: string;
+  // projectId: string;
 }) => {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -49,16 +49,16 @@ const Modal = ({
     setRating(newRating);
   };
 
-  const uploadCommentAndRating = async () => {
-    console.log(`comment: ${comment}, rating: ${rating}`);
+  // const uploadCommentAndRating = async () => {
+  //   console.log(`comment: ${comment}, rating: ${rating}`);
 
-    const updatedSubsetProjectDetail: Partial<StoreProjectDetailsInterface> =
-      {
-        feedbackComment: comment,
-        projectRating: rating,
-      };
-    await updateProjectDetails(projectId, updatedSubsetProjectDetail);
-  }
+  //   const updatedSubsetProjectDetail: Partial<StoreProjectDetailsInterface> =
+  //     {
+  //       feedbackComment: comment,
+  //       projectRating: rating,
+  //     };
+  //   await updateProjectDetails(projectId, updatedSubsetProjectDetail);
+  // }
 
   return (
     <AnimatePresence>
@@ -138,9 +138,9 @@ const Modal = ({
                               setIsLoading(true);
 
                               try {
-                                if (title === "Approve The Deliverables") {
-                                  await uploadCommentAndRating();
-                                }
+                                // if (title === "Approve The Deliverables") {
+                                //   await uploadCommentAndRating();
+                                // }
                                 await onConfirm();
                               } catch(error) {
                                 console.log("Error: ", error.message);
