@@ -293,7 +293,7 @@ const TaskDetailsPage: React.FC = () => {
     ];
 
     await updateProjectDetails(taskId as string, {
-      fileDeliverable: updatedFileDeliverables,
+      fileDeliverables: updatedFileDeliverables,
     });
 
     setIsDropable(true);
