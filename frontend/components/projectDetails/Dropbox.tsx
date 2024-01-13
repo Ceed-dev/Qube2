@@ -117,11 +117,9 @@ const Dropbox = ({
                       <Link
                         href={displayFile.downloadUrl}
                         key={`downloadUrl-${index}`}
-                        className="basis-0 flex-grow text-sm xl:text-base lg:max-w-[30%] max-w-[40%]"
+                        className="border border-slate-300 rounded-xl px-5 text-sm hover:bg-slate-200"
                       >
-                        <p className="bg-[#E220CF] text-center rounded-sm text-sm xl:text-base w-full">
-                          Download
-                        </p>
+                        Download
                       </Link>
                     )}
                   </div>
