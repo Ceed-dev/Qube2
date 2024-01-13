@@ -302,11 +302,16 @@ const TaskDetailsPage: React.FC = () => {
           </button>
           {isSubmissionApprovedOpen && (
             <form onSubmit={handleSubmit}>
-              <Dropbox
-                setFiles={setFiles}
-                displayFiles={displayFiles}
-                isDropable={isDropable}
-              />
+              <div className="my-4">
+                <label className="block text-gray-700 text-xl">
+                  File
+                  <Dropbox
+                    setFiles={setFiles}
+                    displayFiles={displayFiles}
+                    isDropable={isDropable}
+                  />
+                </label>
+              </div>
 
               <div className="my-4">
                 <label className="block text-gray-700 text-xl">
