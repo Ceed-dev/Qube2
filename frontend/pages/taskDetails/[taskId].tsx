@@ -303,13 +303,13 @@ const TaskDetailsPage: React.FC = () => {
               />
 
               <div className="my-4">
-                <label className="block text-gray-700">
+                <label className="block text-gray-700 text-xl">
                   Text
-                  <input
+                  <textarea
                     value={text}
                     onChange={handleTextChange}
-                    type="text"
-                    className="form-input mt-1 block w-full rounded-md border border-gray-200"
+                    className="form-textarea mt-1 block w-full rounded-md border border-gray-200"
+                    rows={4}
                   />
                 </label>
               </div>
