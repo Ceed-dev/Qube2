@@ -34,6 +34,7 @@ import {
   ProjectDetailsDescription,
   Dropbox,
   SubmitTextArea,
+  Modal,
 } from "./projectDetails";
 
 export {
@@ -58,4 +59,5 @@ export {
   SubmitProjectModal,
   LogoCanvas,
   SubmitTextArea,
+  Modal,
 };

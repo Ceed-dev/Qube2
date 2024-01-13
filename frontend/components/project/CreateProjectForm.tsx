@@ -300,8 +300,8 @@ const CreateProjectForm = ({
         form["Client's Wallet Address"] = userType === "depositor" ? address : addressZero;
         form["Lancer's Wallet Address"] = userType === "depositor" ? addressZero : address;
         form.approveProof = "";
-        form.fileDeliverable = [];
-        form.textDeliverable = [];
+        form.fileDeliverables = [];
+        form.textDeliverables = [];
         form.Status = StatusEnum.WaitingForConnectingLancersWallet;
         form.DeadlineExtensionRequest = false;
         form.InDispute = false;

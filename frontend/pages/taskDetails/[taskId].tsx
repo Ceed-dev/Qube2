@@ -3,12 +3,14 @@ import { useRouter } from 'next/router';
 import { ToggleOpen, ToggleClose, Checkmark, Spinner } from '../../assets';
 import Image from 'next/image';
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { database } from '../../utils';
+import { database, storage, updateProjectDetails } from '../../utils';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { assignRecipientToTask, submitTask, approveTask } from "../../contracts/Escrow";
-import { Dropbox } from '../../components';
-import { DisplayFileDeliverableInterface } from '../../interfaces';
+import { Dropbox, Modal } from '../../components';
+import { DisplayFileDeliverableInterface, StoreFileDeliverableInterface } from '../../interfaces';
+import { FileWithPath } from "react-dropzone";
+import { ref, getDownloadURL, uploadBytesResumable } from "firebase/storage";
 
 interface Task {
   taskId: string,
@@ -21,7 +23,6 @@ interface Task {
   submissionDeadline: Date,
   reviewDeadline: Date,
   paymentDeadline: Date,
-  textDeliverable: string,
   isApproved: boolean,
 }
 
@@ -46,10 +47,15 @@ const TaskDetailsPage: React.FC = () => {
       const docSnapshot = await getDoc(docRef);
       if (docSnapshot.exists()) {
         const docData = docSnapshot.data();
-        let textDeliverable;
-        if (docData.textDeliverable) {
-          textDeliverable = docData.textDeliverable;
+
+        if (docData.fileDeliverables) {
+          const updatedFileDeliverables = docData.fileDeliverables as DisplayFileDeliverableInterface[];
+          updatedFileDeliverables.forEach((fileDeliverable, index) => {
+            fileDeliverable.progress = null as string;
+          });
+          setFileDeliverables(updatedFileDeliverables);
         }
+
         setTask({
           taskId: taskId as string,
           projectId: docData.projectId,
@@ -61,7 +67,6 @@ const TaskDetailsPage: React.FC = () => {
           submissionDeadline: docData.submissionDeadline.toDate(),
           reviewDeadline: docData.reviewDeadline.toDate(),
           paymentDeadline: docData.paymentDeadline.toDate(),
-          textDeliverable: textDeliverable,
           isApproved: docData.isApproved,
         });
         setIsContractSignedOpen(true);
@@ -202,6 +207,106 @@ const TaskDetailsPage: React.FC = () => {
     setLink(event.target.value);
   };
 
+  const uploadFile = async (acceptedFiles: FileWithPath[]) => {
+    if (!isDropable) {
+      return;
+    }
+
+    setIsDropable(false);
+
+    let updatedFileDeliverables: StoreFileDeliverableInterface[] =
+      fileDeliverables.map((fileDeliverable) => {
+        return {
+          fileName: fileDeliverable.fileName,
+          fileSize: fileDeliverable.fileSize,
+          downloadUrl: fileDeliverable.downloadUrl,
+        };
+      });
+
+    const uploadPromises: Promise<StoreFileDeliverableInterface>[] =
+      acceptedFiles.map((file, acceptedFileIndex) => {
+        const index = fileDeliverables.length + acceptedFileIndex;
+        const storageRef = ref(storage, `deliverables/${taskId}/${file.name}`);
+        const uploadTask = uploadBytesResumable(storageRef, file);
+
+        setFiles(prevFiles => prevFiles.filter(f => f !== file));
+
+        return new Promise((resolve, reject) => {
+          ((index: number) => {
+            uploadTask.on(
+              "state_changed",
+              (snapshot) => {
+                const progress =
+                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+
+                setFileDeliverables((prevFileDeliverableArray) => {
+                  const updatedFileDeliverableArray = [
+                    ...prevFileDeliverableArray,
+                  ];
+
+                  updatedFileDeliverableArray[index] = {
+                    fileName: file.name,
+                    fileSize: `${file.size}`,
+                    progress: `${progress}`,
+                    downloadUrl: undefined as string,
+                  };
+
+                  return updatedFileDeliverableArray;
+                });
+              },
+              (error) => {
+                reject(undefined as StoreFileDeliverableInterface);
+              },
+              () => {
+                getDownloadURL(uploadTask.snapshot.ref).then(
+                  (downloadUrl) => {
+                    setFileDeliverables((prevFileDeliverableArray) => {
+                      const updatedFileDeliverableArray = [
+                        ...prevFileDeliverableArray,
+                      ];
+                      updatedFileDeliverableArray[index] = {
+                        ...updatedFileDeliverableArray[index],
+                        downloadUrl: downloadUrl,
+                      };
+
+                      resolve({
+                        fileName: file.name,
+                        fileSize: `${file.size}`,
+                        downloadUrl: downloadUrl,
+                      } as StoreFileDeliverableInterface);
+
+                      return updatedFileDeliverableArray;
+                    });
+                  }
+                );
+              }
+            );
+          })(index);
+        });
+      });
+
+    const resolvedUploadPromises = await Promise.all(uploadPromises);
+
+    updatedFileDeliverables = [
+      ...updatedFileDeliverables,
+      ...resolvedUploadPromises,
+    ];
+
+    await updateProjectDetails(taskId as string, {
+      fileDeliverables: updatedFileDeliverables,
+    });
+
+    setIsDropable(true);
+  };
+
+  const [showModal, setShowModal]: [
+    showModal: boolean,
+    setShowModal: React.Dispatch<React.SetStateAction<boolean>>
+  ] = useState(false);
+
+  const title = "Submit The Deliverables";
+  const description = "Are your deliverables appropriate? If it's not appropriate then you may not get the rewards. If you are sure press the \"Comfirm\" button.";
+
   return (
     <div className="bg-blue-50 min-h-screen p-20">
       <button
@@ -325,7 +430,6 @@ const TaskDetailsPage: React.FC = () => {
                   />
                 </label>
               </div>
-              <p>{task.textDeliverable}</p>
 
               <div className="my-4">
                 <label className="block text-gray-700 text-xl">
@@ -340,10 +444,14 @@ const TaskDetailsPage: React.FC = () => {
                 </label>
               </div>
 
-              {!task.textDeliverable && <button
-                type="submit"
+              <button
+                type="button"
                 className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-md mt-4"
                 disabled={isSubmitting}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowModal(true);
+                }}
               >
                 {isSubmitting ? (
                   <div className="flex flex-row items-center justify-center text-lg text-green-400">
@@ -355,9 +463,9 @@ const TaskDetailsPage: React.FC = () => {
                     Processing...
                   </div>
                 ) : "Submit"}
-              </button>}
+              </button>
 
-              {task.textDeliverable && !isSubmissionApproved && <button
+              <button
                 type="button"
                 className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-md mt-4"
                 disabled={isApproving}
@@ -373,11 +481,30 @@ const TaskDetailsPage: React.FC = () => {
                     Processing...
                   </div>
                 ) : "Approve Submission"}
-              </button>}
+              </button>
             </form>
           )}
         </div>
       </div>
+
+      <Modal
+        showModal={showModal}
+        setShowModal={setShowModal}
+        title={title}
+        description={description}
+        onConfirm={() => 
+          Promise.all([uploadFile(files)])
+            .then(async () => {
+              console.log("Successfully uploaded");
+              alert("Successfully uploaded");
+              await loadTaskDetails();
+            })
+            .catch((error) => {
+              console.log(error);
+              alert(error);
+            })
+        }
+      />
     </div>
   );
 };

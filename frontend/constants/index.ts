@@ -461,8 +461,8 @@ export const DisplayProjectDetailsInterfaceKeys: DisplayProjectDetailsInterfaceK
     // "NFT(Contract Address)",
     "Client's Wallet Address",
     "Lancer's Wallet Address",
-    "fileDeliverable",
-    "textDeliverable",
+    "fileDeliverables",
+    "textDeliverables",
   ];
 
 export const DescriptionProjectDetailsInterfaceKeys: DescriptionProjectDetailsInterfaceKeysType[] =
