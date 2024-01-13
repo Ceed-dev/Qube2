@@ -1,7 +1,6 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import Tilt from "react-parallax-tilt";
 import { useRouter } from "next/router";
 
 // Custom Component Imports
