@@ -42,7 +42,7 @@ export const populateStates = async (
     setProjectDetails(updatedProjectDetails);
 
     const textDeliverables: DisplayTextDeliverableInterface[] =
-      updatedProjectDetails.textDeliverable.map((textDeliverable, index) => {
+      updatedProjectDetails.textDeliverables.map((textDeliverable, index) => {
         return {
           text: textDeliverable,
           showText: false,
@@ -52,7 +52,7 @@ export const populateStates = async (
     setTextDeliverables(textDeliverables);
 
     const updatedFileDeliverables =
-      updatedProjectDetails.fileDeliverable as DisplayFileDeliverableInterface[];
+      updatedProjectDetails.fileDeliverables as DisplayFileDeliverableInterface[];
 
     updatedFileDeliverables.forEach((fileDeliverable, index) => {
       fileDeliverable.progress = null as string;
