@@ -77,8 +77,8 @@ const ProjectDetailsDescription = ({
     React.SetStateAction<DisplayTextDeliverableInterface[]>
   >;
 }) => {
-  delete projectDetails.fileDeliverable;
-  delete projectDetails.textDeliverable;
+  delete projectDetails.fileDeliverables;
+  delete projectDetails.textDeliverables;
   const descriptionProjectDetails: DescriptionProjectDetailsInterface =
     projectDetails;
 
@@ -573,7 +573,6 @@ const ProjectDetailsDescription = ({
         title={title}
         description={description}
         onConfirm={onConfirm}
-        projectId={projectId}
       />
     </>
   );
