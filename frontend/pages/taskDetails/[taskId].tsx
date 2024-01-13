@@ -195,6 +195,12 @@ const TaskDetailsPage: React.FC = () => {
     })),
   ];
 
+  const [link, setLink] = useState("");
+
+  const handleLinkChange = (event) => {
+    setLink(event.target.value);
+  };
+
   return (
     <div className="bg-blue-50 min-h-screen p-20">
       <button
@@ -314,6 +320,19 @@ const TaskDetailsPage: React.FC = () => {
                 </label>
               </div>
               <p>{task.textDeliverable}</p>
+
+              <div className="my-4">
+                <label className="block text-gray-700 text-xl">
+                  Link
+                  <input
+                    type="url"
+                    value={link}
+                    onChange={handleLinkChange}
+                    className="form-input mt-1 block w-full rounded-md border border-gray-200"
+                    placeholder="https://example.com"
+                  />
+                </label>
+              </div>
 
               {!task.textDeliverable && <button
                 type="submit"
