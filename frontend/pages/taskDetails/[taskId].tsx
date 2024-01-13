@@ -7,6 +7,8 @@ import { database } from '../../utils';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { assignRecipientToTask, submitTask, approveTask } from "../../contracts/Escrow";
+import { Dropbox } from '../../components';
+import { DisplayFileDeliverableInterface } from '../../interfaces';
 
 interface Task {
   taskId: string,
@@ -172,6 +174,27 @@ const TaskDetailsPage: React.FC = () => {
     setText("");
   }
 
+  const [files, setFiles] = useState([]);
+  const [fileDeliverables, setFileDeliverables] = useState<DisplayFileDeliverableInterface[]>([]);
+  const [isDropable, setIsDropable] = useState(true);
+
+  const displayFiles = [
+    ...fileDeliverables.map(fileDeliverable => ({ 
+      name: fileDeliverable.fileName, 
+      size: fileDeliverable.fileSize, 
+      state: "uploaded", 
+      downloadUrl: fileDeliverable.downloadUrl,
+      progress: fileDeliverable.progress,
+    })),
+    ...files.map(file => ({ 
+      name: file.name, 
+      size: file.size, 
+      state: "waiting",
+      downloadUrl: "",
+      progress: "", 
+    })),
+  ];
+
   return (
     <div className="bg-blue-50 min-h-screen p-20">
       <button
@@ -273,6 +296,12 @@ const TaskDetailsPage: React.FC = () => {
           </button>
           {isSubmissionApprovedOpen && (
             <form onSubmit={handleSubmit}>
+              <Dropbox
+                setFiles={setFiles}
+                displayFiles={displayFiles}
+                isDropable={isDropable}
+              />
+
               <div className="my-4">
                 <label className="block text-gray-700">
                   Text
