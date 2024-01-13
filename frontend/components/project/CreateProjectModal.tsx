@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import Tilt from "react-parallax-tilt";
 
 // Asset Imports
 import { CrossIcon, IconCopy, arrow } from "../../assets";

@@ -7,6 +7,8 @@ import { database } from '../../utils';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { assignRecipientToTask, submitTask, approveTask } from "../../contracts/Escrow";
+import { Dropbox } from '../../components';
+import { DisplayFileDeliverableInterface } from '../../interfaces';
 
 interface Task {
   taskId: string,
@@ -172,6 +174,33 @@ const TaskDetailsPage: React.FC = () => {
     setText("");
   }
 
+  const [files, setFiles] = useState([]);
+  const [fileDeliverables, setFileDeliverables] = useState<DisplayFileDeliverableInterface[]>([]);
+  const [isDropable, setIsDropable] = useState(true);
+
+  const displayFiles = [
+    ...fileDeliverables.map(fileDeliverable => ({ 
+      name: fileDeliverable.fileName, 
+      size: fileDeliverable.fileSize, 
+      state: "uploaded", 
+      downloadUrl: fileDeliverable.downloadUrl,
+      progress: fileDeliverable.progress,
+    })),
+    ...files.map(file => ({ 
+      name: file.name, 
+      size: file.size, 
+      state: "waiting",
+      downloadUrl: "",
+      progress: "", 
+    })),
+  ];
+
+  const [link, setLink] = useState("");
+
+  const handleLinkChange = (event) => {
+    setLink(event.target.value);
+  };
+
   return (
     <div className="bg-blue-50 min-h-screen p-20">
       <button
@@ -274,17 +303,41 @@ const TaskDetailsPage: React.FC = () => {
           {isSubmissionApprovedOpen && (
             <form onSubmit={handleSubmit}>
               <div className="my-4">
-                <label className="block text-gray-700">
+                <label className="block text-gray-700 text-xl">
+                  File
+                  <Dropbox
+                    setFiles={setFiles}
+                    displayFiles={displayFiles}
+                    isDropable={isDropable}
+                  />
+                </label>
+              </div>
+
+              <div className="my-4">
+                <label className="block text-gray-700 text-xl">
                   Text
-                  <input
+                  <textarea
                     value={text}
                     onChange={handleTextChange}
-                    type="text"
-                    className="form-input mt-1 block w-full rounded-md border border-gray-200"
+                    className="form-textarea mt-1 block w-full rounded-md border border-gray-200"
+                    rows={4}
                   />
                 </label>
               </div>
               <p>{task.textDeliverable}</p>
+
+              <div className="my-4">
+                <label className="block text-gray-700 text-xl">
+                  Link
+                  <input
+                    type="url"
+                    value={link}
+                    onChange={handleLinkChange}
+                    className="form-input mt-1 block w-full rounded-md border border-gray-200"
+                    placeholder="https://example.com"
+                  />
+                </label>
+              </div>
 
               {!task.textDeliverable && <button
                 type="submit"
