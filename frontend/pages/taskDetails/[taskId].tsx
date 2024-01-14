@@ -316,6 +316,19 @@ const TaskDetailsPage: React.FC = () => {
     }
   };
 
+  const [linkDeliverables, setLinkDeliverables] = useState([]);
+
+  const uploadLink = async (link: string) => {
+    if (link) {
+      const updatedLinkDeliverables = [...linkDeliverables, link];
+      await updateProjectDetails(taskId as string, {
+        linkDeliverables: updatedLinkDeliverables,
+      });
+
+      setLink("");
+    }
+  };
+
   const [showModal, setShowModal]: [
     showModal: boolean,
     setShowModal: React.Dispatch<React.SetStateAction<boolean>>
@@ -515,7 +528,7 @@ const TaskDetailsPage: React.FC = () => {
         title={title}
         description={description}
         onConfirm={() => 
-          Promise.all([uploadFile(files), uploadText(text)])
+          Promise.all([uploadFile(files), uploadText(text), uploadLink(link)])
             .then(async () => {
               console.log("Successfully uploaded");
               alert("Successfully uploaded");
