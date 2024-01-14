@@ -56,6 +56,10 @@ const TaskDetailsPage: React.FC = () => {
           setFileDeliverables(updatedFileDeliverables);
         }
 
+        if (docData.textDeliverables) {
+          setTextDeliverables(docData.textDeliverables);
+        }
+
         setTask({
           taskId: taskId as string,
           projectId: docData.projectId,
@@ -299,6 +303,19 @@ const TaskDetailsPage: React.FC = () => {
     setIsDropable(true);
   };
 
+  const [textDeliverables, setTextDeliverables] = useState([]);
+
+  const uploadText = async (text: string) => {
+    if (text) {
+      const updatedTextDeliverables = [...textDeliverables, text];
+      await updateProjectDetails(taskId as string, {
+        textDeliverables: updatedTextDeliverables,
+      });
+
+      setText("");
+    }
+  };
+
   const [showModal, setShowModal]: [
     showModal: boolean,
     setShowModal: React.Dispatch<React.SetStateAction<boolean>>
@@ -493,7 +510,7 @@ const TaskDetailsPage: React.FC = () => {
         title={title}
         description={description}
         onConfirm={() => 
-          Promise.all([uploadFile(files)])
+          Promise.all([uploadFile(files), uploadText(text)])
             .then(async () => {
               console.log("Successfully uploaded");
               alert("Successfully uploaded");
