@@ -11,6 +11,7 @@ import { Dropbox, Modal } from '../../components';
 import { DisplayFileDeliverableInterface, StoreFileDeliverableInterface } from '../../interfaces';
 import { FileWithPath } from "react-dropzone";
 import { ref, getDownloadURL, uploadBytesResumable } from "firebase/storage";
+import Link from 'next/link';
 
 interface Task {
   taskId: string,
@@ -58,6 +59,10 @@ const TaskDetailsPage: React.FC = () => {
 
         if (docData.textDeliverables) {
           setTextDeliverables(docData.textDeliverables);
+        }
+
+        if (docData.linkDeliverables) {
+          setLinkDeliverables(docData.linkDeliverables);
         }
 
         setTask({
@@ -477,6 +482,15 @@ const TaskDetailsPage: React.FC = () => {
                     placeholder="https://example.com"
                   />
                 </label>
+                <ul className="list-disc list-inside">
+                  {linkDeliverables.map((link, index) => (
+                    <li key={index}>
+                      <Link href={link} target="_blank" className="text-blue-900 hover:text-blue-500 hover:underline">
+                        {link}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </div>
 
               <button
