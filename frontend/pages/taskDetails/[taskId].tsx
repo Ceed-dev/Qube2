@@ -139,31 +139,6 @@ const TaskDetailsPage: React.FC = () => {
     setText(e.target.value);
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    try {
-      if (isConnected) {
-        setIsSubmitting(true);
-        await submitTask(taskId as string);
-
-        const docRef = doc(database, "tasks", taskId as string);
-        await updateDoc(docRef, {textDeliverable: text});
-
-        await loadTaskDetails();
-      } else {
-        openConnectModal();
-      }
-    } catch (error) {
-      console.error("Error submitting a task: ", error);
-      alert("Error submitting a task");
-    } finally {
-      setIsSubmitting(false);
-    }
-
-    setText("");
-  }
-
   const handleApprove = async (event) => {
     event.preventDefault();
 
@@ -442,7 +417,7 @@ const TaskDetailsPage: React.FC = () => {
             <Image src={isSubmissionApprovedOpen ? ToggleClose : ToggleOpen} alt="Toggle" />
           </button>
           {isSubmissionApprovedOpen && (
-            <form onSubmit={handleSubmit}>
+            <form>
               <div className="my-4">
                 <label className="block text-gray-700 text-xl">
                   File
@@ -541,18 +516,26 @@ const TaskDetailsPage: React.FC = () => {
         setShowModal={setShowModal}
         title={title}
         description={description}
-        onConfirm={() => 
-          Promise.all([uploadFile(files), uploadText(text), uploadLink(link)])
-            .then(async () => {
-              console.log("Successfully uploaded");
-              alert("Successfully uploaded");
-              await loadTaskDetails();
-            })
-            .catch((error) => {
-              console.log(error);
-              alert(error);
-            })
-        }
+        onConfirm={async () => {
+          setIsSubmitting(true);
+      
+          try {
+            await Promise.all([uploadFile(files), uploadText(text), uploadLink(link)]);
+            console.log("Successfully uploaded to firebase");
+
+            await submitTask(taskId as string);
+            console.log("Successfully executed submitTask function on blockchain")
+
+            alert("Successfully uploaded");
+      
+            await loadTaskDetails();
+          } catch (error) {
+            console.log(error);
+            alert(error);
+          } finally {
+            setIsSubmitting(false);
+          }
+        }}
       />
     </div>
   );
