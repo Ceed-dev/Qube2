@@ -446,6 +446,11 @@ const TaskDetailsPage: React.FC = () => {
                     rows={4}
                   />
                 </label>
+                <ul className="list-disc list-inside">
+                  {textDeliverables.map((text, index) => (
+                    <li key={index}>{text}</li>
+                  ))}
+                </ul>
               </div>
 
               <div className="my-4">
