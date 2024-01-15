@@ -242,7 +242,7 @@ const CreateTask: React.FC = () => {
         alert("タスクの作成に失敗しました。");
       }
       
-      setTaskDetailLink(`https://${window.location.host}/taskDetails/${docRef.id}`);
+      setTaskDetailLink(`http://${window.location.host}/taskDetails/${docRef.id}`);
       setShowTaskModal(true);
     } catch (e) {
       console.error("Error adding document: ", e);
