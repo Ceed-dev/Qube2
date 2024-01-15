@@ -378,7 +378,7 @@ const Dashboard: NextPage = () => {
             <tbody>
               {tasks.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center text-gray-500">No contracts available.</td>
+                  <td colSpan={6} className="text-center text-gray-500">No contracts available.</td>
                 </tr>
               ) : (
                 tasks.map((task, index) => (
@@ -387,12 +387,12 @@ const Dashboard: NextPage = () => {
                     className="h-[50px] hover:shadow-lg duration-300"
                     onClick={() => router.push(`/taskDetails/${task.id}`)}
                   >
-                    <td>{task.title}</td>
-                    <td>{task.recipientName}</td>
-                    <td>{task.rewardAmount} {task.symbol}</td>
-                    <td>{task.submissionDeadline.toDateString()}</td>
-                    <td>{task.reviewDeadline.toDateString()}</td>
-                    <td>{task.paymentDeadline.toDateString()}</td>
+                    <td>{task?.title}</td>
+                    <td>{task?.recipientName}</td>
+                    <td>{task?.rewardAmount} {task?.symbol}</td>
+                    <td>{task?.submissionDeadline?.toDateString()}</td>
+                    <td>{task?.reviewDeadline?.toDateString()}</td>
+                    <td>{task?.paymentDeadline?.toDateString()}</td>
                   </tr>
                 ))
               )}
