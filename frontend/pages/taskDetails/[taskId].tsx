@@ -6,7 +6,7 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { database, storage, updateProjectDetails } from '../../utils';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { assignRecipientToTask, submitTask, approveTask, getTaskDetails } from "../../contracts/Escrow";
+import { assignRecipientToTask, submitTask, approveTask, getTaskDetails, getAssignedUserProjects } from "../../contracts/Escrow";
 import { Dropbox, Modal } from '../../components';
 import { DisplayFileDeliverableInterface, StoreFileDeliverableInterface } from '../../interfaces';
 import { FileWithPath } from "react-dropzone";
@@ -55,6 +55,7 @@ const TaskDetailsPage: React.FC = () => {
   const [recipientName, setRecipientName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
+  const [isAssigned, setIsAssigned] = useState(false);
 
   const loadTaskDetails = async () => {
     try {
@@ -67,6 +68,11 @@ const TaskDetailsPage: React.FC = () => {
       const contractTaskData = await getTaskDetails(taskId as string);
       const statusKey = contractTaskData.status as keyof typeof TaskStatus;
       const taskStatus = TaskStatus[statusKey];
+
+      if (address) {
+        const assignedProjects = await getAssignedUserProjects(address);
+        setIsAssigned(assignedProjects.includes(firebaseTaskData.projectId));
+      }
 
       if (firebaseTaskData.fileDeliverables) {
         const updatedFileDeliverables = firebaseTaskData.fileDeliverables as DisplayFileDeliverableInterface[];
@@ -395,7 +401,7 @@ const TaskDetailsPage: React.FC = () => {
                 <span className="flex-1">{task.paymentDeadline.toDateString()}</span>
               </div>
 
-              {!isContractSigned && <button
+              {!isAssigned && !isContractSigned && <button
                 type="submit"
                 className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-md mt-4"
                 disabled={isSigning}
