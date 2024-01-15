@@ -6,7 +6,7 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { database, storage, updateProjectDetails } from '../../utils';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { assignRecipientToTask, submitTask, approveTask } from "../../contracts/Escrow";
+import { assignRecipientToTask, submitTask, approveTask, getTaskDetails } from "../../contracts/Escrow";
 import { Dropbox, Modal } from '../../components';
 import { DisplayFileDeliverableInterface, StoreFileDeliverableInterface } from '../../interfaces';
 import { FileWithPath } from "react-dropzone";
@@ -24,7 +24,21 @@ interface Task {
   submissionDeadline: Date,
   reviewDeadline: Date,
   paymentDeadline: Date,
-  isApproved: boolean,
+  status: TaskStatus,
+}
+
+enum TaskStatus {
+  Created,
+  Unconfirmed,
+  InProgress,
+  DeletionRequested,
+  SubmissionOverdue,
+  UnderReview,
+  ReviewOverdue,
+  PendingPayment,
+  PaymentOverdue,
+  DeadlineExtensionRequested,
+  LockedByDisapproval
 }
 
 const TaskDetailsPage: React.FC = () => {
@@ -46,53 +60,53 @@ const TaskDetailsPage: React.FC = () => {
     try {
       const docRef = doc(database, "tasks", taskId as string);
       const docSnapshot = await getDoc(docRef);
-      if (docSnapshot.exists()) {
-        const docData = docSnapshot.data();
+      if (!docSnapshot.exists()) {
+        throw new Error("Task not found in Firebase");
+      }
+      const firebaseTaskData = docSnapshot.data();
+      const contractTaskData = await getTaskDetails(taskId as string);
+      const statusKey = contractTaskData.status as keyof typeof TaskStatus;
+      const taskStatus = TaskStatus[statusKey];
 
-        if (docData.fileDeliverables) {
-          const updatedFileDeliverables = docData.fileDeliverables as DisplayFileDeliverableInterface[];
-          updatedFileDeliverables.forEach((fileDeliverable, index) => {
-            fileDeliverable.progress = null as string;
-          });
-          setFileDeliverables(updatedFileDeliverables);
-        }
-
-        if (docData.textDeliverables) {
-          setTextDeliverables(docData.textDeliverables);
-        }
-
-        if (docData.linkDeliverables) {
-          setLinkDeliverables(docData.linkDeliverables);
-        }
-
-        setTask({
-          taskId: taskId as string,
-          projectId: docData.projectId,
-          title: docData.title,
-          details: docData.details,
-          recipient: docData.recipient,
-          rewardAmount: docData.rewardAmount,
-          symbol: docData.symbol,
-          submissionDeadline: docData.submissionDeadline.toDate(),
-          reviewDeadline: docData.reviewDeadline.toDate(),
-          paymentDeadline: docData.paymentDeadline.toDate(),
-          isApproved: docData.isApproved,
+      if (firebaseTaskData.fileDeliverables) {
+        const updatedFileDeliverables = firebaseTaskData.fileDeliverables as DisplayFileDeliverableInterface[];
+        updatedFileDeliverables.forEach((fileDeliverable, _) => {
+          fileDeliverable.progress = null as string;
         });
-        setIsContractSignedOpen(true);
-        if (docData.recipient) {
-          setIsContractSigned(true);
-          setIsContractSignedOpen(false);
-          setIsSubmissionApprovedOpen(true);
-          const docRef = doc(database, "users", docData.recipient);
-          const docSnapshot = await getDoc(docRef);
-          if (docSnapshot.exists()) {
-            const docData = docSnapshot.data();
-            setRecipientName(docData.username);
-          }
-        }
-        if (docData.isApproved) {
-          setIsSubmissionApproved(true);
-          setIsSubmissionApprovedOpen(false);
+        setFileDeliverables(updatedFileDeliverables);
+      }
+
+      if (firebaseTaskData.textDeliverables) {
+        setTextDeliverables(firebaseTaskData.textDeliverables);
+      }
+
+      if (firebaseTaskData.linkDeliverables) {
+        setLinkDeliverables(firebaseTaskData.linkDeliverables);
+      }
+
+      setTask({
+        taskId: taskId as string,
+        projectId: firebaseTaskData.projectId,
+        title: firebaseTaskData.title,
+        details: firebaseTaskData.details,
+        recipient: firebaseTaskData.recipient,
+        rewardAmount: firebaseTaskData.rewardAmount,
+        symbol: firebaseTaskData.symbol,
+        submissionDeadline: firebaseTaskData.submissionDeadline.toDate(),
+        reviewDeadline: firebaseTaskData.reviewDeadline.toDate(),
+        paymentDeadline: firebaseTaskData.paymentDeadline.toDate(),
+        status: taskStatus,
+      });
+      setIsContractSignedOpen(true);
+      if (firebaseTaskData.recipient) {
+        setIsContractSigned(true);
+        setIsContractSignedOpen(false);
+        setIsSubmissionApprovedOpen(true);
+        const docRef = doc(database, "users", firebaseTaskData.recipient);
+        const docSnapshot = await getDoc(docRef);
+        if (docSnapshot.exists()) {
+          const docData = docSnapshot.data();
+          setRecipientName(docData.username);
         }
       }
     } catch (error) {

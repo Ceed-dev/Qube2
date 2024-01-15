@@ -291,3 +291,20 @@ export async function approveTask(taskId: string): Promise<boolean> {
     throw error;
   }
 }
+
+export async function getTaskDetails(taskId: string) {
+  const contract = getEscrowContract();
+
+  try {
+    if (!taskId) {
+      throw new Error("Task ID is required");
+    }
+
+    const taskDetails = await contract.getTaskDetails(taskId);
+
+    return taskDetails;
+  } catch (error) {
+    console.error("Error fetching task details from contract:", error);
+    throw error;
+  }
+}
