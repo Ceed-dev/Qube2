@@ -109,6 +109,10 @@ const TaskDetailsPage: React.FC = () => {
           setRecipientName(docData.username);
         }
       }
+      if (contractTaskData.status == TaskStatus.PendingPayment) {
+        setIsSubmissionApproved(true);
+        setIsSubmissionApprovedOpen(false);
+      }
     } catch (error) {
       console.error('Could not fetch task details', error);
     }
@@ -161,9 +165,6 @@ const TaskDetailsPage: React.FC = () => {
         setIsApproving(true);
         await approveTask(taskId as string);
 
-        const docRef = doc(database, "tasks", taskId as string);
-        await updateDoc(docRef, {isApproved: true});
-
         await loadTaskDetails();
       } else {
         openConnectModal();
@@ -174,8 +175,6 @@ const TaskDetailsPage: React.FC = () => {
     } finally {
       setIsApproving(false);
     }
-
-    setText("");
   }
 
   const [files, setFiles] = useState([]);
