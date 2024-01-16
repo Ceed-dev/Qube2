@@ -17,10 +17,12 @@ const Dropbox = ({
   setFiles,
   displayFiles,
   isDropable,
+  showDropbox,
 }: {
   setFiles: React.Dispatch<React.SetStateAction<FileWithPath[]>>;
   displayFiles: any; // TODO: Create type
   isDropable: boolean;
+  showDropbox: boolean;
 }) => {
   const onDrop = useCallback((acceptedFiles: FileWithPath[]) => {
     setFiles(prevFiles => [...prevFiles, ...acceptedFiles]);
@@ -30,7 +32,7 @@ const Dropbox = ({
 
   return (
     <>
-      <motion.div
+      {showDropbox && <motion.div
         variants={fadeIn("down", 1.25)}
         className={"grid place-items-center w-full rounded-lg cursor-pointer"}
       >
@@ -58,9 +60,9 @@ const Dropbox = ({
             )}
           </div>
         </div>
-      </motion.div>
+      </motion.div>}
 
-      {displayFiles && displayFiles.length > 0 && (
+      {displayFiles && displayFiles.length > 0 ? (
         <aside className="w-full mt-5">
           <motion.div
             variants={fadeIn("down", 0.4)}
@@ -128,6 +130,8 @@ const Dropbox = ({
             </div>
           </motion.div>
         </aside>
+      ) : (
+        <p className="text-md text-center text-slate-500 mt-5">No File Submitted</p>
       )}
     </>
   );
