@@ -482,23 +482,26 @@ const TaskDetailsPage: React.FC = () => {
               <div className="my-4">
                 <label className="block text-gray-700 text-xl">
                   Link
-                  <input
+                  {(address == task?.recipient) && <input
                     type="url"
                     value={link}
                     onChange={handleLinkChange}
                     className="form-input mt-1 block w-full rounded-md border border-gray-200"
                     placeholder="https://example.com"
-                  />
+                  />}
                 </label>
-                <ul className="list-disc list-inside">
-                  {linkDeliverables.map((link, index) => (
-                    <li key={index}>
-                      <Link href={link} target="_blank" className="text-blue-900 hover:text-blue-500 hover:underline">
-                        {link}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                {linkDeliverables.length > 0 ? ( 
+                  <ul className="list-disc list-inside">
+                    {linkDeliverables.map((link, index) => (
+                      <li key={index}>
+                        <Link href={link} target="_blank" className="text-blue-900 hover:text-blue-500 hover:underline">
+                          {link}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>) : (
+                  <p className="text-xl text-center text-slate-500 mt-5">No Link Submitted</p>
+                )}
               </div>
 
               <button
