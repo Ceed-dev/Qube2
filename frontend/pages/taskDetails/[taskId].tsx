@@ -60,6 +60,7 @@ const TaskDetailsPage: React.FC = () => {
   const [isBlurred, setIsBlurred] = useState(true);
   const [showSubmitButton, setShowSubmitButton] = useState(false);
   const [showApproveButton, setShowApproveButton] = useState(false);
+  const [showRequestDeadlineExtensionButton, setShowRequestDeadlineExtensionButton] = useState(false);
 
   const loadTaskDetails = async () => {
     try {
@@ -77,6 +78,7 @@ const TaskDetailsPage: React.FC = () => {
       const statusIndex = statusValues.indexOf(taskStatus);
       setShowSubmitButton(statusIndex == TaskStatus.InProgress);
       setShowApproveButton(statusIndex == TaskStatus.UnderReview);
+      setShowRequestDeadlineExtensionButton(statusIndex == TaskStatus.UnderReview && contractTaskData.deadlineExtensionTimestamp.isZero());
 
       if (address) {
         const assignedProjects = await getAssignedUserProjects(address);
@@ -545,23 +547,45 @@ const TaskDetailsPage: React.FC = () => {
                 ) : "Submit"}
               </button>}
 
-              {isAssigned && showApproveButton && <button
-                type="button"
-                className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-md mt-4"
-                disabled={isApproving}
-                onClick={handleApprove}
-              >
-                {isApproving ? (
-                  <div className="flex flex-row items-center justify-center text-lg text-green-400">
-                    <Image
-                      src={Spinner}
-                      alt="spinner"
-                      className="animate-spin-slow h-8 w-auto"
-                    />
-                    Processing...
-                  </div>
-                ) : "Approve Submission"}
-              </button>}
+              <div className="flex gap-5">
+                {isAssigned && showApproveButton && <button
+                  type="button"
+                  className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-md mt-4"
+                  disabled={isApproving}
+                  onClick={handleApprove}
+                >
+                  {isApproving ? (
+                    <div className="flex flex-row items-center justify-center text-lg text-green-400">
+                      <Image
+                        src={Spinner}
+                        alt="spinner"
+                        className="animate-spin-slow h-8 w-auto"
+                      />
+                      Processing...
+                    </div>
+                  ) : "Approve Submission"}
+                </button>}
+
+                {isAssigned && showRequestDeadlineExtensionButton && <button
+                  type="button"
+                  className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-md mt-4"
+                  disabled={isApproving}
+                  onClick={handleApprove}
+                >
+                  {isApproving ? (
+                    <div className="flex flex-row items-center justify-center text-lg text-green-400">
+                      <Image
+                        src={Spinner}
+                        alt="spinner"
+                        className="animate-spin-slow h-8 w-auto"
+                      />
+                      Processing...
+                    </div>
+                  ) : "Request Deadline Extension"}
+                </button>}
+              </div>
+
+              
             </form>
           )}
         </div>
