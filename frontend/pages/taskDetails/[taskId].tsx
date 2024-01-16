@@ -57,6 +57,7 @@ const TaskDetailsPage: React.FC = () => {
   const [isApproving, setIsApproving] = useState(false);
   const [isAssigned, setIsAssigned] = useState(false);
   const [isBlurred, setIsBlurred] = useState(true);
+  const [showSubmitButton, setShowSubmitButton] = useState(false);
 
   useEffect(() => {
     if (address) {
@@ -76,6 +77,10 @@ const TaskDetailsPage: React.FC = () => {
       const contractTaskData = await getTaskDetails(taskId as string);
       const statusKey = contractTaskData.status as keyof typeof TaskStatus;
       const taskStatus = TaskStatus[statusKey];
+
+      const statusValues = Object.values(TaskStatus);
+      const statusIndex = statusValues.indexOf(taskStatus);
+      setShowSubmitButton(statusIndex == TaskStatus.InProgress)
 
       if (address) {
         const assignedProjects = await getAssignedUserProjects(address);
@@ -504,7 +509,7 @@ const TaskDetailsPage: React.FC = () => {
                 )}
               </div>
 
-              <button
+              {(address == task?.recipient) && showSubmitButton && <button
                 type="button"
                 className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-md mt-4"
                 disabled={isSubmitting}
@@ -523,7 +528,7 @@ const TaskDetailsPage: React.FC = () => {
                     Processing...
                   </div>
                 ) : "Submit"}
-              </button>
+              </button>}
 
               <button
                 type="button"
