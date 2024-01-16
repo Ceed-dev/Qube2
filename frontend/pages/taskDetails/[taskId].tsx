@@ -7,7 +7,7 @@ import { database, storage, updateProjectDetails } from '../../utils';
 import { initializeWeb3Provider, getSigner } from '../../utils/ethers';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { assignRecipientToTask, submitTask, approveTask, getTaskDetails, getAssignedUserProjects } from "../../contracts/Escrow";
+import { assignRecipientToTask, submitTask, approveTask, getTaskDetails, getAssignedUserProjects, requestDeadlineExtension } from "../../contracts/Escrow";
 import { Dropbox, Modal } from '../../components';
 import { DisplayFileDeliverableInterface, StoreFileDeliverableInterface } from '../../interfaces';
 import { FileWithPath } from "react-dropzone";
@@ -56,6 +56,7 @@ const TaskDetailsPage: React.FC = () => {
   const [recipientName, setRecipientName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
+  const [isRequestingDeadlineExtension, setIsRequestingDeadlineExtension] = useState(false);
   const [isAssigned, setIsAssigned] = useState(false);
   const [isBlurred, setIsBlurred] = useState(true);
   const [showSubmitButton, setShowSubmitButton] = useState(false);
@@ -193,6 +194,26 @@ const TaskDetailsPage: React.FC = () => {
       alert("Error approving a task");
     } finally {
       setIsApproving(false);
+    }
+  }
+
+  const handleRequestDeadlineExtension = async (event) => {
+    event.preventDefault();
+
+    try {
+      if (isConnected) {
+        setIsRequestingDeadlineExtension(true);
+        await requestDeadlineExtension(taskId as string);
+
+        await loadTaskDetails();
+      } else {
+        openConnectModal();
+      }
+    } catch (error) {
+      console.error("Error requesting deadline extension: ", error);
+      alert("Error requesting deadline extension");
+    } finally {
+      setIsRequestingDeadlineExtension(false);
     }
   }
 
@@ -569,10 +590,10 @@ const TaskDetailsPage: React.FC = () => {
                 {isAssigned && showRequestDeadlineExtensionButton && <button
                   type="button"
                   className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-md mt-4"
-                  disabled={isApproving}
-                  onClick={handleApprove}
+                  disabled={isRequestingDeadlineExtension}
+                  onClick={handleRequestDeadlineExtension}
                 >
-                  {isApproving ? (
+                  {isRequestingDeadlineExtension ? (
                     <div className="flex flex-row items-center justify-center text-lg text-green-400">
                       <Image
                         src={Spinner}
