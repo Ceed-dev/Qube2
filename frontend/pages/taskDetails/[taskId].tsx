@@ -7,7 +7,8 @@ import { database, storage, updateProjectDetails } from '../../utils';
 import { initializeWeb3Provider, getSigner } from '../../utils/ethers';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { assignRecipientToTask, submitTask, approveTask, getTaskDetails, getAssignedUserProjects, requestDeadlineExtension } from "../../contracts/Escrow";
+import { assignRecipientToTask, submitTask, approveTask, getTaskDetails, 
+  getAssignedUserProjects, requestDeadlineExtension, approveDeadlineExtension } from "../../contracts/Escrow";
 import { Dropbox, Modal } from '../../components';
 import { DisplayFileDeliverableInterface, StoreFileDeliverableInterface } from '../../interfaces';
 import { FileWithPath } from "react-dropzone";
@@ -63,6 +64,7 @@ const TaskDetailsPage: React.FC = () => {
   const [showApproveButton, setShowApproveButton] = useState(false);
   const [showRequestDeadlineExtensionButton, setShowRequestDeadlineExtensionButton] = useState(false);
   const [showRequestDeadlineExtensionModal, setShowRequestDeadlineExtensionModal] = useState(false);
+  const [isApprovingDeadlineExtension, setIsApprovingDeadlineExtension] = useState(false);
 
   const loadTaskDetails = async () => {
     try {
@@ -196,6 +198,33 @@ const TaskDetailsPage: React.FC = () => {
       alert("Error approving a task");
     } finally {
       setIsApproving(false);
+    }
+  }
+
+  const handleApproveDeadlineExtension = async (event) => {
+    event.preventDefault();
+
+    try {
+      if (isConnected) {
+        setIsApprovingDeadlineExtension(true);
+        await approveDeadlineExtension(taskId as string);
+
+        const docRef = doc(database, "tasks", taskId as string);
+        await updateDoc(docRef, {
+          submissionDeadline: getDateTwoWeeksLater(task?.submissionDeadline),
+          reviewDeadline: getDateTwoWeeksLater(task?.reviewDeadline),
+          paymentDeadline: getDateTwoWeeksLater(task?.paymentDeadline),
+        });
+
+        await loadTaskDetails();
+      } else {
+        openConnectModal();
+      }
+    } catch (error) {
+      console.error("Error approving deadline extension: ", error);
+      alert("Error approving deadline extension");
+    } finally {
+      setIsApprovingDeadlineExtension(false);
     }
   }
 
@@ -700,7 +729,23 @@ const TaskDetailsPage: React.FC = () => {
             <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">{formatUTCDate(getDateTwoWeeksLater(task?.paymentDeadline))}</p>
           </div>
           <div className="flex justify-around">
-            <button className="bg-indigo-500 hover:bg-indigo-600 text-white text-2xl py-3 px-7 rounded-xl w-[200px]">Approve</button>
+            <button
+              type="button"
+              disabled={isApprovingDeadlineExtension}
+              onClick={handleApproveDeadlineExtension}
+              className="bg-indigo-500 hover:bg-indigo-600 text-white text-2xl py-3 px-7 rounded-xl w-[200px]"
+            >
+              {isApprovingDeadlineExtension ? (
+                <div className="flex flex-row items-center justify-center text-lg text-green-400">
+                  <Image
+                    src={Spinner}
+                    alt="spinner"
+                    className="animate-spin-slow h-8 w-auto"
+                  />
+                  Processing...
+                </div>
+              ) : "Approve"}
+            </button>
             <button className="bg-indigo-500 hover:bg-indigo-600 text-white text-2xl py-3 px-7 rounded-xl w-[200px]">Disapprove</button>
           </div>
         </div>
