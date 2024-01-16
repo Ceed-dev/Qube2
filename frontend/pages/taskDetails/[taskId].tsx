@@ -4,6 +4,7 @@ import { ToggleOpen, ToggleClose, Checkmark, Spinner } from '../../assets';
 import Image from 'next/image';
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { database, storage, updateProjectDetails } from '../../utils';
+import { initializeWeb3Provider, getSigner } from '../../utils/ethers';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { assignRecipientToTask, submitTask, approveTask, getTaskDetails, getAssignedUserProjects } from "../../contracts/Escrow";
@@ -58,13 +59,7 @@ const TaskDetailsPage: React.FC = () => {
   const [isAssigned, setIsAssigned] = useState(false);
   const [isBlurred, setIsBlurred] = useState(true);
   const [showSubmitButton, setShowSubmitButton] = useState(false);
-
-  useEffect(() => {
-    if (address) {
-      setIsBlurred(!(isAssigned || (address == task?.recipient)));
-    }
-  }, [address, isAssigned, task?.recipient]);
-
+  const [showApproveButton, setShowApproveButton] = useState(false);
 
   const loadTaskDetails = async () => {
     try {
@@ -80,7 +75,8 @@ const TaskDetailsPage: React.FC = () => {
 
       const statusValues = Object.values(TaskStatus);
       const statusIndex = statusValues.indexOf(taskStatus);
-      setShowSubmitButton(statusIndex == TaskStatus.InProgress)
+      setShowSubmitButton(statusIndex == TaskStatus.InProgress);
+      setShowApproveButton(statusIndex == TaskStatus.UnderReview);
 
       if (address) {
         const assignedProjects = await getAssignedUserProjects(address);
@@ -351,6 +347,25 @@ const TaskDetailsPage: React.FC = () => {
   const title = "Submit The Deliverables";
   const description = "Are your deliverables appropriate? If it's not appropriate then you may not get the rewards. If you are sure press the \"Comfirm\" button.";
 
+  useEffect(() => {
+    const update = async () => {
+      if (address) {
+        try {
+          getSigner();
+        } catch (e) {
+          await initializeWeb3Provider();
+        }
+        
+        const assignedProjects = await getAssignedUserProjects(address);
+        const assignStatus = assignedProjects.includes(task?.projectId);
+        setIsAssigned(assignStatus);
+        setIsBlurred(!(isAssigned || (address == task?.recipient)));
+      }
+    };
+
+    update();
+  }, [address, isAssigned, task?.recipient]);
+
   return (
     <div className="bg-blue-50 min-h-screen p-20">
       <button
@@ -530,7 +545,7 @@ const TaskDetailsPage: React.FC = () => {
                 ) : "Submit"}
               </button>}
 
-              <button
+              {isAssigned && showApproveButton && <button
                 type="button"
                 className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-md mt-4"
                 disabled={isApproving}
@@ -546,7 +561,7 @@ const TaskDetailsPage: React.FC = () => {
                     Processing...
                   </div>
                 ) : "Approve Submission"}
-              </button>
+              </button>}
             </form>
           )}
         </div>
