@@ -8,7 +8,7 @@ import { initializeWeb3Provider, getSigner } from '../../utils/ethers';
 import { useAccount } from 'wagmi';
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { assignRecipientToTask, submitTask, approveTask, getTaskDetails, 
-  getAssignedUserProjects, requestDeadlineExtension, approveDeadlineExtension } from "../../contracts/Escrow";
+  getAssignedUserProjects, requestDeadlineExtension, approveDeadlineExtension, rejectDeadlineExtension } from "../../contracts/Escrow";
 import { Dropbox, Modal } from '../../components';
 import { DisplayFileDeliverableInterface, StoreFileDeliverableInterface } from '../../interfaces';
 import { FileWithPath } from "react-dropzone";
@@ -65,6 +65,7 @@ const TaskDetailsPage: React.FC = () => {
   const [showRequestDeadlineExtensionButton, setShowRequestDeadlineExtensionButton] = useState(false);
   const [showRequestDeadlineExtensionModal, setShowRequestDeadlineExtensionModal] = useState(false);
   const [isApprovingDeadlineExtension, setIsApprovingDeadlineExtension] = useState(false);
+  const [isRejectingDeadlineExtension, setIsRejectingDeadlineExtension] = useState(false);
 
   const loadTaskDetails = async () => {
     try {
@@ -198,6 +199,26 @@ const TaskDetailsPage: React.FC = () => {
       alert("Error approving a task");
     } finally {
       setIsApproving(false);
+    }
+  }
+
+  const handleRejectDeadlineExtension = async (event) => {
+    event.preventDefault();
+
+    try {
+      if (isConnected) {
+        setIsRejectingDeadlineExtension(true);
+        await rejectDeadlineExtension(taskId as string);
+
+        await loadTaskDetails();
+      } else {
+        openConnectModal();
+      }
+    } catch (error) {
+      console.error("Error rejecting deadline extension: ", error);
+      alert("Error rejecting deadline extension");
+    } finally {
+      setIsRejectingDeadlineExtension(false);
     }
   }
 
@@ -746,7 +767,23 @@ const TaskDetailsPage: React.FC = () => {
                 </div>
               ) : "Approve"}
             </button>
-            <button className="bg-indigo-500 hover:bg-indigo-600 text-white text-2xl py-3 px-7 rounded-xl w-[200px]">Disapprove</button>
+            <button
+              type="button"
+              disabled={isRejectingDeadlineExtension}
+              onClick={handleRejectDeadlineExtension}
+              className="bg-indigo-500 hover:bg-indigo-600 text-white text-2xl py-3 px-7 rounded-xl w-[200px]"
+            >
+              {isRejectingDeadlineExtension ? (
+                <div className="flex flex-row items-center justify-center text-lg text-green-400">
+                  <Image
+                    src={Spinner}
+                    alt="spinner"
+                    className="animate-spin-slow h-8 w-auto"
+                  />
+                  Processing...
+                </div>
+              ) : "Disapprove"}
+            </button>
           </div>
         </div>
       </div>}
