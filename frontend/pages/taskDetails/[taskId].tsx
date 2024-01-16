@@ -391,6 +391,30 @@ const TaskDetailsPage: React.FC = () => {
     update();
   }, [address, isAssigned, task?.recipient]);
 
+  function formatUTCDate(date) {
+    if (!date) return '';
+  
+    const year = date.getUTCFullYear();
+    const month = date.getUTCMonth() + 1; // 月は0から始まるため、1を足す
+    const day = date.getUTCDate();
+  
+    // 月と日を2桁にフォーマットする
+    const formattedMonth = month.toString().padStart(2, '0');
+    const formattedDay = day.toString().padStart(2, '0');
+  
+    return `${year}-${formattedMonth}-${formattedDay}`;
+  }
+
+  function getDateTwoWeeksLater(date) {
+    if (!date) return null;
+  
+    // 2週間後の日付を計算
+    const twoWeeksLater = new Date(date);
+    twoWeeksLater.setDate(date.getDate() + 14);
+  
+    return twoWeeksLater;
+  }
+
   return (
     <div className="bg-blue-50 min-h-screen p-20">
       <button
@@ -659,21 +683,21 @@ const TaskDetailsPage: React.FC = () => {
           <p className="text-xl">You got a Deadline Extension Request. If you approve this the Submission Date, Review Date and Payment Date will be as shown bellow.</p>
           <h2 className="font-bold font-nunito text-2xl">Submission Date:</h2>
           <div className="flex justify-around items-center">
-            <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">12th December 2023</p>
+            <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">{formatUTCDate(task?.submissionDeadline)}</p>
             <p className="text-4xl">&rarr;</p>
-            <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">12th December 2023</p>
+            <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">{formatUTCDate(getDateTwoWeeksLater(task?.submissionDeadline))}</p>
           </div>
           <h2 className="font-bold font-nunito text-2xl">Review Date:</h2>
           <div className="flex justify-around items-center">
-            <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">12th December 2023</p>
+            <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">{formatUTCDate(task?.reviewDeadline)}</p>
             <p className="text-4xl">&rarr;</p>
-            <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">12th December 2023</p>
+            <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">{formatUTCDate(getDateTwoWeeksLater(task?.reviewDeadline))}</p>
           </div>
           <h2 className="font-bold font-nunito text-2xl">Payment Date:</h2>
           <div className="flex justify-around items-center">
-            <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">12th December 2023</p>
+            <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">{formatUTCDate(task?.paymentDeadline)}</p>
             <p className="text-4xl">&rarr;</p>
-            <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">12th December 2023</p>
+            <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">{formatUTCDate(getDateTwoWeeksLater(task?.paymentDeadline))}</p>
           </div>
           <div className="flex justify-around">
             <button className="bg-indigo-500 hover:bg-indigo-600 text-white text-2xl py-3 px-7 rounded-xl w-[200px]">Approve</button>
