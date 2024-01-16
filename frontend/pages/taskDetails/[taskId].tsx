@@ -82,7 +82,7 @@ const TaskDetailsPage: React.FC = () => {
         const assignedProjects = await getAssignedUserProjects(address);
         const assignStatus = assignedProjects.includes(firebaseTaskData.projectId);
         setIsAssigned(assignStatus);
-        setIsBlurred(!(assignStatus || (address == firebaseTaskData.recipient)));
+        setIsBlurred(!((firebaseTaskData.recipient == undefined) || assignStatus || (address == firebaseTaskData.recipient)));
       }
 
       if (firebaseTaskData.fileDeliverables) {
@@ -359,7 +359,7 @@ const TaskDetailsPage: React.FC = () => {
         const assignedProjects = await getAssignedUserProjects(address);
         const assignStatus = assignedProjects.includes(task?.projectId);
         setIsAssigned(assignStatus);
-        setIsBlurred(!(isAssigned || (address == task?.recipient)));
+        setIsBlurred(!((task?.recipient == undefined) || isAssigned || (address == task?.recipient)));
       }
     };
 
