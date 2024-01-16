@@ -462,18 +462,21 @@ const TaskDetailsPage: React.FC = () => {
               <div className="my-4">
                 <label className="block text-gray-700 text-xl">
                   Text
-                  <textarea
+                  {(address == task?.recipient) && <textarea
                     value={text}
                     onChange={handleTextChange}
                     className="form-textarea mt-1 block w-full rounded-md border border-gray-200"
                     rows={4}
-                  />
+                  />}
                 </label>
-                <ul className="list-disc list-inside">
-                  {textDeliverables.map((text, index) => (
-                    <li key={index}>{text}</li>
-                  ))}
-                </ul>
+                {textDeliverables.length > 0 ? (
+                  <ul className="list-disc list-inside">
+                    {textDeliverables.map((text, index) => (
+                      <li key={index}>{text}</li>
+                    ))}
+                  </ul>) : (
+                  <p className="text-xl text-center text-slate-500 mt-5">No Text Submitted</p>
+                )}
               </div>
 
               <div className="my-4">
