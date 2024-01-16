@@ -62,6 +62,7 @@ const TaskDetailsPage: React.FC = () => {
   const [showSubmitButton, setShowSubmitButton] = useState(false);
   const [showApproveButton, setShowApproveButton] = useState(false);
   const [showRequestDeadlineExtensionButton, setShowRequestDeadlineExtensionButton] = useState(false);
+  const [showRequestDeadlineExtensionModal, setShowRequestDeadlineExtensionModal] = useState(false);
 
   const loadTaskDetails = async () => {
     try {
@@ -80,6 +81,7 @@ const TaskDetailsPage: React.FC = () => {
       setShowSubmitButton(statusIndex == TaskStatus.InProgress);
       setShowApproveButton(statusIndex == TaskStatus.UnderReview);
       setShowRequestDeadlineExtensionButton(statusIndex == TaskStatus.UnderReview && contractTaskData.deadlineExtensionTimestamp.isZero());
+      setShowRequestDeadlineExtensionModal(statusIndex == TaskStatus.DeadlineExtensionRequested && (address == firebaseTaskData.recipient));
 
       if (address) {
         const assignedProjects = await getAssignedUserProjects(address);
@@ -651,7 +653,7 @@ const TaskDetailsPage: React.FC = () => {
         </div>
       </div>}
 
-      <div className="fixed w-screen h-screen top-0 left-0 backdrop-blur-sm z-5 flex items-center justify-center">
+      {showRequestDeadlineExtensionModal && <div className="fixed w-screen h-screen top-0 left-0 backdrop-blur-sm z-5 flex items-center justify-center">
         <div className="bg-white shadow-md rounded-lg w-2/3 p-20 flex flex-col gap-5">
           <h1 className="font-bold font-nunito text-3xl text-center">Deadline Extension Request</h1>
           <p className="text-xl">You got a Deadline Extension Request. If you approve this the Submission Date, Review Date and Payment Date will be as shown bellow.</p>
@@ -678,7 +680,7 @@ const TaskDetailsPage: React.FC = () => {
             <button className="bg-indigo-500 hover:bg-indigo-600 text-white text-2xl py-3 px-7 rounded-xl w-[200px]">Disapprove</button>
           </div>
         </div>
-      </div>
+      </div>}
 
     </div>
   );
