@@ -346,3 +346,22 @@ export async function approveDeadlineExtension(taskId: string) {
     throw error;
   }
 }
+
+export async function rejectDeadlineExtension(taskId: string) {
+  const contract = getEscrowContract();
+
+  try {
+    if (!taskId) {
+      throw new Error("Task ID is required");
+    }
+
+    const transaction = await contract.rejectDeadlineExtension(taskId);
+    await transaction.wait();
+
+    console.log("Reject the deadline extension request:", taskId);
+    return true;
+  } catch (error) {
+    console.error("Error rejecting the deadline extension request:", error);
+    throw error;
+  }
+}
