@@ -424,6 +424,7 @@ const ProjectDetails = ({ projectId }: { projectId: string }): JSX.Element => {
                   setFiles={setFiles}
                   displayFiles={displayFiles}
                   isDropable={isDropable}
+                  showDropbox={true}
                 />
                 <SubmitTextArea
                   textDeliverables={textDeliverables}
