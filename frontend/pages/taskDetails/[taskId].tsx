@@ -56,6 +56,14 @@ const TaskDetailsPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
   const [isAssigned, setIsAssigned] = useState(false);
+  const [isBlurred, setIsBlurred] = useState(true);
+
+  useEffect(() => {
+    if (address) {
+      setIsBlurred(!(isAssigned || (address == task?.recipient)));
+    }
+  }, [address, isAssigned, task?.recipient]);
+
 
   const loadTaskDetails = async () => {
     try {
@@ -71,7 +79,9 @@ const TaskDetailsPage: React.FC = () => {
 
       if (address) {
         const assignedProjects = await getAssignedUserProjects(address);
-        setIsAssigned(assignedProjects.includes(firebaseTaskData.projectId));
+        const assignStatus = assignedProjects.includes(firebaseTaskData.projectId);
+        setIsAssigned(assignStatus);
+        setIsBlurred(!(assignStatus || (address == firebaseTaskData.recipient)));
       }
 
       if (firebaseTaskData.fileDeliverables) {
@@ -556,6 +566,18 @@ const TaskDetailsPage: React.FC = () => {
           }
         }}
       />
+
+      {isBlurred && <div className="fixed w-screen h-screen top-0 left-0 backdrop-blur-md z-10 flex items-center justify-center">
+        <div className="font-bold font-nunito text-4xl text-center">
+          You're not assigned to this task
+          <br />
+          or
+          <br />
+          Please connect your wallet first
+          <br />
+          <span className="text-2xl text-slate-500">※Please reload the page</span>
+        </div>
+      </div>}
     </div>
   );
 };
