@@ -650,6 +650,36 @@ const TaskDetailsPage: React.FC = () => {
           <span className="text-2xl text-slate-500">※Please reload the page</span>
         </div>
       </div>}
+
+      <div className="fixed w-screen h-screen top-0 left-0 backdrop-blur-sm z-5 flex items-center justify-center">
+        <div className="bg-white shadow-md rounded-lg w-2/3 p-20 flex flex-col gap-5">
+          <h1 className="font-bold font-nunito text-3xl text-center">Deadline Extension Request</h1>
+          <p className="text-xl">You got a Deadline Extension Request. If you approve this the Submission Date, Review Date and Payment Date will be as shown bellow.</p>
+          <h2 className="font-bold font-nunito text-2xl">Submission Date:</h2>
+          <div className="flex justify-around items-center">
+            <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">12th December 2023</p>
+            <p className="text-4xl">&rarr;</p>
+            <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">12th December 2023</p>
+          </div>
+          <h2 className="font-bold font-nunito text-2xl">Review Date:</h2>
+          <div className="flex justify-around items-center">
+            <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">12th December 2023</p>
+            <p className="text-4xl">&rarr;</p>
+            <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">12th December 2023</p>
+          </div>
+          <h2 className="font-bold font-nunito text-2xl">Payment Date:</h2>
+          <div className="flex justify-around items-center">
+            <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">12th December 2023</p>
+            <p className="text-4xl">&rarr;</p>
+            <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">12th December 2023</p>
+          </div>
+          <div className="flex justify-around">
+            <button className="bg-indigo-500 hover:bg-indigo-600 text-white text-2xl py-3 px-7 rounded-xl w-[200px]">Approve</button>
+            <button className="bg-indigo-500 hover:bg-indigo-600 text-white text-2xl py-3 px-7 rounded-xl w-[200px]">Disapprove</button>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 };
