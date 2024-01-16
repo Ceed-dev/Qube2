@@ -63,6 +63,7 @@ const TaskDetailsPage: React.FC = () => {
   const [showSubmitButton, setShowSubmitButton] = useState(false);
   const [showApproveButton, setShowApproveButton] = useState(false);
   const [showRequestDeadlineExtensionButton, setShowRequestDeadlineExtensionButton] = useState(false);
+  const [showDisapproveButton, setShowDisapproveButton] = useState(false);
   const [showRequestDeadlineExtensionModal, setShowRequestDeadlineExtensionModal] = useState(false);
   const [isApprovingDeadlineExtension, setIsApprovingDeadlineExtension] = useState(false);
   const [isRejectingDeadlineExtension, setIsRejectingDeadlineExtension] = useState(false);
@@ -84,7 +85,8 @@ const TaskDetailsPage: React.FC = () => {
       setShowSubmitButton(statusIndex == TaskStatus.InProgress);
       setShowApproveButton(statusIndex == TaskStatus.UnderReview);
       setShowRequestDeadlineExtensionButton(statusIndex == TaskStatus.UnderReview && contractTaskData.deadlineExtensionTimestamp.isZero());
-      setShowRequestDeadlineExtensionModal(statusIndex == TaskStatus.DeadlineExtensionRequested && (address == firebaseTaskData.recipient));
+      setShowRequestDeadlineExtensionModal(statusIndex == TaskStatus.DeadlineExtensionRequested && address == firebaseTaskData.recipient);
+      setShowDisapproveButton(statusIndex == TaskStatus.UnderReview && !contractTaskData.deadlineExtensionTimestamp.isZero());
 
       if (address) {
         const assignedProjects = await getAssignedUserProjects(address);
@@ -680,8 +682,25 @@ const TaskDetailsPage: React.FC = () => {
                     </div>
                   ) : "Request Deadline Extension"}
                 </button>}
-              </div>
 
+                {isAssigned && showDisapproveButton && <button
+                  type="button"
+                  className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded-md mt-4"
+                  disabled={isRequestingDeadlineExtension}
+                  onClick={handleRequestDeadlineExtension}
+                >
+                  {isRequestingDeadlineExtension ? (
+                    <div className="flex flex-row items-center justify-center text-lg text-green-400">
+                      <Image
+                        src={Spinner}
+                        alt="spinner"
+                        className="animate-spin-slow h-8 w-auto"
+                      />
+                      Processing...
+                    </div>
+                  ) : "Disapprove"}
+                </button>}
+              </div>
               
             </form>
           )}
