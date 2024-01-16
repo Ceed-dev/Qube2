@@ -365,3 +365,22 @@ export async function rejectDeadlineExtension(taskId: string) {
     throw error;
   }
 }
+
+export async function disapproveSubmission(taskId: string) {
+  const contract = getEscrowContract();
+
+  try {
+    if (!taskId) {
+      throw new Error("Task ID is required");
+    }
+
+    const transaction = await contract.disapproveSubmission(taskId);
+    await transaction.wait();
+
+    console.log("Disapprove Task:", taskId);
+    return true;
+  } catch (error) {
+    console.error("Error disapproving task:", error);
+    throw error;
+  }
+}
