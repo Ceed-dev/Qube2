@@ -454,6 +454,7 @@ const TaskDetailsPage: React.FC = () => {
                     setFiles={setFiles}
                     displayFiles={displayFiles}
                     isDropable={isDropable}
+                    showDropbox={address == task?.recipient}
                   />
                 </label>
               </div>
