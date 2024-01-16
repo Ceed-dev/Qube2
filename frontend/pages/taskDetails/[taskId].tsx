@@ -474,7 +474,7 @@ const TaskDetailsPage: React.FC = () => {
                     setFiles={setFiles}
                     displayFiles={displayFiles}
                     isDropable={isDropable}
-                    showDropbox={address == task?.recipient}
+                    showDropbox={(address == task?.recipient) && showSubmitButton}
                   />
                 </label>
               </div>
@@ -482,7 +482,7 @@ const TaskDetailsPage: React.FC = () => {
               <div className="my-4">
                 <label className="block text-gray-700 text-xl">
                   Text
-                  {(address == task?.recipient) && <textarea
+                  {(address == task?.recipient) && showSubmitButton && <textarea
                     value={text}
                     onChange={handleTextChange}
                     className="form-textarea mt-1 block w-full rounded-md border border-gray-200"
@@ -502,7 +502,7 @@ const TaskDetailsPage: React.FC = () => {
               <div className="my-4">
                 <label className="block text-gray-700 text-xl">
                   Link
-                  {(address == task?.recipient) && <input
+                  {(address == task?.recipient) && showSubmitButton && <input
                     type="url"
                     value={link}
                     onChange={handleLinkChange}
