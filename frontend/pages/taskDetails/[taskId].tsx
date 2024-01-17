@@ -10,7 +10,7 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { assignRecipientToTask, submitTask, approveTask, getTaskDetails, 
   getAssignedUserProjects, requestDeadlineExtension, approveDeadlineExtension, 
   rejectDeadlineExtension, disapproveSubmission, transferTokensAndDeleteTask,
-  changeTaskDeadlines, requestTaskDeletion } from "../../contracts/Escrow";
+  changeTaskDeadlines, requestTaskDeletion, rejectDeletionRequest } from "../../contracts/Escrow";
 import { Dropbox, Modal } from '../../components';
 import { DisplayFileDeliverableInterface, StoreFileDeliverableInterface } from '../../interfaces';
 import { FileWithPath } from "react-dropzone";
@@ -79,6 +79,7 @@ const TaskDetailsPage: React.FC = () => {
   const [showDeleteTaskButton, setShowDeleteTaskButton] = useState(false);
   const [isRequestTaskDeletion, setIsRequestTaskDeletion] = useState(false);
   const [showRequestTaskDeletionModal, setShowRequestTaskDeletionModal] = useState(false);
+  const [isRejectingTaskDeletion, setIsRejectingTaskDeletion] = useState(false);
 
   const handleUpdateDeadline = async (event) => {
     event.preventDefault();
@@ -363,6 +364,26 @@ const TaskDetailsPage: React.FC = () => {
       alert("Error rejecting deadline extension");
     } finally {
       setIsRejectingDeadlineExtension(false);
+    }
+  }
+
+  const handleRejectTaskDeletion = async (event) => {
+    event.preventDefault();
+
+    try {
+      if (isConnected) {
+        setIsRejectingTaskDeletion(true);
+        await rejectDeletionRequest(taskId as string);
+
+        await loadTaskDetails();
+      } else {
+        openConnectModal();
+      }
+    } catch (error) {
+      console.error("Error rejecting task deletion: ", error);
+      alert("Error rejecting task deletion");
+    } finally {
+      setIsRejectingTaskDeletion(false);
     }
   }
 
@@ -1077,11 +1098,11 @@ const TaskDetailsPage: React.FC = () => {
             </button>
             <button
               type="button"
-              disabled={isRejectingDeadlineExtension}
-              onClick={handleRejectDeadlineExtension}
+              disabled={isRejectingTaskDeletion}
+              onClick={handleRejectTaskDeletion}
               className="bg-indigo-500 hover:bg-indigo-600 text-white text-2xl py-3 px-7 rounded-xl w-[200px]"
             >
-              {isRejectingDeadlineExtension ? (
+              {isRejectingTaskDeletion ? (
                 <div className="flex flex-row items-center justify-center text-lg text-green-400">
                   <Image
                     src={Spinner}
