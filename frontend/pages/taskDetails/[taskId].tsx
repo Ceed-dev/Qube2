@@ -78,6 +78,7 @@ const TaskDetailsPage: React.FC = () => {
   const [newDeadline, setNewDeadline] = useState(null);
   const [showDeleteTaskButton, setShowDeleteTaskButton] = useState(false);
   const [isRequestTaskDeletion, setIsRequestTaskDeletion] = useState(false);
+  const [showRequestTaskDeletionModal, setShowRequestTaskDeletionModal] = useState(false);
 
   const handleUpdateDeadline = async (event) => {
     event.preventDefault();
@@ -161,6 +162,7 @@ const TaskDetailsPage: React.FC = () => {
       setShowDeleteTaskButton(statusIndex == TaskStatus.Created || statusIndex == TaskStatus.Unconfirmed 
         || (statusIndex == TaskStatus.InProgress && contractTaskData.deadlineExtensionTimestamp.isZero() && contractTaskData.deletionRequestTimestamp.isZero()));
       setIsRequestTaskDeletion(statusIndex == TaskStatus.InProgress);
+      setShowRequestTaskDeletionModal(statusIndex == TaskStatus.DeletionRequested);
 
       if (address) {
         const assignedProjects = await getAssignedUserProjects(address);
@@ -1018,6 +1020,51 @@ const TaskDetailsPage: React.FC = () => {
               className="bg-indigo-500 hover:bg-indigo-600 text-white text-2xl py-3 px-7 rounded-xl w-[200px]"
             >
               {isApprovingDeadlineExtension ? (
+                <div className="flex flex-row items-center justify-center text-lg text-green-400">
+                  <Image
+                    src={Spinner}
+                    alt="spinner"
+                    className="animate-spin-slow h-8 w-auto"
+                  />
+                  Processing...
+                </div>
+              ) : "Approve"}
+            </button>
+            <button
+              type="button"
+              disabled={isRejectingDeadlineExtension}
+              onClick={handleRejectDeadlineExtension}
+              className="bg-indigo-500 hover:bg-indigo-600 text-white text-2xl py-3 px-7 rounded-xl w-[200px]"
+            >
+              {isRejectingDeadlineExtension ? (
+                <div className="flex flex-row items-center justify-center text-lg text-green-400">
+                  <Image
+                    src={Spinner}
+                    alt="spinner"
+                    className="animate-spin-slow h-8 w-auto"
+                  />
+                  Processing...
+                </div>
+              ) : "Disapprove"}
+            </button>
+          </div>
+        </div>
+      </div>}
+
+      {!isAssigned && showRequestTaskDeletionModal && <div className="fixed w-screen h-screen top-0 left-0 backdrop-blur-sm z-5 flex items-center justify-center">
+        <div className="bg-white shadow-md rounded-lg w-2/3 p-20 flex flex-col gap-5">
+          <h1 className="font-bold font-nunito text-3xl text-center">Task Deletion Requested</h1>
+          <div className="flex justify-around">
+            <button
+              type="button"
+              disabled={isTransferingTokensAndDeletingTask}
+              onClick={async (event) => {
+                await handleTransferTokensAndDeleteTask(event);
+                setShowRequestTaskDeletionModal(false);
+              }}
+              className="bg-indigo-500 hover:bg-indigo-600 text-white text-2xl py-3 px-7 rounded-xl w-[200px]"
+            >
+              {isTransferingTokensAndDeletingTask ? (
                 <div className="flex flex-row items-center justify-center text-lg text-green-400">
                   <Image
                     src={Spinner}
