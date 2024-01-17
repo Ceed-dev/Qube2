@@ -10,7 +10,7 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { assignRecipientToTask, submitTask, approveTask, getTaskDetails, 
   getAssignedUserProjects, requestDeadlineExtension, approveDeadlineExtension, 
   rejectDeadlineExtension, disapproveSubmission, transferTokensAndDeleteTask,
-  changeTaskDeadlines } from "../../contracts/Escrow";
+  changeTaskDeadlines, requestTaskDeletion } from "../../contracts/Escrow";
 import { Dropbox, Modal } from '../../components';
 import { DisplayFileDeliverableInterface, StoreFileDeliverableInterface } from '../../interfaces';
 import { FileWithPath } from "react-dropzone";
@@ -159,7 +159,7 @@ const TaskDetailsPage: React.FC = () => {
       setShowDisapproveButton(statusIndex == TaskStatus.UnderReview && !contractTaskData.deadlineExtensionTimestamp.isZero());
       setShowUnlockTokenButton(statusIndex == TaskStatus.LockedByDisapproval);
       setShowDeleteTaskButton(statusIndex == TaskStatus.Created || statusIndex == TaskStatus.Unconfirmed 
-        || (statusIndex == TaskStatus.InProgress && contractTaskData.deadlineExtensionTimestamp.isZero()));
+        || (statusIndex == TaskStatus.InProgress && contractTaskData.deadlineExtensionTimestamp.isZero() && contractTaskData.deletionRequestTimestamp.isZero()));
       setIsRequestTaskDeletion(statusIndex == TaskStatus.InProgress);
 
       if (address) {
@@ -319,6 +319,26 @@ const TaskDetailsPage: React.FC = () => {
     } catch (error) {
       console.error("Error transfering tokens and deleting task: ", error);
       alert("Error transfering tokens and deleting task");
+    } finally {
+      setIsTransferingTokensAndDeletingTask(false);
+    }
+  }
+
+  const handleRequestTaskDeletion = async (event) => {
+    event.preventDefault();
+
+    try {
+      if (isConnected) {
+        setIsTransferingTokensAndDeletingTask(true);
+        await requestTaskDeletion(taskId as string);
+
+        await loadTaskDetails();
+      } else {
+        openConnectModal();
+      }
+    } catch (error) {
+      console.error("Error requesting task deletion: ", error);
+      alert("Error requesting task deletion");
     } finally {
       setIsTransferingTokensAndDeletingTask(false);
     }
@@ -604,9 +624,14 @@ const TaskDetailsPage: React.FC = () => {
               type="button"
               className="flex border border-slate-300 rounded-full px-3 py-1 gap-3 hover:bg-red-500 hover:text-white"
               onClick={async (event) => {
-                await handleTransferTokensAndDeleteTask(event);
-                alert("Successfully deleted task");
-                router.back();
+                if (isRequestTaskDeletion) {
+                  await handleRequestTaskDeletion(event);
+                  alert("Successfully requested task deletion");
+                } else {
+                  await handleTransferTokensAndDeleteTask(event);
+                  alert("Successfully deleted task");
+                  router.back();
+                }
               }}
               disabled={isTransferingTokensAndDeletingTask}
             >
