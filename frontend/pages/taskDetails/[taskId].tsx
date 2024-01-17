@@ -76,6 +76,7 @@ const TaskDetailsPage: React.FC = () => {
   const [isTransferingTokensAndDeletingTask, setIsTransferingTokensAndDeletingTask] = useState(false);
   const [isUpdatingDeadlines, setIsUpdatingDeadlines] = useState(false);
   const [newDeadline, setNewDeadline] = useState(null);
+  const [showDeleteTaskButton, setShowDeleteTaskButton] = useState(false);
 
   const handleUpdateDeadline = async (event) => {
     event.preventDefault();
@@ -156,6 +157,8 @@ const TaskDetailsPage: React.FC = () => {
       setShowRequestDeadlineExtensionModal(statusIndex == TaskStatus.DeadlineExtensionRequested && address == firebaseTaskData.recipient);
       setShowDisapproveButton(statusIndex == TaskStatus.UnderReview && !contractTaskData.deadlineExtensionTimestamp.isZero());
       setShowUnlockTokenButton(statusIndex == TaskStatus.LockedByDisapproval);
+      setShowDeleteTaskButton(statusIndex == TaskStatus.Created || statusIndex == TaskStatus.Unconfirmed 
+        || (statusIndex == TaskStatus.InProgress && contractTaskData.deadlineExtensionTimestamp.isZero()));
 
       if (address) {
         const assignedProjects = await getAssignedUserProjects(address);
@@ -593,18 +596,20 @@ const TaskDetailsPage: React.FC = () => {
 
       <div className="bg-white rounded-lg shadow-lg max-w-4xl mx-auto p-10">
 
-        <div className="flex justify-end mb-3">
-          <div className="flex border border-slate-300 rounded-full px-3 py-1 gap-3 hover:bg-red-500 hover:text-white">
-            <p>Delete</p>
-            <Image
-              src={Trash}
-              alt="trash"
-              height={25}
-              onClick={() => {}}
-              aria-label="Delete Task"
-            />
+        {showDeleteTaskButton && 
+          <div className="flex justify-end mb-3">
+            <div className="flex border border-slate-300 rounded-full px-3 py-1 gap-3 hover:bg-red-500 hover:text-white">
+              <p>Delete</p>
+              <Image
+                src={Trash}
+                alt="trash"
+                height={25}
+                onClick={() => {}}
+                aria-label="Delete Task"
+              />
+            </div>
           </div>
-        </div>
+        }
 
         {/* Sign to the contract トグル */}
         <div className="border-b pb-4">
