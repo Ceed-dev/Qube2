@@ -77,6 +77,7 @@ const TaskDetailsPage: React.FC = () => {
   const [isUpdatingDeadlines, setIsUpdatingDeadlines] = useState(false);
   const [newDeadline, setNewDeadline] = useState(null);
   const [showDeleteTaskButton, setShowDeleteTaskButton] = useState(false);
+  const [isRequestTaskDeletion, setIsRequestTaskDeletion] = useState(false);
 
   const handleUpdateDeadline = async (event) => {
     event.preventDefault();
@@ -159,6 +160,7 @@ const TaskDetailsPage: React.FC = () => {
       setShowUnlockTokenButton(statusIndex == TaskStatus.LockedByDisapproval);
       setShowDeleteTaskButton(statusIndex == TaskStatus.Created || statusIndex == TaskStatus.Unconfirmed 
         || (statusIndex == TaskStatus.InProgress && contractTaskData.deadlineExtensionTimestamp.isZero()));
+      setIsRequestTaskDeletion(statusIndex == TaskStatus.InProgress);
 
       if (address) {
         const assignedProjects = await getAssignedUserProjects(address);
@@ -596,7 +598,7 @@ const TaskDetailsPage: React.FC = () => {
 
       <div className="bg-white rounded-lg shadow-lg max-w-4xl mx-auto p-10">
 
-        {showDeleteTaskButton && 
+        {isAssigned && showDeleteTaskButton && 
           <div className="flex justify-end mb-3">
             <button
               type="button"
@@ -619,7 +621,7 @@ const TaskDetailsPage: React.FC = () => {
                 </div>
               ) : (
                 <>
-                  <p>Delete</p>
+                  <p>{isRequestTaskDeletion ? "Request Task Deletion" : "Delete"}</p>
                   <Image
                     src={Trash}
                     alt="trash"
