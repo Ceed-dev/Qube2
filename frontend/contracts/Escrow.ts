@@ -403,3 +403,32 @@ export async function transferTokensAndDeleteTask(taskId: string) {
     throw error;
   }
 }
+
+export async function changeTaskDeadlines(
+  taskId: string,
+  newSubmissionDeadline: number,
+  newReviewDeadline: number,
+  newPaymentDeadline: number,
+) {
+  const contract = getEscrowContract();
+
+  try {
+    if (!taskId) {
+      throw new Error("Task ID is required");
+    }
+
+    const transaction = await contract.changeTaskDeadlines(
+      taskId,
+      newSubmissionDeadline,
+      newReviewDeadline,
+      newPaymentDeadline,
+    );
+    await transaction.wait();
+
+    console.log("Updating task deadlines:", taskId);
+    return true;
+  } catch (error) {
+    console.error("Error updating task deadlines:", error);
+    throw error;
+  }
+}
