@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { ToggleOpen, ToggleClose, Checkmark, Spinner } from '../../assets';
+import { ToggleOpen, ToggleClose, Checkmark, Spinner, Trash } from '../../assets';
 import Image from 'next/image';
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { database, storage, updateProjectDetails } from '../../utils';
@@ -592,6 +592,20 @@ const TaskDetailsPage: React.FC = () => {
       </button>
 
       <div className="bg-white rounded-lg shadow-lg max-w-4xl mx-auto p-10">
+
+        <div className="flex justify-end mb-3">
+          <div className="flex border border-slate-300 rounded-full px-3 py-1 gap-3 hover:bg-red-500 hover:text-white">
+            <p>Delete</p>
+            <Image
+              src={Trash}
+              alt="trash"
+              height={25}
+              onClick={() => {}}
+              aria-label="Delete Task"
+            />
+          </div>
+        </div>
+
         {/* Sign to the contract トグル */}
         <div className="border-b pb-4">
           <button
