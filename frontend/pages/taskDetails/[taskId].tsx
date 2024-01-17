@@ -28,6 +28,7 @@ interface Task {
   reviewDeadline: Date,
   paymentDeadline: Date,
   status: TaskStatus,
+  lockReleaseTimestamp: Date,
 }
 
 enum TaskStatus {
@@ -69,6 +70,8 @@ const TaskDetailsPage: React.FC = () => {
   const [showRequestDeadlineExtensionModal, setShowRequestDeadlineExtensionModal] = useState(false);
   const [isApprovingDeadlineExtension, setIsApprovingDeadlineExtension] = useState(false);
   const [isRejectingDeadlineExtension, setIsRejectingDeadlineExtension] = useState(false);
+  const [showUnlockTokenButton, setShowUnlockTokenButton] = useState(false);
+  const [isUnlokingToken, setIsUnlockingToken] = useState(false);
 
   const loadTaskDetails = async () => {
     try {
@@ -89,6 +92,7 @@ const TaskDetailsPage: React.FC = () => {
       setShowRequestDeadlineExtensionButton(statusIndex == TaskStatus.UnderReview && contractTaskData.deadlineExtensionTimestamp.isZero());
       setShowRequestDeadlineExtensionModal(statusIndex == TaskStatus.DeadlineExtensionRequested && address == firebaseTaskData.recipient);
       setShowDisapproveButton(statusIndex == TaskStatus.UnderReview && !contractTaskData.deadlineExtensionTimestamp.isZero());
+      setShowUnlockTokenButton(statusIndex == TaskStatus.LockedByDisapproval);
 
       if (address) {
         const assignedProjects = await getAssignedUserProjects(address);
@@ -113,6 +117,11 @@ const TaskDetailsPage: React.FC = () => {
         setLinkDeliverables(firebaseTaskData.linkDeliverables);
       }
 
+      let lockReleaseTimestamp;
+      if (!contractTaskData.lockReleaseTimestamp.isZero()) {
+        lockReleaseTimestamp = new Date(contractTaskData.lockReleaseTimestamp.toNumber() * 1000);
+      }
+
       setTask({
         taskId: taskId as string,
         projectId: firebaseTaskData.projectId,
@@ -125,6 +134,7 @@ const TaskDetailsPage: React.FC = () => {
         reviewDeadline: firebaseTaskData.reviewDeadline.toDate(),
         paymentDeadline: firebaseTaskData.paymentDeadline.toDate(),
         status: taskStatus,
+        lockReleaseTimestamp: lockReleaseTimestamp,
       });
       setIsContractSignedOpen(true);
       if (firebaseTaskData.recipient) {
@@ -723,6 +733,29 @@ const TaskDetailsPage: React.FC = () => {
                   ) : "Disapprove"}
                 </button>}
               </div>
+
+              {isAssigned && showUnlockTokenButton && 
+                <>
+                  <p className="text-2xl text-slate-500 mt-10">The token in this task will be locked until <span className="underline font-bold font-nunito text-black">{task?.lockReleaseTimestamp.toUTCString()}</span></p>
+                  <button
+                    type="button"
+                    className={`w-full ${task?.lockReleaseTimestamp <= (new Date()) ? "bg-indigo-500 hover:bg-indigo-600" : "bg-slate-400"} text-white py-2 px-4 rounded-md mt-4`}
+                    disabled={(new Date()) < task?.lockReleaseTimestamp || isUnlokingToken}
+                    onClick={handleDisapprove}
+                  >
+                    {isUnlokingToken ? (
+                      <div className="flex flex-row items-center justify-center text-lg text-green-400">
+                        <Image
+                          src={Spinner}
+                          alt="spinner"
+                          className="animate-spin-slow h-8 w-auto"
+                        />
+                        Processing...
+                      </div>
+                    ) : "Unlock The Token"}
+                  </button>
+                </>
+              }
               
             </form>
           )}
