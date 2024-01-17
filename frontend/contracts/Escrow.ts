@@ -432,3 +432,22 @@ export async function changeTaskDeadlines(
     throw error;
   }
 }
+
+export async function requestTaskDeletion(taskId: string) {
+  const contract = getEscrowContract();
+
+  try {
+    if (!taskId) {
+      throw new Error("Task ID is required");
+    }
+
+    const transaction = await contract.requestTaskDeletion(taskId);
+    await transaction.wait();
+
+    console.log("Requesting task deletion:", taskId);
+    return true;
+  } catch (error) {
+    console.error("Error requesting task deletion:", error);
+    throw error;
+  }
+}
