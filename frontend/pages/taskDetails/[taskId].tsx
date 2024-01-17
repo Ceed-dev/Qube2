@@ -9,7 +9,8 @@ import { useAccount } from 'wagmi';
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { assignRecipientToTask, submitTask, approveTask, getTaskDetails, 
   getAssignedUserProjects, requestDeadlineExtension, approveDeadlineExtension, 
-  rejectDeadlineExtension, disapproveSubmission, transferTokensAndDeleteTask } from "../../contracts/Escrow";
+  rejectDeadlineExtension, disapproveSubmission, transferTokensAndDeleteTask,
+  changeTaskDeadlines } from "../../contracts/Escrow";
 import { Dropbox, Modal } from '../../components';
 import { DisplayFileDeliverableInterface, StoreFileDeliverableInterface } from '../../interfaces';
 import { FileWithPath } from "react-dropzone";
@@ -76,10 +77,45 @@ const TaskDetailsPage: React.FC = () => {
   const [isUpdatingDeadlines, setIsUpdatingDeadlines] = useState(false);
   const [newDeadline, setNewDeadline] = useState(null);
 
-  const handleUpdateDeadline = (newDate) => {
-    if (newDate && newDate.startDate) {
-      setNewDeadline(newDate.startDate);
+  const handleUpdateDeadline = async (event) => {
+    event.preventDefault();
+
+    if (!newDeadline) {
+      return alert("Please select new deadline.");
     }
+      
+    try {
+      if (isConnected) {
+        setIsUpdatingDeadlines(true);
+
+        await changeTaskDeadlines(
+          taskId as string,
+          Math.floor((new Date(newDeadline)).getTime() / 1000),
+          Math.floor(new Date(getDatePlusDays(newDeadline.toString(), 7)).getTime() / 1000),
+          Math.floor(new Date(getDatePlusDays(newDeadline.toString(), 14)).getTime() / 1000),
+        );
+
+        const docRef = doc(database, "tasks", taskId as string);
+        await updateDoc(docRef, {
+          submissionDeadline: new Date(newDeadline),
+          reviewDeadline: new Date(getDatePlusDays(newDeadline.toString(), 7)),
+          paymentDeadline: new Date(getDatePlusDays(newDeadline.toString(), 14)),
+        });
+
+        alert("Successfully updated deadlines");
+
+        await loadTaskDetails();
+      } else {
+        openConnectModal();
+      }
+    } catch (error) {
+      console.error("Error updating deadlines: ", error);
+      alert("Error updating deadlines");
+    } finally {
+      setIsUpdatingDeadlines(false);
+    }
+
+    setNewDeadline(null);
   };
 
   const getTomorrow = () => {
@@ -88,13 +124,17 @@ const TaskDetailsPage: React.FC = () => {
     return tomorrow;
   }
 
+  const getDatePlusDays = (inputDate: string, daysToAdd: number) => {
+    const date = new Date(inputDate);
+    date.setDate(date.getDate() + daysToAdd);
+    return date.toString();
+  };
+
   const handleDateChange = (newDate) => {
     if (newDate && newDate.startDate) {
       setNewDeadline(newDate.startDate);
     }
   };
-
-  console.log("aaa:", newDeadline, !newDeadline);
 
   const loadTaskDetails = async () => {
     try {
