@@ -598,16 +598,37 @@ const TaskDetailsPage: React.FC = () => {
 
         {showDeleteTaskButton && 
           <div className="flex justify-end mb-3">
-            <div className="flex border border-slate-300 rounded-full px-3 py-1 gap-3 hover:bg-red-500 hover:text-white">
-              <p>Delete</p>
-              <Image
-                src={Trash}
-                alt="trash"
-                height={25}
-                onClick={() => {}}
-                aria-label="Delete Task"
-              />
-            </div>
+            <button
+              type="button"
+              className="flex border border-slate-300 rounded-full px-3 py-1 gap-3 hover:bg-red-500 hover:text-white"
+              onClick={async (event) => {
+                await handleTransferTokensAndDeleteTask(event);
+                alert("Successfully deleted task");
+                router.back();
+              }}
+              disabled={isTransferingTokensAndDeletingTask}
+            >
+              {isTransferingTokensAndDeletingTask ? (
+                <div className="flex flex-row items-center justify-center text-lg text-green-400">
+                  <Image
+                    src={Spinner}
+                    alt="spinner"
+                    className="animate-spin-slow h-8 w-auto"
+                  />
+                  Processing...
+                </div>
+              ) : (
+                <>
+                  <p>Delete</p>
+                  <Image
+                    src={Trash}
+                    alt="trash"
+                    height={25}
+                    aria-label="Delete Task"
+                  />
+                </>
+              )}
+            </button>
           </div>
         }
 
