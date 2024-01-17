@@ -9,7 +9,7 @@ import { useAccount } from 'wagmi';
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { assignRecipientToTask, submitTask, approveTask, getTaskDetails, 
   getAssignedUserProjects, requestDeadlineExtension, approveDeadlineExtension, 
-  rejectDeadlineExtension, disapproveSubmission } from "../../contracts/Escrow";
+  rejectDeadlineExtension, disapproveSubmission, transferTokensAndDeleteTask } from "../../contracts/Escrow";
 import { Dropbox, Modal } from '../../components';
 import { DisplayFileDeliverableInterface, StoreFileDeliverableInterface } from '../../interfaces';
 import { FileWithPath } from "react-dropzone";
@@ -71,7 +71,7 @@ const TaskDetailsPage: React.FC = () => {
   const [isApprovingDeadlineExtension, setIsApprovingDeadlineExtension] = useState(false);
   const [isRejectingDeadlineExtension, setIsRejectingDeadlineExtension] = useState(false);
   const [showUnlockTokenButton, setShowUnlockTokenButton] = useState(false);
-  const [isUnlokingToken, setIsUnlockingToken] = useState(false);
+  const [isTransferingTokensAndDeletingTask, setIsTransferingTokensAndDeletingTask] = useState(false);
 
   const loadTaskDetails = async () => {
     try {
@@ -233,6 +233,26 @@ const TaskDetailsPage: React.FC = () => {
       alert("Error disapproving a task");
     } finally {
       setIsDisapproving(false);
+    }
+  }
+
+  const handleTransferTokensAndDeleteTask = async (event) => {
+    event.preventDefault();
+
+    try {
+      if (isConnected) {
+        setIsTransferingTokensAndDeletingTask(true);
+        await transferTokensAndDeleteTask(taskId as string);
+
+        await loadTaskDetails();
+      } else {
+        openConnectModal();
+      }
+    } catch (error) {
+      console.error("Error transfering tokens and deleting task: ", error);
+      alert("Error transfering tokens and deleting task");
+    } finally {
+      setIsTransferingTokensAndDeletingTask(false);
     }
   }
 
@@ -740,10 +760,10 @@ const TaskDetailsPage: React.FC = () => {
                   <button
                     type="button"
                     className={`w-full ${task?.lockReleaseTimestamp <= (new Date()) ? "bg-indigo-500 hover:bg-indigo-600" : "bg-slate-400"} text-white py-2 px-4 rounded-md mt-4`}
-                    disabled={(new Date()) < task?.lockReleaseTimestamp || isUnlokingToken}
-                    onClick={handleDisapprove}
+                    disabled={(new Date()) < task?.lockReleaseTimestamp || isTransferingTokensAndDeletingTask}
+                    onClick={handleTransferTokensAndDeleteTask}
                   >
-                    {isUnlokingToken ? (
+                    {isTransferingTokensAndDeletingTask ? (
                       <div className="flex flex-row items-center justify-center text-lg text-green-400">
                         <Image
                           src={Spinner}
