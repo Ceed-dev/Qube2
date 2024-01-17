@@ -15,6 +15,7 @@ import { DisplayFileDeliverableInterface, StoreFileDeliverableInterface } from '
 import { FileWithPath } from "react-dropzone";
 import { ref, getDownloadURL, uploadBytesResumable } from "firebase/storage";
 import Link from 'next/link';
+import Datepicker from "react-tailwindcss-datepicker";
 
 interface Task {
   taskId: string,
@@ -72,6 +73,28 @@ const TaskDetailsPage: React.FC = () => {
   const [isRejectingDeadlineExtension, setIsRejectingDeadlineExtension] = useState(false);
   const [showUnlockTokenButton, setShowUnlockTokenButton] = useState(false);
   const [isTransferingTokensAndDeletingTask, setIsTransferingTokensAndDeletingTask] = useState(false);
+  const [isUpdatingDeadlines, setIsUpdatingDeadlines] = useState(false);
+  const [newDeadline, setNewDeadline] = useState(null);
+
+  const handleUpdateDeadline = (newDate) => {
+    if (newDate && newDate.startDate) {
+      setNewDeadline(newDate.startDate);
+    }
+  };
+
+  const getTomorrow = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow;
+  }
+
+  const handleDateChange = (newDate) => {
+    if (newDate && newDate.startDate) {
+      setNewDeadline(newDate.startDate);
+    }
+  };
+
+  console.log("aaa:", newDeadline, !newDeadline);
 
   const loadTaskDetails = async () => {
     try {
@@ -601,6 +624,43 @@ const TaskDetailsPage: React.FC = () => {
                   </div>
                 ) : "Sign The Contract"}
               </button>}
+
+              {isAssigned && !isContractSigned && 
+                <>
+                  <div className="border-dashed border-t border-gray-400 my-4"></div>
+                  <div className="flex items-center">
+                    <p className="w-1/3 font-bold">New Submission Deadline</p>
+                    <Datepicker
+                      inputClassName="rounded-md border border-gray-200 w-full px-3"
+                      value={{ startDate: newDeadline, endDate: newDeadline }}
+                      onChange={handleDateChange}
+                      asSingle={true}
+                      useRange={false}
+                      minDate={getTomorrow()}
+                      startFrom={getTomorrow()}
+                      placeholder="Press to choose the date"
+                      displayFormat="YYYY/MM/DD 21:00"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className={`w-full ${!newDeadline ? "bg-slate-300" : "bg-indigo-500 hover:bg-indigo-600"} text-white py-2 px-4 rounded-md mt-4`}
+                    disabled={!newDeadline || isUpdatingDeadlines}
+                    onClick={handleUpdateDeadline}
+                  >
+                    {isUpdatingDeadlines ? (
+                      <div className="flex flex-row items-center justify-center text-lg text-green-400">
+                        <Image
+                          src={Spinner}
+                          alt="spinner"
+                          className="animate-spin-slow h-8 w-auto"
+                        />
+                        Processing...
+                      </div>
+                    ) : "Update Deadlines"}
+                  </button>
+                </>
+              }
 
             </div>
           )}
