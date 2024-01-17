@@ -451,3 +451,22 @@ export async function requestTaskDeletion(taskId: string) {
     throw error;
   }
 }
+
+export async function rejectDeletionRequest(taskId: string) {
+  const contract = getEscrowContract();
+
+  try {
+    if (!taskId) {
+      throw new Error("Task ID is required");
+    }
+
+    const transaction = await contract.rejectDeletionRequest(taskId);
+    await transaction.wait();
+
+    console.log("Rejecting task deletion:", taskId);
+    return true;
+  } catch (error) {
+    console.error("Error rejecting task deletion:", error);
+    throw error;
+  }
+}
