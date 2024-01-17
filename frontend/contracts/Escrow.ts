@@ -384,3 +384,22 @@ export async function disapproveSubmission(taskId: string) {
     throw error;
   }
 }
+
+export async function transferTokensAndDeleteTask(taskId: string) {
+  const contract = getEscrowContract();
+
+  try {
+    if (!taskId) {
+      throw new Error("Task ID is required");
+    }
+
+    const transaction = await contract.transferTokensAndDeleteTask(taskId);
+    await transaction.wait();
+
+    console.log("Transfer tokens and delete task:", taskId);
+    return true;
+  } catch (error) {
+    console.error("Error transfering tokens and deleting task:", error);
+    throw error;
+  }
+}
