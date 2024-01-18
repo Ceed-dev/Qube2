@@ -949,7 +949,7 @@ const TaskDetailsPage: React.FC = () => {
 
               {isAssigned && showUnlockTokenButton && 
                 <>
-                  <p className="text-2xl text-slate-500 mt-10">The token in this task will be locked until <span className="underline font-bold font-nunito text-black">{task?.lockReleaseTimestamp.toUTCString()}</span></p>
+                  <p className="text-2xl text-slate-500 mt-10">The token in this task will be locked until <span className="underline font-bold font-nunito text-black">{task?.lockReleaseTimestamp?.toUTCString()}</span></p>
                   <button
                     type="button"
                     className={`w-full ${task?.lockReleaseTimestamp <= (new Date()) ? "bg-indigo-500 hover:bg-indigo-600" : "bg-slate-400"} text-white py-2 px-4 rounded-md mt-4`}
