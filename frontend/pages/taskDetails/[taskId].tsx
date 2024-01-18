@@ -80,6 +80,7 @@ const TaskDetailsPage: React.FC = () => {
   const [isRequestTaskDeletion, setIsRequestTaskDeletion] = useState(false);
   const [showRequestTaskDeletionModal, setShowRequestTaskDeletionModal] = useState(false);
   const [isRejectingTaskDeletion, setIsRejectingTaskDeletion] = useState(false);
+  const [showSubmissionOverdueModal, setShowSubmissionOverdueModal] = useState(false);
 
   const handleUpdateDeadline = async (event) => {
     event.preventDefault();
@@ -164,6 +165,8 @@ const TaskDetailsPage: React.FC = () => {
         || (statusIndex == TaskStatus.InProgress && contractTaskData.deadlineExtensionTimestamp.isZero() && contractTaskData.deletionRequestTimestamp.isZero()));
       setIsRequestTaskDeletion(statusIndex == TaskStatus.InProgress);
       setShowRequestTaskDeletionModal(statusIndex == TaskStatus.DeletionRequested);
+      const today = new Date();
+      setShowSubmissionOverdueModal((statusIndex == TaskStatus.InProgress && (new Date(contractTaskData.submissionDeadline.toNumber() * 1000) <= today)) || statusIndex == TaskStatus.SubmissionOverdue);
 
       if (address) {
         const assignedProjects = await getAssignedUserProjects(address);
@@ -1112,6 +1115,35 @@ const TaskDetailsPage: React.FC = () => {
                   Processing...
                 </div>
               ) : "Disapprove"}
+            </button>
+          </div>
+        </div>
+      </div>}
+
+      {showSubmissionOverdueModal && <div className="fixed w-screen h-screen top-0 left-0 backdrop-blur-sm z-5 flex items-center justify-center">
+        <div className="bg-white shadow-md rounded-lg w-2/3 p-20 flex flex-col gap-5">
+          <h1 className="font-bold font-nunito text-3xl text-center">Token Withdrawal And Task Deletion</h1>
+          <p className="text-xl">As the creator didn't submit anything within the deadline, the fund in escrow will be back to the deposit by confirming from the button below.</p>
+          <div className="flex justify-around">
+            <button
+              type="button"
+              disabled={isTransferingTokensAndDeletingTask || !isAssigned}
+              onClick={async (event) => {
+                await handleTransferTokensAndDeleteTask(event);
+                setShowSubmissionOverdueModal(false);
+              }}
+              className={`${isAssigned ? "bg-indigo-500 hover:bg-indigo-600" : "bg-slate-300"} text-white text-2xl py-3 px-7 rounded-xl w-[200px]`}
+            >
+              {isTransferingTokensAndDeletingTask ? (
+                <div className="flex flex-row items-center justify-center text-lg text-green-400">
+                  <Image
+                    src={Spinner}
+                    alt="spinner"
+                    className="animate-spin-slow h-8 w-auto"
+                  />
+                  Processing...
+                </div>
+              ) : "Withdrawal"}
             </button>
           </div>
         </div>
