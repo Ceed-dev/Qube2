@@ -82,6 +82,7 @@ const TaskDetailsPage: React.FC = () => {
   const [isRejectingTaskDeletion, setIsRejectingTaskDeletion] = useState(false);
   const [showSubmissionOverdueModal, setShowSubmissionOverdueModal] = useState(false);
   const [showReviewOverdueModal, setShowReviewOverdueModal] = useState(false);
+  const [showPaymentOverdueModal, setShowPaymentOverdueModal] = useState(false);
 
   const handleUpdateDeadline = async (event) => {
     event.preventDefault();
@@ -169,6 +170,7 @@ const TaskDetailsPage: React.FC = () => {
       const today = new Date();
       setShowSubmissionOverdueModal((statusIndex == TaskStatus.InProgress && (new Date(contractTaskData.submissionDeadline.toNumber() * 1000) <= today)) || statusIndex == TaskStatus.SubmissionOverdue);
       setShowReviewOverdueModal((statusIndex == TaskStatus.UnderReview && (new Date(contractTaskData.reviewDeadline.toNumber() * 1000) <= today)) || statusIndex == TaskStatus.ReviewOverdue);
+      setShowPaymentOverdueModal((statusIndex == TaskStatus.PendingPayment && (new Date(contractTaskData.paymentDeadline.toNumber() * 1000) <= today)) || statusIndex == TaskStatus.PaymentOverdue);
 
       if (address) {
         const assignedProjects = await getAssignedUserProjects(address);
@@ -1122,13 +1124,15 @@ const TaskDetailsPage: React.FC = () => {
         </div>
       </div>}
 
-      {(showSubmissionOverdueModal || showReviewOverdueModal) && <div className="fixed w-screen h-screen top-0 left-0 backdrop-blur-sm z-5 flex items-center justify-center">
+      {(showSubmissionOverdueModal || showReviewOverdueModal || showPaymentOverdueModal) && <div className="fixed w-screen h-screen top-0 left-0 backdrop-blur-sm z-5 flex items-center justify-center">
         <div className="bg-white shadow-md rounded-lg w-2/3 p-20 flex flex-col gap-5">
           <h1 className="font-bold font-nunito text-3xl text-center">Token Withdrawal And Task Deletion</h1>
           <p className="text-xl">
             {showSubmissionOverdueModal
               ? "As the creator didn't submit anything within the deadline, the fund in escrow will be back to the deposit by confirming from the button below."
-              : "As the client didn't review within the deadline, the creator can withdraw the fund in escrow by confirming from the button below."
+              : showReviewOverdueModal
+                ? "As the client didn't review within the deadline, the creator can withdraw the fund in escrow by confirming from the button below."
+                : "As the client didn't pay within the deadline, the creator can withdraw the fund in escrow by confirming from the button below."
             }
           </p>
           <div className="flex justify-around">
@@ -1143,7 +1147,7 @@ const TaskDetailsPage: React.FC = () => {
                 setShowSubmissionOverdueModal(false);
                 setShowReviewOverdueModal(false);
               }}
-              className={`${(showSubmissionOverdueModal && isAssigned) || (showReviewOverdueModal && !isAssigned) ? "bg-indigo-500 hover:bg-indigo-600" : "bg-slate-300"} text-white text-2xl py-3 px-7 rounded-xl w-[200px]`}
+              className={`${(showSubmissionOverdueModal && isAssigned) || (showReviewOverdueModal && !isAssigned) || (showPaymentOverdueModal && !isAssigned) ? "bg-indigo-500 hover:bg-indigo-600" : "bg-slate-300"} text-white text-2xl py-3 px-7 rounded-xl w-[200px]`}
             >
               {isTransferingTokensAndDeletingTask ? (
                 <div className="flex flex-row items-center justify-center text-lg text-green-400">
