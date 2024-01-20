@@ -415,20 +415,18 @@ export async function requestTaskDeletion(taskId: string) {
 }
 
 export async function rejectDeletionRequest(taskId: string) {
+  if (!taskId) {
+    throw new Error("Task ID is required");
+  }
+
+  const signer = getSigner();
   const contract = getEscrowContract();
 
   try {
-    if (!taskId) {
-      throw new Error("Task ID is required");
-    }
-
-    const transaction = await contract.rejectDeletionRequest(taskId);
-    await transaction.wait();
-
-    console.log("Rejecting task deletion:", taskId);
-    return true;
+    const txHash = await sendMetaTx(contract, signer, "rejectDeletionRequest", [taskId]);
+    console.log(`Transaction successful: ${txHash}`);
+    return txHash;
   } catch (error) {
-    console.error("Error rejecting task deletion:", error);
-    throw error;
+    console.error(`Transaction failed: ${error}`);
   }
 }
