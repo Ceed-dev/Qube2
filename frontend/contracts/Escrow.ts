@@ -354,21 +354,19 @@ export async function disapproveSubmission(taskId: string) {
 }
 
 export async function transferTokensAndDeleteTask(taskId: string) {
+  if (!taskId) {
+    throw new Error("Task ID is required");
+  }
+
+  const signer = getSigner();
   const contract = getEscrowContract();
 
   try {
-    if (!taskId) {
-      throw new Error("Task ID is required");
-    }
-
-    const transaction = await contract.transferTokensAndDeleteTask(taskId);
-    await transaction.wait();
-
-    console.log("Transfer tokens and delete task:", taskId);
-    return true;
+    const txHash = await sendMetaTx(contract, signer, "transferTokensAndDeleteTask", [taskId]);
+    console.log(`Transaction successful: ${txHash}`);
+    return txHash;
   } catch (error) {
-    console.error("Error transfering tokens and deleting task:", error);
-    throw error;
+    console.error(`Transaction failed: ${error}`);
   }
 }
 
