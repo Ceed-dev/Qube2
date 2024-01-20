@@ -229,21 +229,16 @@ export async function createTask(
   }
 }
 
-export async function assignRecipientToTask(taskId: string): Promise<boolean> {
+export async function assignRecipientToTask(taskId: string): Promise<string> {
+  const signer = getSigner();
   const contract = getEscrowContract();
 
   try {
-    // スマートコントラクトの関数を呼び出し
-    const transaction = await contract.assignRecipientToTask(taskId);
-
-    // トランザクションの完了を待つ
-    await transaction.wait();
-
-    console.log("Recipient assigned to task with ID:", taskId);
-    return true;
+    const txHash = await sendMetaTx(contract, signer, "assignRecipientToTask", [taskId]);
+    console.log(`Transaction successful: ${txHash}`);
+    return txHash;
   } catch (error) {
-    console.error("Error assigning recipient to task:", error);
-    throw error;
+    console.error(`Transaction failed: ${error}`);
   }
 }
 
