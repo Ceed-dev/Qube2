@@ -242,21 +242,16 @@ export async function assignRecipientToTask(taskId: string): Promise<string> {
   }
 }
 
-export async function submitTask(taskId: string): Promise<boolean> {
+export async function submitTask(taskId: string): Promise<string> {
+  const signer = getSigner();
   const contract = getEscrowContract();
 
   try {
-    // スマートコントラクトの関数を呼び出し
-    const transaction = await contract.submitTask(taskId);
-
-    // トランザクションの完了を待つ
-    await transaction.wait();
-
-    console.log("Submit Task:", taskId);
-    return true;
+    const txHash = await sendMetaTx(contract, signer, "submitTask", [taskId]);
+    console.log(`Transaction successful: ${txHash}`);
+    return txHash;
   } catch (error) {
-    console.error("Error submitting task:", error);
-    throw error;
+    console.error(`Transaction failed: ${error}`);
   }
 }
 
