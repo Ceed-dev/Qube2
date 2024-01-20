@@ -320,21 +320,19 @@ export async function approveDeadlineExtension(taskId: string) {
 }
 
 export async function rejectDeadlineExtension(taskId: string) {
+  if (!taskId) {
+    throw new Error("Task ID is required");
+  }
+
+  const signer = getSigner();
   const contract = getEscrowContract();
 
   try {
-    if (!taskId) {
-      throw new Error("Task ID is required");
-    }
-
-    const transaction = await contract.rejectDeadlineExtension(taskId);
-    await transaction.wait();
-
-    console.log("Reject the deadline extension request:", taskId);
-    return true;
+    const txHash = await sendMetaTx(contract, signer, "rejectDeadlineExtension", [taskId]);
+    console.log(`Transaction successful: ${txHash}`);
+    return txHash;
   } catch (error) {
-    console.error("Error rejecting the deadline extension request:", error);
-    throw error;
+    console.error(`Transaction failed: ${error}`);
   }
 }
 
