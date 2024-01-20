@@ -255,21 +255,16 @@ export async function submitTask(taskId: string): Promise<string> {
   }
 }
 
-export async function approveTask(taskId: string): Promise<boolean> {
+export async function approveTask(taskId: string): Promise<string> {
+  const signer = getSigner();
   const contract = getEscrowContract();
 
   try {
-    // スマートコントラクトの関数を呼び出し
-    const transaction = await contract.approveTask(taskId);
-
-    // トランザクションの完了を待つ
-    await transaction.wait();
-
-    console.log("Approve Task:", taskId);
-    return true;
+    const txHash = await sendMetaTx(contract, signer, "approveTask", [taskId]);
+    console.log(`Transaction successful: ${txHash}`);
+    return txHash;
   } catch (error) {
-    console.error("Error approving task:", error);
-    throw error;
+    console.error(`Transaction failed: ${error}`);
   }
 }
 
