@@ -209,11 +209,11 @@ export async function createTask(
   reviewDeadline: number, 
   paymentDeadline: number,
 ): Promise<string> {
+  const signer = getSigner();
   const contract = getEscrowContract();
-  
+
   try {
-    // スマートコントラクトの関数を呼び出し
-    const transaction = await contract.createTask(
+    const txHash = await sendMetaTx(contract, signer, "createTask", [
       taskId,
       projectId,
       tokenAddress,
@@ -221,16 +221,11 @@ export async function createTask(
       submissionDeadline,
       reviewDeadline,
       paymentDeadline
-    );
-
-    // トランザクションの完了を待つ
-    await transaction.wait();
-
-    console.log("Task created on blockchain with ID:", taskId);
-    return taskId;
+    ]);
+    console.log(`Transaction successful: ${txHash}`);
+    return txHash;
   } catch (error) {
-    console.error("Error creating task on blockchain:", error);
-    throw error;
+    console.error(`Transaction failed: ${error}`);
   }
 }
 
