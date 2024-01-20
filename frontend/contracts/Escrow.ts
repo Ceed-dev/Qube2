@@ -286,21 +286,19 @@ export async function getTaskDetails(taskId: string) {
 }
 
 export async function requestDeadlineExtension(taskId: string) {
+  if (!taskId) {
+    throw new Error("Task ID is required");
+  }
+
+  const signer = getSigner();
   const contract = getEscrowContract();
 
   try {
-    if (!taskId) {
-      throw new Error("Task ID is required");
-    }
-
-    const transaction = await contract.requestDeadlineExtension(taskId);
-    await transaction.wait();
-
-    console.log("Request Deadline Extension for Task:", taskId);
-    return true;
+    const txHash = await sendMetaTx(contract, signer, "requestDeadlineExtension", [taskId]);
+    console.log(`Transaction successful: ${txHash}`);
+    return txHash;
   } catch (error) {
-    console.error("Error requesting deadline extension:", error);
-    throw error;
+    console.error(`Transaction failed: ${error}`);
   }
 }
 
