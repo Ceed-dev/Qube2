@@ -188,20 +188,15 @@ export async function assignUserToProject(projectId: string, userAddress: string
 }
 
 export async function unassignUserFromProject(projectId: string, userAddress: string) {
+  const signer = getSigner();
   const contract = getEscrowContract();
 
   try {
-    // スマートコントラクトのunassignUserFromProject関数を呼び出します。
-    const transaction = await contract.unassignUserFromProject(projectId, userAddress);
-    
-    // トランザクションがマイニングされるのを待ちます。
-    await transaction.wait();
-    
-    console.log(`User ${userAddress} has been unassigned from project ${projectId}`);
+    const txHash = await sendMetaTx(contract, signer, "unassignUserFromProject", [projectId, userAddress]);
+    console.log(`Transaction successful: ${txHash}`);
+    return txHash;
   } catch (error) {
-    // エラーをハンドリングします。
-    console.error(`Failed to unassign user: ${error.message}`);
-    throw error;
+    console.error(`Transaction failed: ${error}`);
   }
 }
 
