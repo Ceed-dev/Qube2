@@ -398,21 +398,19 @@ export async function changeTaskDeadlines(
 }
 
 export async function requestTaskDeletion(taskId: string) {
+  if (!taskId) {
+    throw new Error("Task ID is required");
+  }
+
+  const signer = getSigner();
   const contract = getEscrowContract();
 
   try {
-    if (!taskId) {
-      throw new Error("Task ID is required");
-    }
-
-    const transaction = await contract.requestTaskDeletion(taskId);
-    await transaction.wait();
-
-    console.log("Requesting task deletion:", taskId);
-    return true;
+    const txHash = await sendMetaTx(contract, signer, "requestTaskDeletion", [taskId]);
+    console.log(`Transaction successful: ${txHash}`);
+    return txHash;
   } catch (error) {
-    console.error("Error requesting task deletion:", error);
-    throw error;
+    console.error(`Transaction failed: ${error}`);
   }
 }
 
