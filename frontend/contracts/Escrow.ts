@@ -175,14 +175,15 @@ export async function assignUserToProject(projectId: string, userAddress: string
     throw new Error('Invalid wallet address.');
   }
 
+  const signer = getSigner();
   const contract = getEscrowContract();
+
   try {
-    const tx = await contract.assignUserToProject(projectId, userAddress);
-    await tx.wait(); // トランザクションの確定を待つ
-    return tx.hash; // トランザクションのハッシュを返す
+    const txHash = await sendMetaTx(contract, signer, "assignUserToProject", [projectId, userAddress]);
+    console.log(`Transaction successful: ${txHash}`);
+    return txHash;
   } catch (error) {
-    console.error('Error in assignUserToProject:', error);
-    throw new Error('Failed to assign user to project.');
+    console.error(`Transaction failed: ${error}`);
   }
 }
 
