@@ -376,26 +376,24 @@ export async function changeTaskDeadlines(
   newReviewDeadline: number,
   newPaymentDeadline: number,
 ) {
+  if (!taskId) {
+    throw new Error("Task ID is required");
+  }
+
+  const signer = getSigner();
   const contract = getEscrowContract();
 
   try {
-    if (!taskId) {
-      throw new Error("Task ID is required");
-    }
-
-    const transaction = await contract.changeTaskDeadlines(
+    const txHash = await sendMetaTx(contract, signer, "changeTaskDeadlines", [
       taskId,
       newSubmissionDeadline,
       newReviewDeadline,
       newPaymentDeadline,
-    );
-    await transaction.wait();
-
-    console.log("Updating task deadlines:", taskId);
-    return true;
+    ]);
+    console.log(`Transaction successful: ${txHash}`);
+    return txHash;
   } catch (error) {
-    console.error("Error updating task deadlines:", error);
-    throw error;
+    console.error(`Transaction failed: ${error}`);
   }
 }
 
