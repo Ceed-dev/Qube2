@@ -48,15 +48,15 @@ const CreateProjectModal = ({
           initial="hidden"
           animate="visible"
           exit="hidden"
-          className={`fixed w-screen h-screen top-0 left-0 backdrop-blur-md z-[100] grid grid-cols-12 text-white font-nunito`}
+          className={`fixed w-screen h-screen top-0 left-0 backdrop-blur-md z-[100] grid grid-cols-12 font-nunito`}
         >
-          <div className=" col-start-2 col-end-12 xl:col-start-4 xl:col-end-10 grid place-items-center">
-            <div className=" w-full bg-[#DF57EA] rounded-xl p-[2px] flex flex-row items-center shadow-lg">
-              <div className="w-full max-h-[95vh] bg-black rounded-xl px-4 py-6 sm:p-8 md:p-10 lg:p-8 xl:p-10 relative">
+          <div className="col-start-2 col-end-12 xl:col-start-4 xl:col-end-10 grid place-items-center">
+            <div className="w-full rounded-xl p-[2px] flex flex-row items-center shadow-lg bg-slate-50">
+              <div className="w-full max-h-[95vh] rounded-xl px-4 py-6 sm:p-8 md:p-10 lg:p-8 xl:p-10 relative">
                 {/* Header */}
                 <div className="w-full">
                   <div className="flex flex-row w-full justify-between items-center top-0 right-0 z-[100]">
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-secondary">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">
                       Share
                     </h2>
                     <Image
@@ -70,15 +70,15 @@ const CreateProjectModal = ({
                   </div>
                   {/* Main */}
                   <div className="flex flex-col w-full gap-4 mt-8">
-                    <p className="text-[#959595]">
+                    <p className="text-slate-800">
                       Share this link to the {userType === "depositor" ? "creator" : "company"}
                     </p>
-                    <div className="flex flex-row relative items-center justify-between gap-2 bg-bg_primary py-4 px-4 rounded-lg">
+                    <div className="flex flex-row relative items-center justify-between gap-2 bg-slate-300 py-4 px-4 rounded-lg">
                       <Link
                         href={projectDetailLink}
                         className="cursor-pointer w-4/5"
                       >
-                        <p className="text-[#DF57EA] underline break-words">
+                        <p className="text-blue-600 hover:text-indigo-800 underline break-words">
                           {projectDetailLink}
                         </p>
                       </Link>
