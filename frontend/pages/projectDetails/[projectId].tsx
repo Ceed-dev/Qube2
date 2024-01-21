@@ -43,6 +43,20 @@ interface Task {
   paymentDeadline: Date,
 }
 
+enum TaskStatus {
+  Created,
+  Unconfirmed,
+  InProgress,
+  DeletionRequested,
+  SubmissionOverdue,
+  UnderReview,
+  ReviewOverdue,
+  PendingPayment,
+  PaymentOverdue,
+  DeadlineExtensionRequested,
+  LockedByDisapproval
+}
+
 const Dashboard: NextPage = () => {
   const router = useRouter();
   const { isDisconnected } = useAccount();
@@ -55,6 +69,21 @@ const Dashboard: NextPage = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newMemberAddress, setNewMemberAddress] = useState("");
   const [isAssigningNewMemberAddress, setIsAssigningNewMemberAddress] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const taskStatuses = [
+    "Waiting For Sign", 
+    "Waiting For Submission", 
+    "Waiting For Review", 
+    "Waiting For Payment",
+    "Complete",
+    "Waiting For Deletion",
+    "Submission Overdue",
+    "Review Overdue",
+    "Payment Overdue",
+    "Waiting For Deadline Exntension",
+    "Lock By Disapproval",
+  ];
+  const [selectedStatus, setSelectedStatus] = useState<string>(taskStatuses[0]);
 
   // メンバーをプロジェクトに追加する処理
   const handleAddMember = async () => {
@@ -350,8 +379,31 @@ const Dashboard: NextPage = () => {
           <Image src={Block} alt="Block" height={300} className="hidden lg:block ml-10" />
         </div>
 
-        <div className="flex justify-between items-center my-4">
-          <h2 className="text-2xl font-semibold">Contracts</h2>
+        <h2 className="text-2xl font-semibold mt-4">Contracts</h2>
+        <div className="flex justify-between items-center my-2">
+          <button
+            type="button"
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="text-lg text-purple-700"
+          >
+            {selectedStatus} ▼
+          </button>
+          {isDropdownOpen && (
+            <ul className="absolute z-10 bg-white border border-gray-200 rounded-md">
+              {taskStatuses.map((status, index) => (
+                <li
+                  key={index}
+                  onClick={() => {
+                    setSelectedStatus(status);
+                    setIsDropdownOpen(!isDropdownOpen);
+                  }}
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                >
+                  {status}
+                </li>
+              ))}
+            </ul>
+          )}
           <button 
             onClick={() => router.push({
               pathname:"/createTask",
