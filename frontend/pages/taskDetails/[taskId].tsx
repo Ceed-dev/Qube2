@@ -812,7 +812,7 @@ const TaskDetailsPage: React.FC = () => {
             <div className="w-10 h-10 border border-black rounded-full">
               {isSubmissionApproved && <Image src={Checkmark} alt="Checkmark" />}
             </div>
-            <p>Approve Submission</p>
+            <p>{isAssigned ? "Approve Submission" : "Submit tasks"}</p>
             <Image src={isSubmissionApprovedOpen ? ToggleClose : ToggleOpen} alt="Toggle" />
           </button>
           {isSubmissionApprovedOpen && (
