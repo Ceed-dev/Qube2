@@ -1028,12 +1028,6 @@ const TaskDetailsPage: React.FC = () => {
             <p className="text-4xl">&rarr;</p>
             <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">{formatUTCDate(getDateTwoWeeksLater(task?.submissionDeadline))}</p>
           </div>
-          <h2 className="font-bold font-nunito text-2xl">Review Date:</h2>
-          <div className="flex justify-around items-center">
-            <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">{formatUTCDate(task?.reviewDeadline)}</p>
-            <p className="text-4xl">&rarr;</p>
-            <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">{formatUTCDate(getDateTwoWeeksLater(task?.reviewDeadline))}</p>
-          </div>
           <h2 className="font-bold font-nunito text-2xl">Payment Date:</h2>
           <div className="flex justify-around items-center">
             <p className="border border-slate-300 rounded-xl py-3 px-7 text-xl">{formatUTCDate(task?.paymentDeadline)}</p>
