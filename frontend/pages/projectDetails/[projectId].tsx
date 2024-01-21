@@ -4,7 +4,7 @@ import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { Block, Trash, Spinner } from '../../assets';
 import Image from 'next/image';
-import { getProjectDetails, assignUserToProject, unassignUserFromProject } from "../../contracts/Escrow";
+import { getProjectDetails, assignUserToProject, unassignUserFromProject, getTaskDetails } from "../../contracts/Escrow";
 import { getTokenDetails, formatTokenAmount } from "../../contracts/MockToken";
 import { useAccount } from 'wagmi';
 import { BigNumber } from 'ethers';
@@ -41,20 +41,30 @@ interface Task {
   submissionDeadline: Date,
   reviewDeadline: Date,
   paymentDeadline: Date,
+  status: string,
 }
 
 enum TaskStatus {
-  Created,
-  Unconfirmed,
-  InProgress,
-  DeletionRequested,
-  SubmissionOverdue,
-  UnderReview,
-  ReviewOverdue,
-  PendingPayment,
-  PaymentOverdue,
-  DeadlineExtensionRequested,
-  LockedByDisapproval
+  Created = "Waiting For Sign",
+  Unconfirmed = "Waiting For Sign",
+  InProgress = "Waiting For Submission",
+  DeletionRequested = "Waiting For Deletion",
+  SubmissionOverdue = "Submission Overdue",
+  UnderReview = "Waiting For Review",
+  ReviewOverdue = "Review Overdue",
+  PendingPayment = "Waiting For Payment",
+  PaymentOverdue = "Payment Overdue",
+  DeadlineExtensionRequested = "Waiting For Deadline Exntension",
+  LockedByDisapproval = "Lock By Disapproval"
+}
+
+// enumのキーを配列として取得
+const statusKeys = Object.keys(TaskStatus);
+
+// インデックスに基づいてenumの値を取得する関数
+function getStatusByIndex(index: number): string | undefined {
+  const key = statusKeys[index];
+  return key ? TaskStatus[key as keyof typeof TaskStatus] : undefined;
 }
 
 const Dashboard: NextPage = () => {
@@ -166,6 +176,7 @@ const Dashboard: NextPage = () => {
       const taskData = await Promise.all(
         details.taskIds.map(async (taskId) => {
           const docRef = doc(database, "tasks", taskId);
+          const contractTaskData = await getTaskDetails(taskId);
           const docSnapshot = await getDoc(docRef);
           if (docSnapshot.exists()) {
             const docData = docSnapshot.data();
@@ -188,6 +199,7 @@ const Dashboard: NextPage = () => {
               submissionDeadline: docData.submissionDeadline.toDate(),
               reviewDeadline: docData.reviewDeadline.toDate(),
               paymentDeadline: docData.paymentDeadline.toDate(),
+              status: getStatusByIndex(contractTaskData.status),
             }
           }
         })
@@ -428,12 +440,12 @@ const Dashboard: NextPage = () => {
               </tr>
             </thead>
             <tbody>
-              {tasks.length === 0 ? (
+              {tasks.filter(task => task.status === selectedStatus).length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center text-gray-500">No contracts available.</td>
                 </tr>
               ) : (
-                tasks.map((task, index) => (
+                tasks.filter(task => task.status === selectedStatus).map((task, index) => (
                   <tr 
                     key={index} 
                     className="h-[50px] hover:shadow-lg duration-300"
