@@ -33,7 +33,7 @@ const Projects: NextPage = () => {
   }, [isDisconnected, router]);
 
   return (
-    <div className="bg-blue-50 min-h-screen pt-20 pb-10 px-16">
+    <div className="min-h-screen pt-20 pb-10 px-16">
       <Head>
         <title>Projects</title>
       </Head>
