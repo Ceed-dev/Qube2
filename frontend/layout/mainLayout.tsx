@@ -4,7 +4,7 @@ import { Navbar } from "../components";
 
 export default function MainLayout({ children }) {
   return (
-    <div>
+    <div className="bg-custom-background bg-contain">
       <Head>
         <title>Qube</title>
         <meta

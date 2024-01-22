@@ -270,7 +270,7 @@ const CreateTask: React.FC = () => {
       <Head>
         <title>Create Contract</title>
       </Head>
-      <div className="bg-blue-50 min-h-screen p-20">
+      <div className="min-h-screen p-20">
         <button
           onClick={() => router.back()}
           className="text-white bg-indigo-500 hover:bg-indigo-600 px-4 py-1 rounded-md transition duration-300 ease-in-out"

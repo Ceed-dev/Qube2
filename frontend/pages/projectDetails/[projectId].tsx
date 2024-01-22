@@ -358,7 +358,7 @@ const Dashboard: NextPage = () => {
         </div>
       )}
 
-      <div className="bg-white min-h-screen p-20">
+      <div className="min-h-screen p-20">
         <div className="flex justify-between items-center mb-20">
           <button
             onClick={() => router.back()}

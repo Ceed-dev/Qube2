@@ -70,10 +70,10 @@ const OnboardingScreen: React.FC = () => {
       <Head>
         <title>Onboarding</title>
       </Head>
-      <div className="bg-white min-h-screen">
+      <div className="min-h-screen">
         {/* オンボーディングステップのUIを描画 */}
         {currentStep === 1 && (
-          <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
+          <div className="flex flex-col items-center justify-center min-h-screen p-4">
             <div className="flex flex-col items-center justify-between py-10 px-20 h-[500px] w-[1000px] bg-white rounded-lg shadow space-y-4 text-xl">
               <h2 className="text-4xl font-bold text-center">Welcome to Qube!!</h2>
               <p className="text-gray-600 text-center">
@@ -101,7 +101,7 @@ const OnboardingScreen: React.FC = () => {
           </div>
         )}
         {currentStep === 2 && (
-          <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
+          <div className="flex flex-col items-center justify-center min-h-screen p-4">
             <div className="flex flex-col items-center justify-between py-10 px-20 h-[500px] w-[1000px] bg-white rounded-lg shadow space-y-4 text-xl">
               <h2 className="text-3xl font-bold text-center">What's your name?</h2>
               <input
@@ -123,7 +123,7 @@ const OnboardingScreen: React.FC = () => {
           </div>
         )}
         {currentStep === 3 && (
-          <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
+          <div className="flex flex-col items-center justify-center min-h-screen p-4">
             <div className="flex flex-col items-center justify-between py-10 px-20 h-[500px] w-[1000px] bg-white rounded-lg shadow space-y-4 text-xl">
               <h2 className="text-3xl font-bold text-center">Tell us your Email address</h2>
               <p className="text-gray-600 text-center">
