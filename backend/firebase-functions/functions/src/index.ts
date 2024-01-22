@@ -285,6 +285,35 @@ If you have any questions feel free to reply to this mail. Don't forget to expla
     }
   }
 
+  if (
+    beforeData?.get("fileDeliverables") != afterData?.get("fileDeliverables") ||
+    beforeData?.get("textDeliverables") != afterData?.get("textDeliverables") ||
+    beforeData?.get("linkDeliverables") != afterData?.get("linkDeliverables")
+  ) {
+    logger.info("Deliverables have changed, sending emails.");
+
+    try {
+      const projectId = afterData?.get("projectId");
+      const projectDetails = await getProjectDetails(projectId);
+      const assignedUsers = projectDetails.assignedUsers;
+      const userEmails = await getEmailsFromAssignedUsers(assignedUsers);
+
+      for (const email of userEmails) {
+        const mailOptions = {
+          from: qubeMailAddress,
+          to: email,
+          subject: `Task Name: ${title}`,
+          text: `The task has been submitted.\n\nTo go to the task: ${taskLink}\nIf you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log(`Email sent to ${email}`);
+      }
+    } catch (error) {
+      console.error("Error sending emails:", error);
+    }
+  }
+
   if (createdBy === "depositor" && beforeStatus == StatusEnum.WaitingForConnectingLancersWallet && afterStatus == StatusEnum.PayInAdvance) {
     const docRef = getFirestore().collection("users").doc(afterData?.get("Client's Wallet Address"));
     const doc = await docRef.get();
