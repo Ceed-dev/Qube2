@@ -59,3 +59,15 @@ export async function withdrawToRecipientByOwner(depositId: string) {
   });
   return await tx.wait();
 }
+
+export async function getProjectDetails(projectId: string) {
+  const contract = getEscrowContract(ownerWallet);
+  
+  try {
+    const projectDetails = await contract.getProjectDetails(projectId);
+    return projectDetails;
+  } catch (error) {
+    console.error('Error fetching project details:', error);
+    throw error;
+  }
+}
