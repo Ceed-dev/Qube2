@@ -264,24 +264,27 @@ export const sendEmailNotification = onDocumentUpdated("/tasks/{documentId}", as
   const prepayTxUrl = `${process.env.POLYGONSCAN_URL}/tx/${prepayTxHash}`;
 
   if (!(beforeData?.get("recipient")) && afterData?.get("recipient")) {
-    const projectId = afterData?.get("projectId");
-    const projectDetails = await getProjectDetails(projectId);
-    const assignedUsers = projectDetails.assignedUsers;
-    const userEmails = await getEmailsFromAssignedUsers(assignedUsers);
-
-    for (const email of userEmails) {
-      const mailOptions = {
-        from: qubeMailAddress,
-        to: email,
-        subject: `Task Name: ${title}`,
-        text: 
-`The task has been signed. 
-
-To go to the task: ${taskLink}
-If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
-      };
-
-      await transporter.sendMail(mailOptions);
+    logger.info("A task has been signed, preparing to send emails.");
+  
+    try {
+      const projectId = afterData?.get("projectId");
+      const projectDetails = await getProjectDetails(projectId);
+      const assignedUsers = projectDetails.assignedUsers;
+      const userEmails = await getEmailsFromAssignedUsers(assignedUsers);
+  
+      for (const email of userEmails) {
+        const mailOptions = {
+          from: qubeMailAddress,
+          to: email,
+          subject: `Task Name: ${title}`,
+          text: `The task has been signed.\n\nTo go to the task: ${taskLink}\nIf you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+        };
+  
+        await transporter.sendMail(mailOptions);
+        logger.info(`Email sent to ${email}`);
+      }
+    } catch (error) {
+      logger.error("Error sending emails:", error);
     }
   }
 
