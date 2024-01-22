@@ -1,14 +1,14 @@
 // The Firebase Admin SDK to access Firestore.
-import admin from "firebase-admin";
+// import admin from "firebase-admin";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
 import nodemailer from "nodemailer";
-import axios from "axios";
-import sharp from "sharp";
-import { createCanvas, loadImage, CanvasRenderingContext2D } from "canvas";
-import { ThirdwebStorage } from "@thirdweb-dev/storage";
-import { ThirdwebSDK } from "@thirdweb-dev/sdk";
+// import axios from "axios";
+// import sharp from "sharp";
+// import { createCanvas, loadImage, CanvasRenderingContext2D } from "canvas";
+// import { ThirdwebStorage } from "@thirdweb-dev/storage";
+// import { ThirdwebSDK } from "@thirdweb-dev/sdk";
 
 initializeApp();
 
@@ -23,6 +23,7 @@ dotenv.config();
 import {
   withdrawToDepositorByOwner,
   withdrawToRecipientByOwner,
+  getProjectDetails,
 } from "./Escrow";
 
 export const checkSubmissionDeadline = onSchedule("0 21 * * *", async () => {
@@ -201,6 +202,24 @@ const formatDateToUTC = (dateObj: Date) => {
   return `${year}/${month}/${day} ${hour}:${minute}`;
 };
 
+async function getEmailsFromAssignedUsers(assignedUsers: string[]): Promise<string[]> {
+  const emails = [];
+
+  for (const walletAddress of assignedUsers) {
+    const docRef = getFirestore().collection("users").doc(walletAddress);
+    const docSnap = await docRef.get();
+
+    if (docSnap.exists) {
+      const userData = docSnap.data();
+      if (userData?.email) {
+        emails.push(userData.email);
+      }
+    }
+  }
+
+  return emails;
+}
+
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -209,11 +228,12 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-export const sendEmailNotification = onDocumentUpdated("/projects/{documentId}", async (event) => {
+export const sendEmailNotification = onDocumentUpdated("/tasks/{documentId}", async (event) => {
   const id = event.params.documentId;
   logger.info("id: ", id);
 
   const projectLink = `${process.env.BASE_URL}/projectDetails/${id}`;
+  const taskLink = `${process.env.BASE_URL}/taskDetails/${id}`;
   const qubeMailAddress = '"Qube" <official@0xqube.xyz>';
 
   const beforeData = event.data?.before;
@@ -226,7 +246,7 @@ export const sendEmailNotification = onDocumentUpdated("/projects/{documentId}",
   logger.info("before: ", beforeStatus, beforeInDispute);
   logger.info("after: ", afterStatus, afterInDispute);
 
-  const title = afterData?.get("Title");
+  const title = afterData?.get("title");
   const now = new Date();
   const submissionDeadline = new Date(afterData?.get("Deadline(UTC)"));
   const extendedSubmissionDeadline = new Date(afterData?.get("Deadline(UTC)"));
@@ -242,6 +262,60 @@ export const sendEmailNotification = onDocumentUpdated("/projects/{documentId}",
 
   const prepayTxHash = afterData?.get("prepayTxHash");
   const prepayTxUrl = `${process.env.POLYGONSCAN_URL}/tx/${prepayTxHash}`;
+
+  if (!(beforeData?.get("recipient")) && afterData?.get("recipient")) {
+    logger.info("A task has been signed, preparing to send emails.");
+  
+    try {
+      const projectId = afterData?.get("projectId");
+      const projectDetails = await getProjectDetails(projectId);
+      const assignedUsers = projectDetails.assignedUsers;
+      const userEmails = await getEmailsFromAssignedUsers(assignedUsers);
+  
+      for (const email of userEmails) {
+        const mailOptions = {
+          from: qubeMailAddress,
+          to: email,
+          subject: `Task Name: ${title}`,
+          text: `The task has been signed.\n\nTo go to the task: ${taskLink}\nIf you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+        };
+  
+        await transporter.sendMail(mailOptions);
+        logger.info(`Email sent to ${email}`);
+      }
+    } catch (error) {
+      logger.error("Error sending emails:", error);
+    }
+  }
+
+  if (
+    beforeData?.get("fileDeliverables") != afterData?.get("fileDeliverables") ||
+    beforeData?.get("textDeliverables") != afterData?.get("textDeliverables") ||
+    beforeData?.get("linkDeliverables") != afterData?.get("linkDeliverables")
+  ) {
+    logger.info("Deliverables have changed, sending emails.");
+
+    try {
+      const projectId = afterData?.get("projectId");
+      const projectDetails = await getProjectDetails(projectId);
+      const assignedUsers = projectDetails.assignedUsers;
+      const userEmails = await getEmailsFromAssignedUsers(assignedUsers);
+
+      for (const email of userEmails) {
+        const mailOptions = {
+          from: qubeMailAddress,
+          to: email,
+          subject: `Task Name: ${title}`,
+          text: `The task has been submitted.\n\nTo go to the task: ${taskLink}\nIf you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log(`Email sent to ${email}`);
+      }
+    } catch (error) {
+      console.error("Error sending emails:", error);
+    }
+  }
 
   if (createdBy === "depositor" && beforeStatus == StatusEnum.WaitingForConnectingLancersWallet && afterStatus == StatusEnum.PayInAdvance) {
     const docRef = getFirestore().collection("users").doc(afterData?.get("Client's Wallet Address"));
