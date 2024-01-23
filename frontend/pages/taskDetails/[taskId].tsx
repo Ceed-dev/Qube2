@@ -17,6 +17,7 @@ import { FileWithPath } from "react-dropzone";
 import { ref, getDownloadURL, uploadBytesResumable } from "firebase/storage";
 import Link from 'next/link';
 import Datepicker from "react-tailwindcss-datepicker";
+import { TaskStatus } from '../../enums/taskStatus';
 
 interface Task {
   taskId: string,
@@ -31,20 +32,6 @@ interface Task {
   paymentDeadline: Date,
   status: TaskStatus,
   lockReleaseTimestamp: Date,
-}
-
-enum TaskStatus {
-  Created,
-  Unconfirmed,
-  InProgress,
-  DeletionRequested,
-  SubmissionOverdue,
-  UnderReview,
-  ReviewOverdue,
-  PendingPayment,
-  PaymentOverdue,
-  DeadlineExtensionRequested,
-  LockedByDisapproval
 }
 
 const TaskDetailsPage: React.FC = () => {
