@@ -270,9 +270,20 @@ const TaskDetailsPage: React.FC = () => {
     try {
       if (isConnected) {
         setIsApproving(true);
-        await approveTask(taskId as string);
+        const txHash = await approveTask(taskId as string);
 
-        await loadTaskDetails();
+        if (txHash) {
+          const docRef = doc(database, "tasks", taskId as string);
+          await updateDoc(docRef, {
+            "hashes.approveTask": txHash,
+            status: TaskStatus[7]
+          });
+
+          await loadTaskDetails();
+        } else {
+          console.error("Transaction not completed");
+        }
+
       } else {
         openConnectModal();
       }
