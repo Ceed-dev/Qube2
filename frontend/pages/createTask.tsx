@@ -223,6 +223,7 @@ const CreateTask: React.FC = () => {
       fileDeliverables: null,
       textDeliverables: null,
       linkDeliverables: null,
+      hashes: null,
     };
 
     // ここでFirebaseへのアップロード処理を実行
@@ -247,7 +248,7 @@ const CreateTask: React.FC = () => {
         console.log("Task created on blockchain");
 
         const taskRef = doc(database, "tasks", docRef.id);
-        await updateDoc(taskRef, {taskCreationHash: txHash});
+        await updateDoc(taskRef, { hashes: {"taskCreation": txHash} });
         console.log("Task Creation Hash Added");
 
       } catch (error) {
