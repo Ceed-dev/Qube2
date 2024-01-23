@@ -6,7 +6,7 @@ import { getTokenDetails, formatTokenAmount } from '../contracts/MockToken';
 import { getProjectDetails, createTask } from '../contracts/Escrow';
 import { useAccount } from 'wagmi';
 import Datepicker from "react-tailwindcss-datepicker";
-import { collection, addDoc, deleteDoc, doc } from "firebase/firestore";
+import { collection, addDoc, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { database } from '../utils';
 import Image from 'next/image';
 import { Spinner } from '../assets';
@@ -28,7 +28,7 @@ interface ProjectDetails {
 
 const CreateTask: React.FC = () => {
   const router = useRouter();
-  const { isDisconnected } = useAccount();
+  const { address, isDisconnected } = useAccount();
   const { projectId } = router.query;
   const [symbol, setSymbol] = useState("");
   const [amount, setAmount] = useState("");
@@ -207,12 +207,22 @@ const CreateTask: React.FC = () => {
       submissionDeadline: new Date(selectedDate),
       reviewDeadline: new Date(getDatePlusDays(selectedDate.toString(), 7).startDate),
       paymentDeadline: new Date(getDatePlusDays(selectedDate.toString(), 14).startDate),
-      rewardAmount: numericRewardAmount,
+      lockedAmount: numericRewardAmount,
       symbol,
       tokenAddress,
       decimals,
       projectId,
-      createdAt: new Date(),
+      startTimestamp: new Date(),
+      creator: address,
+      recipient: null,
+      deletionRequestTimestamp: null,
+      deadlineExtensionTimestamp: null,
+      lockReleaseTimestamp: null,
+      status: "Created",
+      taskCreationHash: null,
+      fileDeliverables: null,
+      textDeliverables: null,
+      linkDeliverables: null,
     };
 
     // ここでFirebaseへのアップロード処理を実行
@@ -224,7 +234,7 @@ const CreateTask: React.FC = () => {
 
       try {
         // Firebaseでの保存が成功したら、スマートコントラクトにタスクを作成
-        await createTask(
+        const txHash = await createTask(
           docRef.id,
           projectId as string,
           tokenAddress,
@@ -235,6 +245,11 @@ const CreateTask: React.FC = () => {
         );
 
         console.log("Task created on blockchain");
+
+        const taskRef = doc(database, "tasks", docRef.id);
+        await updateDoc(taskRef, {taskCreationHash: txHash});
+        console.log("Task Creation Hash Added");
+
       } catch (error) {
         // ブロックチェーン上でのタスク作成が失敗した場合、Firebaseのデータを削除
         await deleteDoc(doc(database, "tasks", docRef.id));
