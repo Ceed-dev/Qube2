@@ -30,7 +30,7 @@ interface Task {
   submissionDeadline: Date,
   reviewDeadline: Date,
   paymentDeadline: Date,
-  status: TaskStatus,
+  status: number,
   lockReleaseTimestamp: Date,
 }
 
@@ -138,26 +138,22 @@ const TaskDetailsPage: React.FC = () => {
         throw new Error("Task not found in Firebase");
       }
       const firebaseTaskData = docSnapshot.data();
-      const contractTaskData = await getTaskDetails(taskId as string);
-      const statusKey = contractTaskData.status as keyof typeof TaskStatus;
-      const taskStatus = TaskStatus[statusKey];
+      const statusIndex = TaskStatus[`${firebaseTaskData.status}`];
 
-      const statusValues = Object.values(TaskStatus);
-      const statusIndex = statusValues.indexOf(taskStatus);
       setShowSubmitButton(statusIndex == TaskStatus.InProgress);
       setShowApproveButton(statusIndex == TaskStatus.UnderReview);
-      setShowRequestDeadlineExtensionButton(statusIndex == TaskStatus.UnderReview && contractTaskData.deadlineExtensionTimestamp.isZero());
+      setShowRequestDeadlineExtensionButton(statusIndex == TaskStatus.UnderReview && !firebaseTaskData.deadlineExtensionTimestamp);
       setShowRequestDeadlineExtensionModal(statusIndex == TaskStatus.DeadlineExtensionRequested && address == firebaseTaskData.recipient);
-      setShowDisapproveButton(statusIndex == TaskStatus.UnderReview && !contractTaskData.deadlineExtensionTimestamp.isZero());
+      setShowDisapproveButton(statusIndex == TaskStatus.UnderReview && firebaseTaskData.deadlineExtensionTimestamp);
       setShowUnlockTokenButton(statusIndex == TaskStatus.LockedByDisapproval);
       setShowDeleteTaskButton(statusIndex == TaskStatus.Created || statusIndex == TaskStatus.Unconfirmed 
-        || (statusIndex == TaskStatus.InProgress && contractTaskData.deadlineExtensionTimestamp.isZero() && contractTaskData.deletionRequestTimestamp.isZero()));
+        || (statusIndex == TaskStatus.InProgress && !firebaseTaskData.deadlineExtensionTimestamp && !firebaseTaskData.deletionRequestTimestamp));
       setIsRequestTaskDeletion(statusIndex == TaskStatus.InProgress);
       setShowRequestTaskDeletionModal(statusIndex == TaskStatus.DeletionRequested);
       const today = new Date();
-      setShowSubmissionOverdueModal((statusIndex == TaskStatus.InProgress && (new Date(contractTaskData.submissionDeadline.toNumber() * 1000) <= today)) || statusIndex == TaskStatus.SubmissionOverdue);
-      setShowReviewOverdueModal((statusIndex == TaskStatus.UnderReview && (new Date(contractTaskData.reviewDeadline.toNumber() * 1000) <= today)) || statusIndex == TaskStatus.ReviewOverdue);
-      setShowPaymentOverdueModal((statusIndex == TaskStatus.PendingPayment && (new Date(contractTaskData.paymentDeadline.toNumber() * 1000) <= today)) || statusIndex == TaskStatus.PaymentOverdue);
+      setShowSubmissionOverdueModal((statusIndex == TaskStatus.InProgress && (firebaseTaskData.submissionDeadline.toDate() <= today)) || statusIndex == TaskStatus.SubmissionOverdue);
+      setShowReviewOverdueModal((statusIndex == TaskStatus.UnderReview && (firebaseTaskData.reviewDeadline.toDate() <= today)) || statusIndex == TaskStatus.ReviewOverdue);
+      setShowPaymentOverdueModal((statusIndex == TaskStatus.PendingPayment && (firebaseTaskData.paymentDeadline.toDate() <= today)) || statusIndex == TaskStatus.PaymentOverdue);
 
       if (address) {
         const assignedProjects = await getAssignedUserProjects(address);
@@ -183,8 +179,8 @@ const TaskDetailsPage: React.FC = () => {
       }
 
       let lockReleaseTimestamp;
-      if (!contractTaskData.lockReleaseTimestamp.isZero()) {
-        lockReleaseTimestamp = new Date(contractTaskData.lockReleaseTimestamp.toNumber() * 1000);
+      if (firebaseTaskData.lockReleaseTimestamp) {
+        lockReleaseTimestamp = firebaseTaskData.lockReleaseTimestamp.toDate();
       }
 
       setTask({
@@ -198,7 +194,7 @@ const TaskDetailsPage: React.FC = () => {
         submissionDeadline: firebaseTaskData.submissionDeadline.toDate(),
         reviewDeadline: firebaseTaskData.reviewDeadline.toDate(),
         paymentDeadline: firebaseTaskData.paymentDeadline.toDate(),
-        status: taskStatus,
+        status: statusIndex,
         lockReleaseTimestamp: lockReleaseTimestamp,
       });
       setIsContractSignedOpen(true);
@@ -213,7 +209,7 @@ const TaskDetailsPage: React.FC = () => {
           setRecipientName(docData.username);
         }
       }
-      if (contractTaskData.status == TaskStatus.PendingPayment) {
+      if (statusIndex == TaskStatus.PendingPayment) {
         setIsSubmissionApproved(true);
         setIsSubmissionApprovedOpen(false);
       }
