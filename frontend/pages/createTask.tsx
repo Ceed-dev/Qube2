@@ -11,6 +11,7 @@ import { database } from '../utils';
 import Image from 'next/image';
 import { Spinner } from '../assets';
 import { CreateProjectModal } from '../components/project';
+import { TaskStatus } from '../enums/taskStatus';
 
 interface TokenDepositInfo {
   tokenAddress: string;
@@ -218,7 +219,7 @@ const CreateTask: React.FC = () => {
       deletionRequestTimestamp: null,
       deadlineExtensionTimestamp: null,
       lockReleaseTimestamp: null,
-      status: "Created",
+      status: TaskStatus[0],
       taskCreationHash: null,
       fileDeliverables: null,
       textDeliverables: null,
