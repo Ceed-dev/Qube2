@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { ToggleOpen, ToggleClose, Checkmark, Spinner, Trash } from '../../assets';
 import Image from 'next/image';
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
 import { database, storage, updateProjectDetails } from '../../utils';
 import { initializeWeb3Provider, getSigner } from '../../utils/ethers';
 import { useAccount } from 'wagmi';
@@ -981,12 +981,23 @@ const TaskDetailsPage: React.FC = () => {
             await Promise.all([uploadFile(files), uploadText(text), uploadLink(link)]);
             console.log("Successfully uploaded to firebase");
 
-            await submitTask(taskId as string);
-            console.log("Successfully executed submitTask function on blockchain")
+            const txHash = await submitTask(taskId as string);
+            console.log("Successfully executed submitTask function on blockchain");
 
-            alert("Successfully uploaded");
-      
-            await loadTaskDetails();
+            if (txHash) {
+              const docRef = doc(database, "tasks", taskId as string);
+              await updateDoc(docRef, {
+                "hashes.taskSubmission": arrayUnion(txHash),
+                status: TaskStatus[5]
+              });
+
+              await loadTaskDetails();
+
+              alert("Successfully uploaded");
+            } else {
+              console.error("Transaction not completed");
+            }
+            
           } catch (error) {
             console.log(error);
             alert(error);
