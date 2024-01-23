@@ -234,12 +234,19 @@ const TaskDetailsPage: React.FC = () => {
     try {
       if (isConnected) {
         setIsSigning(true);
-        await assignRecipientToTask(taskId as string);
+        const txHash = await assignRecipientToTask(taskId as string);
+        if (txHash) {
+          const docRef = doc(database, "tasks", taskId as string);
+          await updateDoc(docRef, {
+            recipient: address,
+            "hashes.recipientAssign": txHash,
+            status: TaskStatus[2]
+          });
 
-        const docRef = doc(database, "tasks", taskId as string);
-        await updateDoc(docRef, {recipient: address});
-
-        await loadTaskDetails();
+          await loadTaskDetails();
+        } else {
+          console.error("Transaction not completed");
+        }
       } else {
         openConnectModal();
       }
