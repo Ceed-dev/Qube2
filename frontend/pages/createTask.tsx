@@ -220,7 +220,6 @@ const CreateTask: React.FC = () => {
       deadlineExtensionTimestamp: null,
       lockReleaseTimestamp: null,
       status: TaskStatus[0],
-      taskCreationHash: null,
       fileDeliverables: null,
       textDeliverables: null,
       linkDeliverables: null,
