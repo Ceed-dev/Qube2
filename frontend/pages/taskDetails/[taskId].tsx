@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { ToggleOpen, ToggleClose, Checkmark, Spinner, Trash } from '../../assets';
 import Image from 'next/image';
-import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion, deleteDoc } from "firebase/firestore";
 import { database, storage, updateProjectDetails } from '../../utils';
 import { initializeWeb3Provider, getSigner } from '../../utils/ethers';
 import { useAccount } from 'wagmi';
@@ -25,7 +25,7 @@ interface Task {
   title: string,
   details: string,
   recipient: string,
-  rewardAmount: number,
+  lockedAmount: number,
   symbol: string,
   submissionDeadline: Date,
   reviewDeadline: Date,
@@ -189,7 +189,7 @@ const TaskDetailsPage: React.FC = () => {
         title: firebaseTaskData.title,
         details: firebaseTaskData.details,
         recipient: firebaseTaskData.recipient,
-        rewardAmount: firebaseTaskData.rewardAmount,
+        lockedAmount: firebaseTaskData.lockedAmount,
         symbol: firebaseTaskData.symbol,
         submissionDeadline: firebaseTaskData.submissionDeadline.toDate(),
         reviewDeadline: firebaseTaskData.reviewDeadline.toDate(),
@@ -340,8 +340,7 @@ const TaskDetailsPage: React.FC = () => {
       if (isConnected) {
         setIsTransferingTokensAndDeletingTask(true);
         await transferTokensAndDeleteTask(taskId as string);
-
-        await loadTaskDetails();
+        await deleteDoc(doc(database, "tasks", `${taskId}`));
       } else {
         openConnectModal();
       }
@@ -709,7 +708,7 @@ const TaskDetailsPage: React.FC = () => {
                 } else {
                   await handleTransferTokensAndDeleteTask(event);
                   alert("Successfully deleted task");
-                  router.back();
+                  router.push(`/projectDetails/${task.projectId}`);
                 }
               }}
               disabled={isTransferingTokensAndDeletingTask}
@@ -764,7 +763,7 @@ const TaskDetailsPage: React.FC = () => {
               
               <div className="font-semibold text-lg mt-4">Reward</div>
               <div className="flex items-center gap-2">
-                <span className="text-lg">{task.rewardAmount}</span>
+                <span className="text-lg">{task.lockedAmount}</span>
                 <span className="bg-purple-600 text-white py-1 px-3 rounded-full">{task.symbol}</span>
               </div>
 
