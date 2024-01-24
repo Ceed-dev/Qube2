@@ -1165,6 +1165,7 @@ const TaskDetailsPage: React.FC = () => {
               onClick={async (event) => {
                 await handleTransferTokensAndDeleteTask(event);
                 setShowRequestTaskDeletionModal(false);
+                router.push("/404");
               }}
               className="bg-indigo-500 hover:bg-indigo-600 text-white text-2xl py-3 px-7 rounded-xl w-[200px]"
             >
