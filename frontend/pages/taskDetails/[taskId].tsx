@@ -295,15 +295,33 @@ const TaskDetailsPage: React.FC = () => {
     }
   }
 
+  function getFutureDate(days: number): Date {
+    const currentDate = new Date();
+    currentDate.setDate(currentDate.getDate() + days);
+    return currentDate;
+  }
+
   const handleDisapprove = async (event) => {
     event.preventDefault();
 
     try {
       if (isConnected) {
         setIsDisapproving(true);
-        await disapproveSubmission(taskId as string);
+        const txHash = await disapproveSubmission(taskId as string);
 
-        await loadTaskDetails();
+        if (txHash) {
+          const docRef = doc(database, "tasks", taskId as string);
+          await updateDoc(docRef, {
+            lockReleaseTimestamp: getFutureDate(270),
+            "hashes.disapproveTask": txHash,
+            status: TaskStatus[10]
+          });
+
+          await loadTaskDetails();
+        } else {
+          console.error("Transaction not completed");
+        }
+
       } else {
         openConnectModal();
       }
