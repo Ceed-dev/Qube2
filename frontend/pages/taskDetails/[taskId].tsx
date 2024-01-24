@@ -70,6 +70,7 @@ const TaskDetailsPage: React.FC = () => {
   const [showSubmissionOverdueModal, setShowSubmissionOverdueModal] = useState(false);
   const [showReviewOverdueModal, setShowReviewOverdueModal] = useState(false);
   const [showPaymentOverdueModal, setShowPaymentOverdueModal] = useState(false);
+  const [showTaskDeadlineUpdate, setShowTaskDeadlineUpdate] = useState(false);
 
   const handleUpdateDeadline = async (event) => {
     event.preventDefault();
@@ -146,6 +147,9 @@ const TaskDetailsPage: React.FC = () => {
       }
       const firebaseTaskData = docSnapshot.data();
       const statusIndex = TaskStatus[`${firebaseTaskData.status}`];
+
+      const changeTaskDeadlinesArray = firebaseTaskData.hashes["changeTaskDeadlines"];
+      setShowTaskDeadlineUpdate(!changeTaskDeadlinesArray || changeTaskDeadlinesArray.length < 3);
 
       setShowSubmitButton(statusIndex == TaskStatus.InProgress);
       setShowApproveButton(statusIndex == TaskStatus.UnderReview);
@@ -840,7 +844,7 @@ const TaskDetailsPage: React.FC = () => {
                 ) : "Sign The Contract"}
               </button>}
 
-              {isAssigned && !isContractSigned && 
+              {isAssigned && !isContractSigned && showTaskDeadlineUpdate &&
                 <>
                   <div className="border-dashed border-t border-gray-400 my-4"></div>
                   <div className="flex items-center">
