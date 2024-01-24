@@ -401,16 +401,23 @@ const TaskDetailsPage: React.FC = () => {
     try {
       if (isConnected) {
         setIsApprovingDeadlineExtension(true);
-        await approveDeadlineExtension(taskId as string);
+        const txHash = await approveDeadlineExtension(taskId as string);
 
-        const docRef = doc(database, "tasks", taskId as string);
-        await updateDoc(docRef, {
-          submissionDeadline: getDateTwoWeeksLater(task?.submissionDeadline),
-          reviewDeadline: getDateTwoWeeksLater(task?.reviewDeadline),
-          paymentDeadline: getDateTwoWeeksLater(task?.paymentDeadline),
-        });
+        if (txHash) {
+          const docRef = doc(database, "tasks", taskId as string);
+          await updateDoc(docRef, {
+            submissionDeadline: getDateTwoWeeksLater(task?.submissionDeadline),
+            reviewDeadline: getDateTwoWeeksLater(task?.reviewDeadline),
+            paymentDeadline: getDateTwoWeeksLater(task?.paymentDeadline),
+            "hashes.approveDeadlineExtension": txHash,
+            status: TaskStatus[2]
+          });
 
-        await loadTaskDetails();
+          await loadTaskDetails();
+        } else {
+          console.error("Transaction not completed");
+        }
+        
       } else {
         openConnectModal();
       }
