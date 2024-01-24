@@ -36,7 +36,7 @@ interface Task {
   title: string,
   recipient: string,
   recipientName: string,
-  rewardAmount: number,
+  lockedAmount: number,
   symbol: string,
   submissionDeadline: Date,
   reviewDeadline: Date,
@@ -194,7 +194,7 @@ const Dashboard: NextPage = () => {
               title: docData.title,
               recipient: docData.recipient,
               recipientName: recipientName,
-              rewardAmount: docData.rewardAmount,
+              lockedAmount: docData.lockedAmount,
               symbol: docData.symbol,
               submissionDeadline: docData.submissionDeadline.toDate(),
               reviewDeadline: docData.reviewDeadline.toDate(),
@@ -440,12 +440,12 @@ const Dashboard: NextPage = () => {
               </tr>
             </thead>
             <tbody>
-              {tasks.filter(task => task.status === selectedStatus).length === 0 ? (
+              {tasks.filter(task => task?.status === selectedStatus).length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center text-gray-500">No contracts available.</td>
                 </tr>
               ) : (
-                tasks.filter(task => task.status === selectedStatus).map((task, index) => (
+                tasks.filter(task => task?.status === selectedStatus).map((task, index) => (
                   <tr 
                     key={index} 
                     className="h-[50px] hover:shadow-lg duration-300"
@@ -453,7 +453,7 @@ const Dashboard: NextPage = () => {
                   >
                     <td>{task?.title}</td>
                     <td>{task?.recipientName}</td>
-                    <td>{task?.rewardAmount} {task?.symbol}</td>
+                    <td>{task?.lockedAmount} {task?.symbol}</td>
                     <td>{task?.submissionDeadline?.toDateString()}</td>
                     <td>{task?.reviewDeadline?.toDateString()}</td>
                     <td>{task?.paymentDeadline?.toDateString()}</td>
