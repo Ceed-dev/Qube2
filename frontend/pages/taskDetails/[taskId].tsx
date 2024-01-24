@@ -421,9 +421,20 @@ const TaskDetailsPage: React.FC = () => {
     try {
       if (isConnected) {
         setIsRejectingTaskDeletion(true);
-        await rejectDeletionRequest(taskId as string);
+        const txHash = await rejectDeletionRequest(taskId as string);
 
-        await loadTaskDetails();
+        if (txHash) {
+          const docRef = doc(database, "tasks", taskId as string);
+          await updateDoc(docRef, {
+            "hashes.rejectDeletionRequest": txHash,
+            status: TaskStatus[2]
+          });
+
+          await loadTaskDetails();
+        } else {
+          console.error("Transaction not completed");
+        }
+
       } else {
         openConnectModal();
       }
