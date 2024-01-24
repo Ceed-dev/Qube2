@@ -428,9 +428,21 @@ const TaskDetailsPage: React.FC = () => {
     try {
       if (isConnected) {
         setIsRequestingDeadlineExtension(true);
-        await requestDeadlineExtension(taskId as string);
+        const txHash = await requestDeadlineExtension(taskId as string);
 
-        await loadTaskDetails();
+        if (txHash) {
+          const docRef = doc(database, "tasks", taskId as string);
+          await updateDoc(docRef, {
+            "hashes.deadlineExtensionRequested": txHash,
+            status: TaskStatus[9],
+            deadlineExtensionTimestamp: new Date(),
+          });
+
+          await loadTaskDetails();
+        } else {
+          console.error("Transaction not completed");
+        }
+
       } else {
         openConnectModal();
       }
