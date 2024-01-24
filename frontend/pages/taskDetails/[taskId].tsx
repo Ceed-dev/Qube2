@@ -358,9 +358,21 @@ const TaskDetailsPage: React.FC = () => {
     try {
       if (isConnected) {
         setIsTransferingTokensAndDeletingTask(true);
-        await requestTaskDeletion(taskId as string);
+        const txHash = await requestTaskDeletion(taskId as string);
 
-        await loadTaskDetails();
+        if (txHash) {
+          const docRef = doc(database, "tasks", taskId as string);
+          await updateDoc(docRef, {
+            deletionRequestTimestamp: new Date(),
+            "hashes.requestTaskDeletion": txHash,
+            status: TaskStatus[3]
+          });
+
+          await loadTaskDetails();
+        } else {
+          console.error("Transaction not completed");
+        }
+
       } else {
         openConnectModal();
       }
