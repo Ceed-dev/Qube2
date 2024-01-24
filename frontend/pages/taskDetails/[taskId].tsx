@@ -82,23 +82,30 @@ const TaskDetailsPage: React.FC = () => {
       if (isConnected) {
         setIsUpdatingDeadlines(true);
 
-        await changeTaskDeadlines(
+        const txHash = await changeTaskDeadlines(
           taskId as string,
           Math.floor((new Date(newDeadline)).getTime() / 1000),
           Math.floor(new Date(getDatePlusDays(newDeadline.toString(), 7)).getTime() / 1000),
           Math.floor(new Date(getDatePlusDays(newDeadline.toString(), 14)).getTime() / 1000),
         );
 
-        const docRef = doc(database, "tasks", taskId as string);
-        await updateDoc(docRef, {
-          submissionDeadline: new Date(newDeadline),
-          reviewDeadline: new Date(getDatePlusDays(newDeadline.toString(), 7)),
-          paymentDeadline: new Date(getDatePlusDays(newDeadline.toString(), 14)),
-        });
+        if (txHash) {
+          const docRef = doc(database, "tasks", taskId as string);
+          await updateDoc(docRef, {
+            submissionDeadline: new Date(newDeadline),
+            reviewDeadline: new Date(getDatePlusDays(newDeadline.toString(), 7)),
+            paymentDeadline: new Date(getDatePlusDays(newDeadline.toString(), 14)),
+            status: TaskStatus[0],
+            "hashes.changeTaskDeadlines": arrayUnion(txHash),
+          });
 
-        alert("Successfully updated deadlines");
+          alert("Successfully updated deadlines");
 
-        await loadTaskDetails();
+          await loadTaskDetails();
+        } else {
+          console.error("Transaction not completed");
+        }
+
       } else {
         openConnectModal();
       }
