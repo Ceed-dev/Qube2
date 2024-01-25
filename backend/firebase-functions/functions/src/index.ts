@@ -206,7 +206,7 @@ async function getEmailsFromAssignedUsers(assignedUsers: string[]): Promise<stri
   const emails = [];
 
   for (const walletAddress of assignedUsers) {
-    const docRef = getFirestore().collection("users").doc(walletAddress);
+    const docRef = db.collection("users").doc(walletAddress);
     const docSnap = await docRef.get();
 
     if (docSnap.exists) {
@@ -218,6 +218,20 @@ async function getEmailsFromAssignedUsers(assignedUsers: string[]): Promise<stri
   }
 
   return emails;
+}
+
+async function getEmailFromWalletAddress(walletAddress: string): Promise<string | null> {
+  const userDocRef = db.collection("users").doc(walletAddress);
+  const userDocSnap = await userDocRef.get();
+
+  if (userDocSnap.exists) {
+    const userData = userDocSnap.data();
+    if (userData?.email) {
+      return userData.email;
+    }
+  }
+
+  return null;
 }
 
 const transporter = nodemailer.createTransport({
