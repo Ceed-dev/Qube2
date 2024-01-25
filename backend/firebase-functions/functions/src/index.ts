@@ -1,7 +1,7 @@
 // The Firebase Admin SDK to access Firestore.
 // import admin from "firebase-admin";
 import { initializeApp } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
 import nodemailer from "nodemailer";
 // import axios from "axios";
@@ -15,7 +15,7 @@ initializeApp();
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { logger } from "firebase-functions";
 
-import { StatusEnum } from "./projectStatus";
+// import { StatusEnum } from "./projectStatus";
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -192,15 +192,15 @@ export const checkSignByFreelancer = onSchedule("30 23 * * *", async () => {
   });
 });
 
-const formatDateToUTC = (dateObj: Date) => {
-  const year = dateObj.getUTCFullYear();
-  const month = (dateObj.getUTCMonth() + 1).toString().padStart(2, '0');
-  const day = dateObj.getUTCDate().toString().padStart(2, '0');
-  const hour = dateObj.getUTCHours().toString().padStart(2, '0');
-  const minute = dateObj.getUTCMinutes().toString().padStart(2, '0');
+// const formatDateToUTC = (dateObj: Date) => {
+//   const year = dateObj.getUTCFullYear();
+//   const month = (dateObj.getUTCMonth() + 1).toString().padStart(2, '0');
+//   const day = dateObj.getUTCDate().toString().padStart(2, '0');
+//   const hour = dateObj.getUTCHours().toString().padStart(2, '0');
+//   const minute = dateObj.getUTCMinutes().toString().padStart(2, '0');
 
-  return `${year}/${month}/${day} ${hour}:${minute}`;
-};
+//   return `${year}/${month}/${day} ${hour}:${minute}`;
+// };
 
 async function getEmailsFromAssignedUsers(assignedUsers: string[]): Promise<string[]> {
   const emails = [];
@@ -228,447 +228,509 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-export const sendEmailNotification = onDocumentUpdated("/tasks/{documentId}", async (event) => {
-  const id = event.params.documentId;
-  logger.info("id: ", id);
+const qubeMailAddress = '"Qube" <official@0xqube.xyz>';
+const db = getFirestore();
 
-  const projectLink = `${process.env.BASE_URL}/projectDetails/${id}`;
-  const taskLink = `${process.env.BASE_URL}/taskDetails/${id}`;
-  const qubeMailAddress = '"Qube" <official@0xqube.xyz>';
+export const sendEmailNotification = onDocumentUpdated("/tasks/{taskId}", async (event) => {
+  if (!process.env.BASE_URL) {
+    logger.error("BASE_URL is not set in environment variables");
+    return null;
+  }
 
-  const beforeData = event.data?.before;
-  const beforeStatus = beforeData?.get("Status");
-  const beforeInDispute = beforeData?.get("InDispute");
-  const createdBy = beforeData?.get("createdBy");
-  const afterData = event.data?.after;
-  const afterStatus = afterData?.get("Status");
-  const afterInDispute = afterData?.get("InDispute");
-  logger.info("before: ", beforeStatus, beforeInDispute);
-  logger.info("after: ", afterStatus, afterInDispute);
+  const taskId = event.params.taskId;
+  const oldValue = event.data?.before;
+  const newValue = event.data?.after;
+  const taskLink = `${process.env.BASE_URL}/taskDetails/${taskId}`;
 
-  const title = afterData?.get("title");
-  const now = new Date();
-  const submissionDeadline = new Date(afterData?.get("Deadline(UTC)"));
-  const extendedSubmissionDeadline = new Date(afterData?.get("Deadline(UTC)"));
-  extendedSubmissionDeadline.setUTCDate(extendedSubmissionDeadline.getUTCDate() + 14);
-  const paymentDeadline = new Date(afterData?.get("Deadline(UTC) For Payment"));
-  const extendedPaymentDeadline = new Date(afterData?.get("Deadline(UTC) For Payment"));
-  extendedPaymentDeadline.setUTCDate(extendedPaymentDeadline.getUTCDate() + 14);
-  const formattedNow = formatDateToUTC(now);
-  const formattedSubmissionDeadline = formatDateToUTC(submissionDeadline);
-  const formattedExtendedSubmissionDeadline = formatDateToUTC(extendedSubmissionDeadline);
-  const formattedPaymentDeadline = formatDateToUTC(paymentDeadline);
-  const formattedExtendedPaymentDeadline = formatDateToUTC(extendedPaymentDeadline);
-
-  const prepayTxHash = afterData?.get("prepayTxHash");
-  const prepayTxUrl = `${process.env.POLYGONSCAN_URL}/tx/${prepayTxHash}`;
-
-  if (!(beforeData?.get("recipient")) && afterData?.get("recipient")) {
-    logger.info("A task has been signed, preparing to send emails.");
+  if (oldValue?.get("status") === "Created" && newValue?.get("status") === "InProgress") {
+    logger.info(`A task with ID ${taskId} has been signed, preparing to send emails.`);
   
     try {
-      const projectId = afterData?.get("projectId");
-      const projectDetails = await getProjectDetails(projectId);
-      const assignedUsers = projectDetails.assignedUsers;
-      const userEmails = await getEmailsFromAssignedUsers(assignedUsers);
+      const projectDetails = await getProjectDetails(newValue?.get("projectId"));
+      const assignedUsersEmailAddresses = await getEmailsFromAssignedUsers(projectDetails.assignedUsers);
   
-      for (const email of userEmails) {
+      const mailPromises = assignedUsersEmailAddresses.map(emailAddress => {
         const mailOptions = {
           from: qubeMailAddress,
-          to: email,
-          subject: `Task Name: ${title}`,
+          to: emailAddress,
+          subject: `Task Name: ${newValue.get("title")}`,
           text: `The task has been signed.\n\nTo go to the task: ${taskLink}\nIf you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
         };
-  
-        await transporter.sendMail(mailOptions);
-        logger.info(`Email sent to ${email}`);
-      }
+    
+        return transporter.sendMail(mailOptions).then(() => {
+          logger.info(`Email sent to ${emailAddress}`);
+        });
+      });
+    
+      await Promise.all(mailPromises);
     } catch (error) {
-      logger.error("Error sending emails:", error);
-    }
-  }
+      if (error instanceof Error) {
+        logger.error("Error sending emails:", error);
 
-  if (
-    beforeData?.get("fileDeliverables") != afterData?.get("fileDeliverables") ||
-    beforeData?.get("textDeliverables") != afterData?.get("textDeliverables") ||
-    beforeData?.get("linkDeliverables") != afterData?.get("linkDeliverables")
-  ) {
-    logger.info("Deliverables have changed, sending emails.");
-
-    try {
-      const projectId = afterData?.get("projectId");
-      const projectDetails = await getProjectDetails(projectId);
-      const assignedUsers = projectDetails.assignedUsers;
-      const userEmails = await getEmailsFromAssignedUsers(assignedUsers);
-
-      for (const email of userEmails) {
-        const mailOptions = {
-          from: qubeMailAddress,
-          to: email,
-          subject: `Task Name: ${title}`,
-          text: `The task has been submitted.\n\nTo go to the task: ${taskLink}\nIf you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+        const errorLog = {
+          timestamp: FieldValue.serverTimestamp(),
+          error: error.message,
+          taskId: taskId,
+          functionName: "sendEmailNotification"
         };
-
-        await transporter.sendMail(mailOptions);
-        console.log(`Email sent to ${email}`);
+      
+        db.collection("errorLogs").add(errorLog).then(() => {
+          logger.info("Error logged in Firestore");
+        }).catch(logError => {
+          logger.error("Error saving log to Firestore:", logError);
+        });
+      } else {
+        logger.error("An unknown error occurred");
       }
-    } catch (error) {
-      console.error("Error sending emails:", error);
     }
-  }
-
-  if (createdBy === "depositor" && beforeStatus == StatusEnum.WaitingForConnectingLancersWallet && afterStatus == StatusEnum.PayInAdvance) {
-    const docRef = getFirestore().collection("users").doc(afterData?.get("Client's Wallet Address"));
-    const doc = await docRef.get();
-
-    const mailOptions = {
-      from: qubeMailAddress,
-      to: doc.get("email"),
-      subject: `Project Name: ${title}`,
-      text: 
-`The contract has been signed. 
-
-Please prepay the reward to Escrow as soon as possible. 
-Make sure that until you don't finish the prepay, the freelancer won't start working and won't be able to submit the work.
-
-To go to the project: ${projectLink}
-If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
-    };
-    
-    return transporter.sendMail(mailOptions);
-  } else if (beforeStatus == StatusEnum.PayInAdvance && afterStatus == StatusEnum.WaitingForSubmission) {
-    const docRef = getFirestore().collection("users").doc(afterData?.get("Lancer's Wallet Address"));
-    const doc = await docRef.get();
-
-    const mailOptions = {
-      from: qubeMailAddress,
-      to: doc.get("email"),
-      subject: `Project Name: ${title}`,
-      text: 
-`The prepay has been done by the client. Finish your work and submit it before ${formattedSubmissionDeadline}(UTC). 
-If you don't submit it before ${formattedSubmissionDeadline}(UTC), the money in Escrow will be refunded to the client automatically.
-
-You can review the details and verify the transaction by clicking on the link below:
-${prepayTxUrl}
-
-To go to the project: ${projectLink}
-If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
-    };
-    
-    return transporter.sendMail(mailOptions);
-  } else if (beforeStatus == StatusEnum.WaitingForSubmission && afterStatus == StatusEnum.WaitingForPayment) {
-    const docRef = getFirestore().collection("users").doc(afterData?.get("Client's Wallet Address"));
-    const doc = await docRef.get();
-
-    const mailOptions = {
-      from: qubeMailAddress,
-      to: doc.get("email"),
-      subject: `Project Name: ${title}`,
-      text: 
-`The Submission has been done. Visit the page to check the submissions and take the appropriate action before ${formattedPaymentDeadline}(UTC).
-
-Make sure the following things. 
-1. If you approve the payment will be done right after the approval. 
-
-2. If the submission is inappropriate, discuss it with the opposite person and request a Deadline Extension system. 
-*By doing this, The Payment date will be extended to ${formattedExtendedPaymentDeadline}(UTC) so that the opposite party can redo the task.
-
-*Make sure if you don't take any action of the two mentioned above, the payment will be executed on ${formattedPaymentDeadline}(UTC) automatically. 
-
-You can review the details and verify the transaction by clicking on the link below:
-${prepayTxUrl}
-
-To go to the project: ${projectLink}
-If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
-    };
-    
-    return transporter.sendMail(mailOptions);
-  } else if (beforeStatus == StatusEnum.WaitingForPayment && afterStatus == StatusEnum.CompleteApproval) {
-    const docRef = getFirestore().collection("users").doc(afterData?.get("Client's Wallet Address"));
-    const doc = await docRef.get();
-
-    const mailOptions = {
-      from: qubeMailAddress,
-      to: doc.get("email"),
-      subject: `Project Name: ${title}`,
-      text: 
-`The submission the freelancer made has been approved and the payment has also been executed on ${formattedNow}(UTC).
-
-You can review the details and verify the transaction by clicking on the link below:
-${prepayTxUrl}
-
-To go to the project: ${projectLink}
-If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
-    };
-    
-    transporter.sendMail(mailOptions);
-
-    const docRef2 = getFirestore().collection("users").doc(afterData?.get("Lancer's Wallet Address"));
-    const doc2 = await docRef2.get();
-
-    const mailOptions2 = {
-      from: qubeMailAddress,
-      to: doc2.get("email"),
-      subject: `Project Name: ${title}`,
-      text: 
-`The submission the freelancer made has been approved and the payment has also been executed on ${formattedNow}(UTC).
-
-You can review the details and verify the transaction by clicking on the link below:
-${prepayTxUrl}
-
-To go to the project: ${projectLink}
-If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
-    };
-    
-    return transporter.sendMail(mailOptions2);
-  } else if (beforeStatus == StatusEnum.WaitingForPayment && afterStatus == StatusEnum.InDispute) {
-    const docRef = getFirestore().collection("users").doc(afterData?.get("Client's Wallet Address"));
-    const doc = await docRef.get();
-
-    const mailOptions = {
-      from: qubeMailAddress,
-      to: doc.get("email"),
-      subject: `Project Name: ${title}`,
-      text: 
-`The Deadline Extension Request has been disapproved. The fund has been FROZEN in the Escrow for 9 months. 
-
-After 9 months the fund in the Escrow will be refunded to the client.
-
-You can review the details and verify the transaction by clicking on the link below:
-${prepayTxUrl}
-
-To go to the project: ${projectLink}
-If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
-    };
-    
-    transporter.sendMail(mailOptions);
-
-    const docRef2 = getFirestore().collection("users").doc(afterData?.get("Lancer's Wallet Address"));
-    const doc2 = await docRef2.get();
-
-    const mailOptions2 = {
-      from: qubeMailAddress,
-      to: doc2.get("email"),
-      subject: `Project Name: ${title}`,
-      text: 
-`The Deadline Extension Request has been disapproved. The fund has been FROZEN in the Escrow for 9 months. 
-
-After 9 months the fund in the Escrow will be refunded to the client.
-
-You can review the details and verify the transaction by clicking on the link below:
-${prepayTxUrl}
-
-To go to the project: ${projectLink}
-If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
-    };
-    
-    return transporter.sendMail(mailOptions2);
-  } else if (beforeStatus == StatusEnum.WaitingForPayment && afterStatus == StatusEnum.WaitingForSubmissionDER) {
-    const docRef = getFirestore().collection("users").doc(afterData?.get("Client's Wallet Address"));
-    const doc = await docRef.get();
-
-    const mailOptions = {
-      from: qubeMailAddress,
-      to: doc.get("email"),
-      subject: `Project Name: ${title}`,
-      text: 
-`The deadline extension has been accepted! The payment date has been extended to ${formattedPaymentDeadline}(UTC) successfully.
-
-Next required Action
-
-The Freelancer
-
-Make the submission of the new version before ${formattedSubmissionDeadline}(UTC).
-
-The Client
-
-Wait until the new version of the submission is made. The submission will be made before ${formattedSubmissionDeadline}(UTC).
-
-You can review the details and verify the transaction by clicking on the link below:
-${prepayTxUrl}
-
-To go to the project: ${projectLink}
-If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
-    };
-    
-    transporter.sendMail(mailOptions);
-
-    const docRef2 = getFirestore().collection("users").doc(afterData?.get("Lancer's Wallet Address"));
-    const doc2 = await docRef2.get();
-
-    const mailOptions2 = {
-      from: qubeMailAddress,
-      to: doc2.get("email"),
-      subject: `Project Name: ${title}`,
-      text: 
-`The deadline extension has been accepted! The payment date has been extended to ${formattedPaymentDeadline}(UTC) successfully.
-
-Next required Action
-
-The Freelancer
-
-Make the submission of the new version before ${formattedSubmissionDeadline}(UTC).
-
-The Client
-
-Wait until the new version of the submission is made. The submission will be made before ${formattedSubmissionDeadline}(UTC).
-
-You can review the details and verify the transaction by clicking on the link below:
-${prepayTxUrl}
-
-To go to the project: ${projectLink}
-If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
-    };
-    
-    return transporter.sendMail(mailOptions2);
-  } else if (beforeStatus == StatusEnum.WaitingForSubmissionDER && afterStatus == StatusEnum.WaitingForPayment) {
-    const docRef = getFirestore().collection("users").doc(afterData?.get("Client's Wallet Address"));
-    const doc = await docRef.get();
-
-    const mailOptions = {
-      from: qubeMailAddress,
-      to: doc.get("email"),
-      subject: `Project Name: ${title}`,
-      text: 
-`The submission deadline has come. Visit the contract to check the submission. 
-
-Make sure the things below before you proceed.
-
-1. If you approve the submission the payment will be done to the freelancer right after that.
-2. If you disapprove the submission, the fund in Escrow will be FROZEN for 9 months.
-
-You can review the details and verify the transaction by clicking on the link below:
-${prepayTxUrl}
-
-To go to the project: ${projectLink}
-If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
-    };
-    
-    return transporter.sendMail(mailOptions);
-  } else if (beforeStatus == StatusEnum.WaitingForPayment && afterStatus == StatusEnum.CompleteDisapproval) {
-    const docRef = getFirestore().collection("users").doc(afterData?.get("Client's Wallet Address"));
-    const doc = await docRef.get();
-
-    const mailOptions = {
-      from: qubeMailAddress,
-      to: doc.get("email"),
-      subject: `Project Name: ${title}`,
-      text: 
-`As the submission was disapproved even after Extending the timeline, the fund in Escrow has been FROZEN. 
-The fund will be released to the client after 9 months. 
-
-You can review the details and verify the transaction by clicking on the link below:
-${prepayTxUrl}
-
-To go to the project: ${projectLink}
-If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
-    };
-    
-    transporter.sendMail(mailOptions);
-
-    const docRef2 = getFirestore().collection("users").doc(afterData?.get("Lancer's Wallet Address"));
-    const doc2 = await docRef2.get();
-
-    const mailOptions2 = {
-      from: qubeMailAddress,
-      to: doc2.get("email"),
-      subject: `Project Name: ${title}`,
-      text: 
-`As the submission was disapproved even after Extending the timeline, the fund in Escrow has been FROZEN. 
-The fund will be released to the client after 9 months. 
-
-You can review the details and verify the transaction by clicking on the link below:
-${prepayTxUrl}
-
-To go to the project: ${projectLink}
-If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
-    };
-    
-    return transporter.sendMail(mailOptions2);
-  } else if (beforeStatus == StatusEnum.WaitingForPayment && afterStatus == StatusEnum.CompleteNoContactByClient) {
-    const docRef = getFirestore().collection("users").doc(afterData?.get("Client's Wallet Address"));
-    const doc = await docRef.get();
-
-    const mailOptions = {
-      from: qubeMailAddress,
-      to: doc.get("email"),
-      subject: `Project Name: ${title}`,
-      text: 
-`Due to not having any action by the client against the submission, the payment has been executed automatically.
-
-You can review the details and verify the transaction by clicking on the link below:
-${prepayTxUrl}
-
-To go to the project: ${projectLink}
-If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
-    };
-    
-    transporter.sendMail(mailOptions);
-
-    const docRef2 = getFirestore().collection("users").doc(afterData?.get("Lancer's Wallet Address"));
-    const doc2 = await docRef2.get();
-
-    const mailOptions2 = {
-      from: qubeMailAddress,
-      to: doc2.get("email"),
-      subject: `Project Name: ${title}`,
-      text: 
-`Due to not having any action by the client against the submission, the payment has been executed automatically.
-
-You can review the details and verify the transaction by clicking on the link below:
-${prepayTxUrl}
-
-To go to the project: ${projectLink}
-If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
-    };
-    
-    return transporter.sendMail(mailOptions2);
-  } else if (beforeStatus == StatusEnum.WaitingForConnectingLancersWallet && afterStatus == StatusEnum.Cancel) {
-    const docRef = getFirestore().collection("users").doc(afterData?.get("Client's Wallet Address"));
-    const doc = await docRef.get();
-
-    const mailOptions = {
-      from: qubeMailAddress,
-      to: doc.get("email"),
-      subject: `Project Name: ${title}`,
-      text: 
-`As there was no action, the contract has been dismissed.
-
-You can review the details and verify the transaction by clicking on the link below:
-${prepayTxUrl}
-
-To go to the project: ${projectLink}
-If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
-    };
-    
-    return transporter.sendMail(mailOptions);
-  } else if (!beforeInDispute && afterInDispute) {
-    const docRef = getFirestore().collection("users").doc(afterData?.get("Lancer's Wallet Address"));
-    const doc = await docRef.get();
-
-    const mailOptions = {
-      from: qubeMailAddress,
-      to: doc.get("email"),
-      subject: `Project Name: ${title}`,
-      text: 
-`The client has made a Deadline Extension Request. 
-
-Accept the request if you agree. By doing so, the payment date will be extended to ${formattedExtendedPaymentDeadline}(UTC) and you will be required to submit the new version of the task before ${formattedExtendedSubmissionDeadline}(UTC). 
-
-Make sure if you disagree with this, the fund in the Escrow will be FROZEN and will be released to the client after 9 months.
-
-You can review the details and verify the transaction by clicking on the link below:
-${prepayTxUrl}
-
-To go to the project: ${projectLink}
-If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
-    };
-    
-    return transporter.sendMail(mailOptions);
   }
 
   return null;
 });
+
+// export const sendEmailNotification = onDocumentUpdated("/tasks/{documentId}", async (event) => {
+//   const id = event.params.documentId;
+//   logger.info("id: ", id);
+
+//   const projectLink = `${process.env.BASE_URL}/projectDetails/${id}`;
+//   const taskLink = `${process.env.BASE_URL}/taskDetails/${id}`;
+//   const qubeMailAddress = '"Qube" <official@0xqube.xyz>';
+
+//   const beforeData = event.data?.before;
+//   const beforeStatus = beforeData?.get("Status");
+//   const beforeInDispute = beforeData?.get("InDispute");
+//   const createdBy = beforeData?.get("createdBy");
+//   const afterData = event.data?.after;
+//   const afterStatus = afterData?.get("Status");
+//   const afterInDispute = afterData?.get("InDispute");
+//   logger.info("before: ", beforeStatus, beforeInDispute);
+//   logger.info("after: ", afterStatus, afterInDispute);
+
+//   const title = afterData?.get("title");
+//   const now = new Date();
+//   const submissionDeadline = new Date(afterData?.get("Deadline(UTC)"));
+//   const extendedSubmissionDeadline = new Date(afterData?.get("Deadline(UTC)"));
+//   extendedSubmissionDeadline.setUTCDate(extendedSubmissionDeadline.getUTCDate() + 14);
+//   const paymentDeadline = new Date(afterData?.get("Deadline(UTC) For Payment"));
+//   const extendedPaymentDeadline = new Date(afterData?.get("Deadline(UTC) For Payment"));
+//   extendedPaymentDeadline.setUTCDate(extendedPaymentDeadline.getUTCDate() + 14);
+//   const formattedNow = formatDateToUTC(now);
+//   const formattedSubmissionDeadline = formatDateToUTC(submissionDeadline);
+//   const formattedExtendedSubmissionDeadline = formatDateToUTC(extendedSubmissionDeadline);
+//   const formattedPaymentDeadline = formatDateToUTC(paymentDeadline);
+//   const formattedExtendedPaymentDeadline = formatDateToUTC(extendedPaymentDeadline);
+
+//   const prepayTxHash = afterData?.get("prepayTxHash");
+//   const prepayTxUrl = `${process.env.POLYGONSCAN_URL}/tx/${prepayTxHash}`;
+
+//   if (!(beforeData?.get("recipient")) && afterData?.get("recipient")) {
+//     logger.info("A task has been signed, preparing to send emails.");
+  
+//     try {
+//       const projectId = afterData?.get("projectId");
+//       const projectDetails = await getProjectDetails(projectId);
+//       const assignedUsers = projectDetails.assignedUsers;
+//       const userEmails = await getEmailsFromAssignedUsers(assignedUsers);
+  
+//       for (const email of userEmails) {
+//         const mailOptions = {
+//           from: qubeMailAddress,
+//           to: email,
+//           subject: `Task Name: ${title}`,
+//           text: `The task has been signed.\n\nTo go to the task: ${taskLink}\nIf you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+//         };
+  
+//         await transporter.sendMail(mailOptions);
+//         logger.info(`Email sent to ${email}`);
+//       }
+//     } catch (error) {
+//       logger.error("Error sending emails:", error);
+//     }
+//   }
+
+//   if (
+//     beforeData?.get("fileDeliverables") != afterData?.get("fileDeliverables") ||
+//     beforeData?.get("textDeliverables") != afterData?.get("textDeliverables") ||
+//     beforeData?.get("linkDeliverables") != afterData?.get("linkDeliverables")
+//   ) {
+//     logger.info("Deliverables have changed, sending emails.");
+
+//     try {
+//       const projectId = afterData?.get("projectId");
+//       const projectDetails = await getProjectDetails(projectId);
+//       const assignedUsers = projectDetails.assignedUsers;
+//       const userEmails = await getEmailsFromAssignedUsers(assignedUsers);
+
+//       for (const email of userEmails) {
+//         const mailOptions = {
+//           from: qubeMailAddress,
+//           to: email,
+//           subject: `Task Name: ${title}`,
+//           text: `The task has been submitted.\n\nTo go to the task: ${taskLink}\nIf you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+//         };
+
+//         await transporter.sendMail(mailOptions);
+//         console.log(`Email sent to ${email}`);
+//       }
+//     } catch (error) {
+//       console.error("Error sending emails:", error);
+//     }
+//   }
+
+//   if (createdBy === "depositor" && beforeStatus == StatusEnum.WaitingForConnectingLancersWallet && afterStatus == StatusEnum.PayInAdvance) {
+//     const docRef = getFirestore().collection("users").doc(afterData?.get("Client's Wallet Address"));
+//     const doc = await docRef.get();
+
+//     const mailOptions = {
+//       from: qubeMailAddress,
+//       to: doc.get("email"),
+//       subject: `Project Name: ${title}`,
+//       text: 
+// `The contract has been signed. 
+
+// Please prepay the reward to Escrow as soon as possible. 
+// Make sure that until you don't finish the prepay, the freelancer won't start working and won't be able to submit the work.
+
+// To go to the project: ${projectLink}
+// If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+//     };
+    
+//     return transporter.sendMail(mailOptions);
+//   } else if (beforeStatus == StatusEnum.PayInAdvance && afterStatus == StatusEnum.WaitingForSubmission) {
+//     const docRef = getFirestore().collection("users").doc(afterData?.get("Lancer's Wallet Address"));
+//     const doc = await docRef.get();
+
+//     const mailOptions = {
+//       from: qubeMailAddress,
+//       to: doc.get("email"),
+//       subject: `Project Name: ${title}`,
+//       text: 
+// `The prepay has been done by the client. Finish your work and submit it before ${formattedSubmissionDeadline}(UTC). 
+// If you don't submit it before ${formattedSubmissionDeadline}(UTC), the money in Escrow will be refunded to the client automatically.
+
+// You can review the details and verify the transaction by clicking on the link below:
+// ${prepayTxUrl}
+
+// To go to the project: ${projectLink}
+// If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+//     };
+    
+//     return transporter.sendMail(mailOptions);
+//   } else if (beforeStatus == StatusEnum.WaitingForSubmission && afterStatus == StatusEnum.WaitingForPayment) {
+//     const docRef = getFirestore().collection("users").doc(afterData?.get("Client's Wallet Address"));
+//     const doc = await docRef.get();
+
+//     const mailOptions = {
+//       from: qubeMailAddress,
+//       to: doc.get("email"),
+//       subject: `Project Name: ${title}`,
+//       text: 
+// `The Submission has been done. Visit the page to check the submissions and take the appropriate action before ${formattedPaymentDeadline}(UTC).
+
+// Make sure the following things. 
+// 1. If you approve the payment will be done right after the approval. 
+
+// 2. If the submission is inappropriate, discuss it with the opposite person and request a Deadline Extension system. 
+// *By doing this, The Payment date will be extended to ${formattedExtendedPaymentDeadline}(UTC) so that the opposite party can redo the task.
+
+// *Make sure if you don't take any action of the two mentioned above, the payment will be executed on ${formattedPaymentDeadline}(UTC) automatically. 
+
+// You can review the details and verify the transaction by clicking on the link below:
+// ${prepayTxUrl}
+
+// To go to the project: ${projectLink}
+// If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+//     };
+    
+//     return transporter.sendMail(mailOptions);
+//   } else if (beforeStatus == StatusEnum.WaitingForPayment && afterStatus == StatusEnum.CompleteApproval) {
+//     const docRef = getFirestore().collection("users").doc(afterData?.get("Client's Wallet Address"));
+//     const doc = await docRef.get();
+
+//     const mailOptions = {
+//       from: qubeMailAddress,
+//       to: doc.get("email"),
+//       subject: `Project Name: ${title}`,
+//       text: 
+// `The submission the freelancer made has been approved and the payment has also been executed on ${formattedNow}(UTC).
+
+// You can review the details and verify the transaction by clicking on the link below:
+// ${prepayTxUrl}
+
+// To go to the project: ${projectLink}
+// If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+//     };
+    
+//     transporter.sendMail(mailOptions);
+
+//     const docRef2 = getFirestore().collection("users").doc(afterData?.get("Lancer's Wallet Address"));
+//     const doc2 = await docRef2.get();
+
+//     const mailOptions2 = {
+//       from: qubeMailAddress,
+//       to: doc2.get("email"),
+//       subject: `Project Name: ${title}`,
+//       text: 
+// `The submission the freelancer made has been approved and the payment has also been executed on ${formattedNow}(UTC).
+
+// You can review the details and verify the transaction by clicking on the link below:
+// ${prepayTxUrl}
+
+// To go to the project: ${projectLink}
+// If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+//     };
+    
+//     return transporter.sendMail(mailOptions2);
+//   } else if (beforeStatus == StatusEnum.WaitingForPayment && afterStatus == StatusEnum.InDispute) {
+//     const docRef = getFirestore().collection("users").doc(afterData?.get("Client's Wallet Address"));
+//     const doc = await docRef.get();
+
+//     const mailOptions = {
+//       from: qubeMailAddress,
+//       to: doc.get("email"),
+//       subject: `Project Name: ${title}`,
+//       text: 
+// `The Deadline Extension Request has been disapproved. The fund has been FROZEN in the Escrow for 9 months. 
+
+// After 9 months the fund in the Escrow will be refunded to the client.
+
+// You can review the details and verify the transaction by clicking on the link below:
+// ${prepayTxUrl}
+
+// To go to the project: ${projectLink}
+// If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+//     };
+    
+//     transporter.sendMail(mailOptions);
+
+//     const docRef2 = getFirestore().collection("users").doc(afterData?.get("Lancer's Wallet Address"));
+//     const doc2 = await docRef2.get();
+
+//     const mailOptions2 = {
+//       from: qubeMailAddress,
+//       to: doc2.get("email"),
+//       subject: `Project Name: ${title}`,
+//       text: 
+// `The Deadline Extension Request has been disapproved. The fund has been FROZEN in the Escrow for 9 months. 
+
+// After 9 months the fund in the Escrow will be refunded to the client.
+
+// You can review the details and verify the transaction by clicking on the link below:
+// ${prepayTxUrl}
+
+// To go to the project: ${projectLink}
+// If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+//     };
+    
+//     return transporter.sendMail(mailOptions2);
+//   } else if (beforeStatus == StatusEnum.WaitingForPayment && afterStatus == StatusEnum.WaitingForSubmissionDER) {
+//     const docRef = getFirestore().collection("users").doc(afterData?.get("Client's Wallet Address"));
+//     const doc = await docRef.get();
+
+//     const mailOptions = {
+//       from: qubeMailAddress,
+//       to: doc.get("email"),
+//       subject: `Project Name: ${title}`,
+//       text: 
+// `The deadline extension has been accepted! The payment date has been extended to ${formattedPaymentDeadline}(UTC) successfully.
+
+// Next required Action
+
+// The Freelancer
+
+// Make the submission of the new version before ${formattedSubmissionDeadline}(UTC).
+
+// The Client
+
+// Wait until the new version of the submission is made. The submission will be made before ${formattedSubmissionDeadline}(UTC).
+
+// You can review the details and verify the transaction by clicking on the link below:
+// ${prepayTxUrl}
+
+// To go to the project: ${projectLink}
+// If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+//     };
+    
+//     transporter.sendMail(mailOptions);
+
+//     const docRef2 = getFirestore().collection("users").doc(afterData?.get("Lancer's Wallet Address"));
+//     const doc2 = await docRef2.get();
+
+//     const mailOptions2 = {
+//       from: qubeMailAddress,
+//       to: doc2.get("email"),
+//       subject: `Project Name: ${title}`,
+//       text: 
+// `The deadline extension has been accepted! The payment date has been extended to ${formattedPaymentDeadline}(UTC) successfully.
+
+// Next required Action
+
+// The Freelancer
+
+// Make the submission of the new version before ${formattedSubmissionDeadline}(UTC).
+
+// The Client
+
+// Wait until the new version of the submission is made. The submission will be made before ${formattedSubmissionDeadline}(UTC).
+
+// You can review the details and verify the transaction by clicking on the link below:
+// ${prepayTxUrl}
+
+// To go to the project: ${projectLink}
+// If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+//     };
+    
+//     return transporter.sendMail(mailOptions2);
+//   } else if (beforeStatus == StatusEnum.WaitingForSubmissionDER && afterStatus == StatusEnum.WaitingForPayment) {
+//     const docRef = getFirestore().collection("users").doc(afterData?.get("Client's Wallet Address"));
+//     const doc = await docRef.get();
+
+//     const mailOptions = {
+//       from: qubeMailAddress,
+//       to: doc.get("email"),
+//       subject: `Project Name: ${title}`,
+//       text: 
+// `The submission deadline has come. Visit the contract to check the submission. 
+
+// Make sure the things below before you proceed.
+
+// 1. If you approve the submission the payment will be done to the freelancer right after that.
+// 2. If you disapprove the submission, the fund in Escrow will be FROZEN for 9 months.
+
+// You can review the details and verify the transaction by clicking on the link below:
+// ${prepayTxUrl}
+
+// To go to the project: ${projectLink}
+// If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+//     };
+    
+//     return transporter.sendMail(mailOptions);
+//   } else if (beforeStatus == StatusEnum.WaitingForPayment && afterStatus == StatusEnum.CompleteDisapproval) {
+//     const docRef = getFirestore().collection("users").doc(afterData?.get("Client's Wallet Address"));
+//     const doc = await docRef.get();
+
+//     const mailOptions = {
+//       from: qubeMailAddress,
+//       to: doc.get("email"),
+//       subject: `Project Name: ${title}`,
+//       text: 
+// `As the submission was disapproved even after Extending the timeline, the fund in Escrow has been FROZEN. 
+// The fund will be released to the client after 9 months. 
+
+// You can review the details and verify the transaction by clicking on the link below:
+// ${prepayTxUrl}
+
+// To go to the project: ${projectLink}
+// If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+//     };
+    
+//     transporter.sendMail(mailOptions);
+
+//     const docRef2 = getFirestore().collection("users").doc(afterData?.get("Lancer's Wallet Address"));
+//     const doc2 = await docRef2.get();
+
+//     const mailOptions2 = {
+//       from: qubeMailAddress,
+//       to: doc2.get("email"),
+//       subject: `Project Name: ${title}`,
+//       text: 
+// `As the submission was disapproved even after Extending the timeline, the fund in Escrow has been FROZEN. 
+// The fund will be released to the client after 9 months. 
+
+// You can review the details and verify the transaction by clicking on the link below:
+// ${prepayTxUrl}
+
+// To go to the project: ${projectLink}
+// If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+//     };
+    
+//     return transporter.sendMail(mailOptions2);
+//   } else if (beforeStatus == StatusEnum.WaitingForPayment && afterStatus == StatusEnum.CompleteNoContactByClient) {
+//     const docRef = getFirestore().collection("users").doc(afterData?.get("Client's Wallet Address"));
+//     const doc = await docRef.get();
+
+//     const mailOptions = {
+//       from: qubeMailAddress,
+//       to: doc.get("email"),
+//       subject: `Project Name: ${title}`,
+//       text: 
+// `Due to not having any action by the client against the submission, the payment has been executed automatically.
+
+// You can review the details and verify the transaction by clicking on the link below:
+// ${prepayTxUrl}
+
+// To go to the project: ${projectLink}
+// If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+//     };
+    
+//     transporter.sendMail(mailOptions);
+
+//     const docRef2 = getFirestore().collection("users").doc(afterData?.get("Lancer's Wallet Address"));
+//     const doc2 = await docRef2.get();
+
+//     const mailOptions2 = {
+//       from: qubeMailAddress,
+//       to: doc2.get("email"),
+//       subject: `Project Name: ${title}`,
+//       text: 
+// `Due to not having any action by the client against the submission, the payment has been executed automatically.
+
+// You can review the details and verify the transaction by clicking on the link below:
+// ${prepayTxUrl}
+
+// To go to the project: ${projectLink}
+// If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+//     };
+    
+//     return transporter.sendMail(mailOptions2);
+//   } else if (beforeStatus == StatusEnum.WaitingForConnectingLancersWallet && afterStatus == StatusEnum.Cancel) {
+//     const docRef = getFirestore().collection("users").doc(afterData?.get("Client's Wallet Address"));
+//     const doc = await docRef.get();
+
+//     const mailOptions = {
+//       from: qubeMailAddress,
+//       to: doc.get("email"),
+//       subject: `Project Name: ${title}`,
+//       text: 
+// `As there was no action, the contract has been dismissed.
+
+// You can review the details and verify the transaction by clicking on the link below:
+// ${prepayTxUrl}
+
+// To go to the project: ${projectLink}
+// If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+//     };
+    
+//     return transporter.sendMail(mailOptions);
+//   } else if (!beforeInDispute && afterInDispute) {
+//     const docRef = getFirestore().collection("users").doc(afterData?.get("Lancer's Wallet Address"));
+//     const doc = await docRef.get();
+
+//     const mailOptions = {
+//       from: qubeMailAddress,
+//       to: doc.get("email"),
+//       subject: `Project Name: ${title}`,
+//       text: 
+// `The client has made a Deadline Extension Request. 
+
+// Accept the request if you agree. By doing so, the payment date will be extended to ${formattedExtendedPaymentDeadline}(UTC) and you will be required to submit the new version of the task before ${formattedExtendedSubmissionDeadline}(UTC). 
+
+// Make sure if you disagree with this, the fund in the Escrow will be FROZEN and will be released to the client after 9 months.
+
+// You can review the details and verify the transaction by clicking on the link below:
+// ${prepayTxUrl}
+
+// To go to the project: ${projectLink}
+// If you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+//     };
+    
+//     return transporter.sendMail(mailOptions);
+//   }
+
+//   return null;
+// });
+
+// ====================================================================================
 
 // const storage = new ThirdwebStorage({
 //   secretKey: process.env.THIRDWEB_SECRET_KEY,
