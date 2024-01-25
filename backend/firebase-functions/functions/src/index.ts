@@ -434,6 +434,54 @@ export const sendEmailNotification = onDocumentUpdated("/tasks/{taskId}", async 
     }
   }
 
+  if (oldValue?.get("status") === "PendingPayment" && newValue?.get("status") === "PaymentOverdue") {
+    logger.info(`A task with ID ${taskId} has exceeded the payment deadline, preparing to send payment overdue email.`);
+  
+    try {
+      const projectDetails = await getProjectDetails(newValue?.get("projectId"));
+      const assignedUsersEmailAddresses = await getEmailsFromAssignedUsers(projectDetails.assignedUsers);
+      const recipientEmailAddress = await getEmailFromWalletAddress(newValue.get("recipient"));
+
+      if (recipientEmailAddress) {
+        assignedUsersEmailAddresses.push(recipientEmailAddress);
+      }
+  
+      const mailPromises = assignedUsersEmailAddresses.map(emailAddress => {
+        const mailOptions = {
+          from: qubeMailAddress,
+          to: emailAddress,
+          subject: `Task Name: ${newValue.get("title")}`,
+          text: `The task has exceeded the payment deadline.\n\nTo go to the task: ${taskLink}\nIf you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+        };
+    
+        return transporter.sendMail(mailOptions).then(() => {
+          logger.info(`Email sent to ${emailAddress}`);
+        });
+      });
+    
+      await Promise.all(mailPromises);
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.error("Error sending emails:", error);
+
+        const errorLog = {
+          timestamp: FieldValue.serverTimestamp(),
+          error: error.message,
+          taskId: taskId,
+          functionName: "sendEmailNotification"
+        };
+      
+        db.collection("errorLogs").add(errorLog).then(() => {
+          logger.info("Error logged in Firestore");
+        }).catch(logError => {
+          logger.error("Error saving log to Firestore:", logError);
+        });
+      } else {
+        logger.error("An unknown error occurred");
+      }
+    }
+  }
+
   return null;
 });
 
