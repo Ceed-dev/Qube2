@@ -285,6 +285,49 @@ export const sendEmailNotification = onDocumentUpdated("/tasks/{taskId}", async 
     }
   }
 
+  if (oldValue?.get("status") === "InProgress" && newValue?.get("status") === "UnderReview") {
+    logger.info(`A task with ID ${taskId} has been submitted for review, preparing to send review emails.`);
+  
+    try {
+      const projectDetails = await getProjectDetails(newValue?.get("projectId"));
+      const assignedUsersEmailAddresses = await getEmailsFromAssignedUsers(projectDetails.assignedUsers);
+  
+      const mailPromises = assignedUsersEmailAddresses.map(emailAddress => {
+        const mailOptions = {
+          from: qubeMailAddress,
+          to: emailAddress,
+          subject: `Task Name: ${newValue.get("title")}`,
+          text: `The task has been submitted.\n\nTo go to the task: ${taskLink}\nIf you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+        };
+    
+        return transporter.sendMail(mailOptions).then(() => {
+          logger.info(`Email sent to ${emailAddress}`);
+        });
+      });
+    
+      await Promise.all(mailPromises);
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.error("Error sending emails:", error);
+
+        const errorLog = {
+          timestamp: FieldValue.serverTimestamp(),
+          error: error.message,
+          taskId: taskId,
+          functionName: "sendEmailNotification"
+        };
+      
+        db.collection("errorLogs").add(errorLog).then(() => {
+          logger.info("Error logged in Firestore");
+        }).catch(logError => {
+          logger.error("Error saving log to Firestore:", logError);
+        });
+      } else {
+        logger.error("An unknown error occurred");
+      }
+    }
+  }
+
   return null;
 });
 
