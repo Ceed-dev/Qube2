@@ -667,6 +667,47 @@ export const sendEmailNotification = onDocumentUpdated("/tasks/{taskId}", async 
     }
   }
 
+  if (oldValue?.get("status") === "InProgress" && newValue?.get("status") === "DeletionRequested") {
+    logger.info(`A task with ID ${taskId} has a request for task deletion, preparing to send task deletion request email.`);
+  
+    try {
+      const recipientEmailAddress = await getEmailFromWalletAddress(newValue.get("recipient"));
+
+      if (recipientEmailAddress) {
+        const mailOptions = {
+          from: qubeMailAddress,
+          to: recipientEmailAddress,
+          subject: `Task Name: ${newValue.get("title")}`,
+          text: `The task has a request for task deletion.\n\nTo go to the task: ${taskLink}\nIf you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+        };
+        
+        await transporter.sendMail(mailOptions);
+        logger.info(`Email sent to ${recipientEmailAddress}`);
+      } else {
+        logger.error(`No email address found for wallet address: ${newValue.get("recipient")}`);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.error("Error sending emails:", error);
+
+        const errorLog = {
+          timestamp: FieldValue.serverTimestamp(),
+          error: error.message,
+          taskId: taskId,
+          functionName: "sendEmailNotification"
+        };
+      
+        db.collection("errorLogs").add(errorLog).then(() => {
+          logger.info("Error logged in Firestore");
+        }).catch(logError => {
+          logger.error("Error saving log to Firestore:", logError);
+        });
+      } else {
+        logger.error("An unknown error occurred");
+      }
+    }
+  }
+
   return null;
 });
 
