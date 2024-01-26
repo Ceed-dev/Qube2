@@ -9,5 +9,10 @@ export enum TaskStatus {
   PendingPayment,
   PaymentOverdue,
   DeadlineExtensionRequested,
-  LockedByDisapproval
+  LockedByDisapproval,
+  Completed,
+  CompletedWithoutSubmission,
+  CompletedWithoutReview,
+  CompletedWithoutPayment,
+  CompletedWithRewardReleaseAfterLock
 }
