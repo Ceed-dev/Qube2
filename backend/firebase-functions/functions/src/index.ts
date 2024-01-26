@@ -34,6 +34,15 @@ interface MatchReason {
   type: string;
 }
 
+interface TaskProcessed {
+  hash: string;
+  hashedTaskId: string;
+  status: number;
+  sender: string;
+  recipient: string;
+  tokensReleased: boolean;
+}
+
 export const checkSubmissionDeadline = onSchedule("0 21 * * *", async () => {
   const now = new Date();
   // Filter the projects
