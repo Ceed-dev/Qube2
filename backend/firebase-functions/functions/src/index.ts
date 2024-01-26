@@ -43,6 +43,10 @@ interface TaskProcessed {
   tokensReleased: boolean;
 }
 
+function stripHexPrefix(str: string): string {
+  return str.startsWith("0x") ? str.substring(2) : str;
+}
+
 export const checkSubmissionDeadline = onSchedule("0 21 * * *", async () => {
   const now = new Date();
   // Filter the projects
