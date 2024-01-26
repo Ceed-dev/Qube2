@@ -27,6 +27,8 @@ import {
   getProjectDetails,
 } from "./Escrow";
 
+import { TaskStatus } from "./taskStatus";
+
 interface MatchReason {
   address: string;
   args: any[];
@@ -82,6 +84,97 @@ export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
         ) {
           event = { hash, hashedTaskId, status, sender, recipient, tokensReleased };
           console.log("event:", event);
+
+          const querySnapshot = await db
+            .collection("tasks")
+            .where("hashedTaskId", "==", event.hashedTaskId)
+            .get();
+
+          // enum TaskStatus {
+          //   Created, // 0
+          //   Unconfirmed, // 1
+          //   InProgress, // 2
+          //   DeletionRequested, // 3
+          //   SubmissionOverdue, // 4
+          //   UnderReview, // 5
+          //   ReviewOverdue, // 6
+          //   PendingPayment, // 7
+          //   PaymentOverdue, // 8
+          //   DeadlineExtensionRequested, // 9
+          //   LockedByDisapproval // 10
+          //   Completed, // 11
+          //   CompletedWithoutSubmission, // 12
+          //   CompletedWithoutReview, // 13
+          //   CompletedWithoutPayment, // 14
+          //   CompletedWithRewardReleaseAfterLock // 15
+          // }
+
+          if (!querySnapshot.empty) {
+
+            if (event.status === TaskStatus.PendingPayment) {
+              await db
+              .collection("tasks")
+              .doc(querySnapshot.docs[0].id)
+              .update({
+                status: TaskStatus[11],
+                "hashes.completed": event.hash,
+                endTimestamp: FieldValue.serverTimestamp()
+              });
+              logger.log(`${TaskStatus[11]}: ${querySnapshot.docs[0].id}`);
+            } else if (event.status === TaskStatus.SubmissionOverdue) {
+              await db
+              .collection("tasks")
+              .doc(querySnapshot.docs[0].id)
+              .update({
+                status: TaskStatus[12],
+                "hashes.completedWithoutSubmission": event.hash,
+                endTimestamp: FieldValue.serverTimestamp()
+              });
+              logger.log(`${TaskStatus[12]}: ${querySnapshot.docs[0].id}`);
+            } else if (event.status === TaskStatus.ReviewOverdue) {
+              await db
+              .collection("tasks")
+              .doc(querySnapshot.docs[0].id)
+              .update({
+                status: TaskStatus[13],
+                "hashes.completedWithoutReview": event.hash,
+                endTimestamp: FieldValue.serverTimestamp()
+              });
+              logger.log(`${TaskStatus[13]}: ${querySnapshot.docs[0].id}`);
+            } else if (event.status === TaskStatus.PaymentOverdue) {
+              await db
+              .collection("tasks")
+              .doc(querySnapshot.docs[0].id)
+              .update({
+                status: TaskStatus[14],
+                "hashes.completedWithoutPayment": event.hash,
+                endTimestamp: FieldValue.serverTimestamp()
+              });
+              logger.log(`${TaskStatus[14]}: ${querySnapshot.docs[0].id}`);
+            } else if (event.status === TaskStatus.LockedByDisapproval) {
+              await db
+              .collection("tasks")
+              .doc(querySnapshot.docs[0].id)
+              .update({
+                status: TaskStatus[15],
+                "hashes.completedWithRewardReleaseAfterLock": event.hash,
+                endTimestamp: FieldValue.serverTimestamp()
+              });
+              logger.log(`${TaskStatus[15]}: ${querySnapshot.docs[0].id}`);
+            } else if (event.status === TaskStatus.Created || event.status === TaskStatus.Unconfirmed || event.status === TaskStatus.DeletionRequested) {
+              await db
+                .collection("tasks")
+                .doc(querySnapshot.docs[0].id)
+                .delete();
+
+              logger.log(`Task with state [${TaskStatus[event.status]}] deleted: ${querySnapshot.docs[0].id}`);
+            } else {
+              logger.error("No matching status found");
+            }
+            
+          } else {
+            logger.error("No matching task found");
+          }
 
           if (event) {
             const writeResult = await db.collection("blockchainEvents").add(event);
