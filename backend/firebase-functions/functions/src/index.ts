@@ -162,7 +162,16 @@ export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
                 endTimestamp: FieldValue.serverTimestamp()
               });
               logger.log(`${TaskStatus[15]}: ${querySnapshot.docs[0].id}`);
-            } 
+            } else if (event.status === TaskStatus.Created || event.status === TaskStatus.Unconfirmed || event.status === TaskStatus.DeletionRequested) {
+              await db
+                .collection("tasks")
+                .doc(querySnapshot.docs[0].id)
+                .delete();
+
+              logger.log(`Task with state [${TaskStatus[event.status]}] deleted: ${querySnapshot.docs[0].id}`);
+            } else {
+              logger.error("No matching status found");
+            }
             
           } else {
             logger.error("No matching task found");
