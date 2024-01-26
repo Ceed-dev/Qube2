@@ -26,6 +26,14 @@ import {
   getProjectDetails,
 } from "./Escrow";
 
+interface MatchReason {
+  address: string;
+  args: any[];
+  params: { [key: string]: any };
+  signature: string;
+  type: string;
+}
+
 export const checkSubmissionDeadline = onSchedule("0 21 * * *", async () => {
   const now = new Date();
   // Filter the projects
