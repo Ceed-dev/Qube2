@@ -53,53 +53,82 @@ export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
 
   if (req.method === "POST") {
     logger.info("Received POST request");
+    try {
+      const hash = req.body.events[0]["hash"];
+      console.log("hash:", hash);
 
-    const hash = req.body.events[0]["hash"];
-    console.log("hash:", hash);
+      matchReasons = req.body.events[0]["matchReasons"];
+      console.log("matchReasons:", matchReasons);
 
-    matchReasons = req.body.events[0]["matchReasons"];
-    console.log("matchReasons:", matchReasons);
+      const matchEvent = matchReasons.find(element => element.type === "event");
+      const eventParams = matchEvent?.params;
+      let event: TaskProcessed | undefined;
 
-    const matchEvent = matchReasons.find(element => element.type === "event");
-    const eventParams = matchEvent?.params;
-    let event: TaskProcessed | undefined;
+      if (eventParams) {
 
-    if (eventParams) {
+        const hashedTaskId = stripHexPrefix(eventParams.taskId);
+        const status = eventParams.status;
+        const sender = eventParams.sender;
+        const recipient = eventParams.recipient;
+        const tokensReleased = eventParams.tokensReleased;
 
-      const hashedTaskId = stripHexPrefix(eventParams.taskId);
-      const status = eventParams.status;
-      const sender = eventParams.sender;
-      const recipient = eventParams.recipient;
-      const tokensReleased = eventParams.tokensReleased;
+        if (
+          hash &&
+          hashedTaskId && 
+          typeof status === "number" && 
+          sender && 
+          recipient && 
+          typeof tokensReleased === "boolean"
+        ) {
+          event = { hash, hashedTaskId, status, sender, recipient, tokensReleased };
+          console.log("event:", event);
 
-      if (
-        hash &&
-        hashedTaskId && 
-        typeof status === "number" && 
-        sender && 
-        recipient && 
-        typeof tokensReleased === "boolean"
-      ) {
-        event = { hash, hashedTaskId, status, sender, recipient, tokensReleased };
-        console.log("event:", event);
+          if (event) {
+            const writeResult = await db.collection("blockchainEvents").add(event);
+            logger.log(`Event processed and added to Firestore: ${writeResult.id}`);
+            res.json({ result: `Event with ID: ${writeResult.id} processed.` });
+          } else {
+            logger.warn("Event parameters are invalid or missing");
+            res.status(400).send("Invalid event parameters");
+          }
 
-        if (event) {
-          const writeResult = await db.collection("blockchainEvents").add(event);
-          logger.log(`Event processed and added to Firestore: ${writeResult.id}`);
-          res.json({ result: `Event with ID: ${writeResult.id} processed.` });
         } else {
           logger.warn("Event parameters are invalid or missing");
           res.status(400).send("Invalid event parameters");
         }
 
       } else {
-        logger.warn("Event parameters are invalid or missing");
-        res.status(400).send("Invalid event parameters");
+        logger.warn("Event parameters not found in the request");
+        res.status(400).send("Event parameters not found");
       }
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.error("Error occurred:", error);
 
-    } else {
-      logger.warn("Event parameters not found in the request");
-      res.status(400).send("Event parameters not found");
+        let hashedTaskId;
+        const matchEvent = matchReasons.find(element => element.type === "event");
+        if (matchEvent) {
+          hashedTaskId = stripHexPrefix(matchEvent.params.taskId);
+        }
+  
+        const errorLog = {
+          timestamp: FieldValue.serverTimestamp(),
+          errorMessage: error.message,
+          taskId: hashedTaskId,
+          functionName: "onTransferTokensAndTaskDeletion"
+        };
+  
+        try {
+          const logResult = await db.collection("errorLogs").add(errorLog);
+          logger.log(`Error logged in Firestore with ID: ${logResult.id}`);
+        } catch (logError) {
+          logger.error("Error saving log to Firestore:", logError);
+        }
+  
+      } else {
+        logger.error("An unknown error occurred");
+      }
+      res.status(500).send("Internal Server Error");
     }
   } else {
     logger.warn("Received non-POST request");
