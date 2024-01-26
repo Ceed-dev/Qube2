@@ -28,7 +28,6 @@ import {
 } from "./Escrow";
 
 import { TaskStatus } from "./taskStatus";
-import { takeCoverage } from "v8";
 
 interface MatchReason {
   address: string;
