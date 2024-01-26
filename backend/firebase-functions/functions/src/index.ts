@@ -3,6 +3,7 @@
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
+import { onRequest } from "firebase-functions/v2/https";
 import nodemailer from "nodemailer";
 // import axios from "axios";
 // import sharp from "sharp";
@@ -46,6 +47,65 @@ interface TaskProcessed {
 function stripHexPrefix(str: string): string {
   return str.startsWith("0x") ? str.substring(2) : str;
 }
+
+export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
+  let matchReasons: MatchReason[] = [];
+
+  if (req.method === "POST") {
+    logger.info("Received POST request");
+
+    const hash = req.body.events[0]["hash"];
+    console.log("hash:", hash);
+
+    matchReasons = req.body.events[0]["matchReasons"];
+    console.log("matchReasons:", matchReasons);
+
+    const matchEvent = matchReasons.find(element => element.type === "event");
+    const eventParams = matchEvent?.params;
+    let event: TaskProcessed | undefined;
+
+    if (eventParams) {
+
+      const hashedTaskId = stripHexPrefix(eventParams.taskId);
+      const status = eventParams.status;
+      const sender = eventParams.sender;
+      const recipient = eventParams.recipient;
+      const tokensReleased = eventParams.tokensReleased;
+
+      if (
+        hash &&
+        hashedTaskId && 
+        typeof status === "number" && 
+        sender && 
+        recipient && 
+        typeof tokensReleased === "boolean"
+      ) {
+        event = { hash, hashedTaskId, status, sender, recipient, tokensReleased };
+        console.log("event:", event);
+
+        if (event) {
+          const writeResult = await db.collection("blockchainEvents").add(event);
+          logger.log(`Event processed and added to Firestore: ${writeResult.id}`);
+          res.json({ result: `Event with ID: ${writeResult.id} processed.` });
+        } else {
+          logger.warn("Event parameters are invalid or missing");
+          res.status(400).send("Invalid event parameters");
+        }
+
+      } else {
+        logger.warn("Event parameters are invalid or missing");
+        res.status(400).send("Invalid event parameters");
+      }
+
+    } else {
+      logger.warn("Event parameters not found in the request");
+      res.status(400).send("Event parameters not found");
+    }
+  } else {
+    logger.warn("Received non-POST request");
+    res.status(405).send("Only POST requests are accepted");
+  }
+});
 
 export const checkSubmissionDeadline = onSchedule("0 21 * * *", async () => {
   const now = new Date();
