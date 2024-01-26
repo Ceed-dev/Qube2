@@ -12,6 +12,7 @@ import Image from 'next/image';
 import { Spinner } from '../assets';
 import { CreateProjectModal } from '../components/project';
 import { TaskStatus } from '../enums/taskStatus';
+import { keccak256 } from "js-sha3";
 
 interface TokenDepositInfo {
   tokenAddress: string;
@@ -224,6 +225,7 @@ const CreateTask: React.FC = () => {
       textDeliverables: null,
       linkDeliverables: null,
       hashes: null,
+      hashedTaskId: null
     };
 
     // ここでFirebaseへのアップロード処理を実行
@@ -248,7 +250,10 @@ const CreateTask: React.FC = () => {
         console.log("Task created on blockchain");
 
         const taskRef = doc(database, "tasks", docRef.id);
-        await updateDoc(taskRef, { hashes: {"taskCreation": txHash} });
+        await updateDoc(taskRef, { 
+          hashes: { "taskCreation": txHash },
+          hashedTaskId: keccak256(docRef.id)
+        });
         console.log("Task Creation Hash Added");
 
       } catch (error) {
