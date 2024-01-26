@@ -351,7 +351,6 @@ const TaskDetailsPage: React.FC = () => {
       if (isConnected) {
         setIsTransferingTokensAndDeletingTask(true);
         await transferTokensAndDeleteTask(taskId as string);
-        await deleteDoc(doc(database, "tasks", `${taskId}`));
       } else {
         openConnectModal();
       }
