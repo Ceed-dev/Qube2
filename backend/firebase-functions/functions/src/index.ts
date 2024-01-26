@@ -121,6 +121,16 @@ export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
                 endTimestamp: FieldValue.serverTimestamp()
               });
               logger.log(`${TaskStatus[11]}: ${querySnapshot.docs[0].id}`);
+            } else if (event.status === TaskStatus.SubmissionOverdue) {
+              await db
+              .collection("tasks")
+              .doc(querySnapshot.docs[0].id)
+              .update({
+                status: TaskStatus[12],
+                "hashes.completedWithoutSubmission": event.hash,
+                endTimestamp: FieldValue.serverTimestamp()
+              });
+              logger.log(`${TaskStatus[12]}: ${querySnapshot.docs[0].id}`);
             } 
             
           } else {
