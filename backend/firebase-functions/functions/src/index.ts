@@ -28,6 +28,7 @@ import {
 } from "./Escrow";
 
 import { TaskStatus } from "./taskStatus";
+import { takeCoverage } from "v8";
 
 interface MatchReason {
   address: string;
@@ -151,6 +152,16 @@ export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
                 endTimestamp: FieldValue.serverTimestamp()
               });
               logger.log(`${TaskStatus[14]}: ${querySnapshot.docs[0].id}`);
+            } else if (event.status === TaskStatus.LockedByDisapproval) {
+              await db
+              .collection("tasks")
+              .doc(querySnapshot.docs[0].id)
+              .update({
+                status: TaskStatus[15],
+                "hashes.completedWithRewardReleaseAfterLock": event.hash,
+                endTimestamp: FieldValue.serverTimestamp()
+              });
+              logger.log(`${TaskStatus[15]}: ${querySnapshot.docs[0].id}`);
             } 
             
           } else {
