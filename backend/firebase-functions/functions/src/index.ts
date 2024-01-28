@@ -176,15 +176,6 @@ export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
             logger.error("No matching task found");
           }
 
-          if (event) {
-            const writeResult = await db.collection("blockchainEvents").add(event);
-            logger.log(`Event processed and added to Firestore: ${writeResult.id}`);
-            res.json({ result: `Event with ID: ${writeResult.id} processed.` });
-          } else {
-            logger.warn("Event parameters are invalid or missing");
-            res.status(400).send("Invalid event parameters");
-          }
-
         } else {
           logger.warn("Event parameters are invalid or missing");
           res.status(400).send("Invalid event parameters");
