@@ -101,86 +101,59 @@ export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
             .where("hashedTaskId", "==", event.hashedTaskId)
             .get();
 
-          // enum TaskStatus {
-          //   Created, // 0
-          //   Unconfirmed, // 1
-          //   InProgress, // 2
-          //   DeletionRequested, // 3
-          //   SubmissionOverdue, // 4
-          //   UnderReview, // 5
-          //   ReviewOverdue, // 6
-          //   PendingPayment, // 7
-          //   PaymentOverdue, // 8
-          //   DeadlineExtensionRequested, // 9
-          //   LockedByDisapproval // 10
-          //   Completed, // 11
-          //   CompletedWithoutSubmission, // 12
-          //   CompletedWithoutReview, // 13
-          //   CompletedWithoutPayment, // 14
-          //   CompletedWithRewardReleaseAfterLock // 15
-          // }
-
           if (!querySnapshot.empty) {
+            const taskId = querySnapshot.docs[0].id;
+            let statusData: StatusData | undefined;
 
-            if (event.status === TaskStatus.PendingPayment) {
-              await db
-              .collection("tasks")
-              .doc(querySnapshot.docs[0].id)
-              .update({
-                status: TaskStatus[11],
-                "hashes.completed": event.hash,
-                endTimestamp: FieldValue.serverTimestamp()
-              });
-              logger.log(`${TaskStatus[11]}: ${querySnapshot.docs[0].id}`);
-            } else if (event.status === TaskStatus.SubmissionOverdue) {
-              await db
-              .collection("tasks")
-              .doc(querySnapshot.docs[0].id)
-              .update({
-                status: TaskStatus[12],
-                "hashes.completedWithoutSubmission": event.hash,
-                endTimestamp: FieldValue.serverTimestamp()
-              });
-              logger.log(`${TaskStatus[12]}: ${querySnapshot.docs[0].id}`);
-            } else if (event.status === TaskStatus.ReviewOverdue) {
-              await db
-              .collection("tasks")
-              .doc(querySnapshot.docs[0].id)
-              .update({
-                status: TaskStatus[13],
-                "hashes.completedWithoutReview": event.hash,
-                endTimestamp: FieldValue.serverTimestamp()
-              });
-              logger.log(`${TaskStatus[13]}: ${querySnapshot.docs[0].id}`);
-            } else if (event.status === TaskStatus.PaymentOverdue) {
-              await db
-              .collection("tasks")
-              .doc(querySnapshot.docs[0].id)
-              .update({
-                status: TaskStatus[14],
-                "hashes.completedWithoutPayment": event.hash,
-                endTimestamp: FieldValue.serverTimestamp()
-              });
-              logger.log(`${TaskStatus[14]}: ${querySnapshot.docs[0].id}`);
-            } else if (event.status === TaskStatus.LockedByDisapproval) {
-              await db
-              .collection("tasks")
-              .doc(querySnapshot.docs[0].id)
-              .update({
-                status: TaskStatus[15],
-                "hashes.completedWithRewardReleaseAfterLock": event.hash,
-                endTimestamp: FieldValue.serverTimestamp()
-              });
-              logger.log(`${TaskStatus[15]}: ${querySnapshot.docs[0].id}`);
-            } else if (event.status === TaskStatus.Created || event.status === TaskStatus.Unconfirmed || event.status === TaskStatus.DeletionRequested) {
-              await db
-                .collection("tasks")
-                .doc(querySnapshot.docs[0].id)
-                .delete();
+            switch (event.status) {
+              case TaskStatus.PendingPayment:
+                statusData = { 
+                  status: TaskStatus[11], 
+                  "hashes.completed": event.hash, 
+                  endTimestamp: FieldValue.serverTimestamp() 
+                };
+                break;
+              case TaskStatus.SubmissionOverdue:
+                statusData = { 
+                  status: TaskStatus[12],
+                  "hashes.completedWithoutSubmission": event.hash,
+                  endTimestamp: FieldValue.serverTimestamp()
+                };
+                break;
+              case TaskStatus.ReviewOverdue:
+                statusData = { 
+                  status: TaskStatus[13],
+                  "hashes.completedWithoutReview": event.hash,
+                  endTimestamp: FieldValue.serverTimestamp()
+                };
+                break;
+              case TaskStatus.PaymentOverdue:
+                statusData = { 
+                  status: TaskStatus[14],
+                  "hashes.completedWithoutPayment": event.hash,
+                  endTimestamp: FieldValue.serverTimestamp()
+                };
+                break;
+              case TaskStatus.LockedByDisapproval:
+                statusData = { 
+                  status: TaskStatus[15],
+                  "hashes.completedWithRewardReleaseAfterLock": event.hash,
+                  endTimestamp: FieldValue.serverTimestamp()
+                };
+                break;
+              case TaskStatus.Created:
+              case TaskStatus.Unconfirmed:
+              case TaskStatus.DeletionRequested:
+                await db.collection("tasks").doc(taskId).delete();
+                logger.log(`Task with state [${TaskStatus[event.status]}] deleted: ${taskId}`);
+                break;
+              default:
+                logger.error("No matching status found");
+                break;
+            }
 
-              logger.log(`Task with state [${TaskStatus[event.status]}] deleted: ${querySnapshot.docs[0].id}`);
-            } else {
-              logger.error("No matching status found");
+            if (statusData?.status) {
+              await updateTaskStatus(taskId, statusData);
             }
             
           } else {
