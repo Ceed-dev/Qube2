@@ -61,12 +61,17 @@ async function updateTaskStatus(taskId: string, statusData: StatusData) {
   logger.log(`${statusData.status}: ${taskId}`);
 }
 
-function createStatusData(statusKey: number, hashKey: string, hash: string) {
+function createStatusData(statusKey: number, hash: string) {
   return {
     status: TaskStatus[statusKey],
-    [`hashes.${hashKey}`]: hash,
+    [`hashes.${lowercaseFirstLetter(TaskStatus[statusKey])}`]: hash,
     endTimestamp: FieldValue.serverTimestamp()
   };
+}
+
+function lowercaseFirstLetter(str: string) {
+  if (!str) return str;
+  return str.charAt(0).toLowerCase() + str.slice(1);
 }
 
 export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
@@ -115,19 +120,19 @@ export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
 
             switch (event.status) {
               case TaskStatus.PendingPayment:
-                statusData = createStatusData(11, "completed", event.hash);
+                statusData = createStatusData(11, event.hash);
                 break;
               case TaskStatus.SubmissionOverdue:
-                statusData = createStatusData(12, "completedWithoutSubmission", event.hash);
+                statusData = createStatusData(12, event.hash);
                 break;
               case TaskStatus.ReviewOverdue:
-                statusData = createStatusData(13, "completedWithoutReview", event.hash);
+                statusData = createStatusData(13, event.hash);
                 break;
               case TaskStatus.PaymentOverdue:
-                statusData = createStatusData(14, "completedWithoutPayment", event.hash);
+                statusData = createStatusData(14, event.hash);
                 break;
               case TaskStatus.LockedByDisapproval:
-                statusData = createStatusData(15, "completedWithRewardReleaseAfterLock", event.hash);
+                statusData = createStatusData(15, event.hash);
                 break;
               case TaskStatus.Created:
               case TaskStatus.Unconfirmed:
