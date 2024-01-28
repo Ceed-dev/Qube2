@@ -367,6 +367,12 @@ interface UpdateData {
   [key: string]: any;
 }
 
+function getDayBeforeSubmissionDeadline(submissionDeadline: Date): Date {
+  const dayBeforeSubmissionDeadline = new Date(submissionDeadline);
+  dayBeforeSubmissionDeadline.setDate(submissionDeadline.getDate() - 1);
+  return dayBeforeSubmissionDeadline;
+}
+
 // const formatDateToUTC = (dateObj: Date) => {
 //   const year = dateObj.getUTCFullYear();
 //   const month = (dateObj.getUTCMonth() + 1).toString().padStart(2, '0');
