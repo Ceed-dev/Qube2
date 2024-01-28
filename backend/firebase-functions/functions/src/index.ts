@@ -383,7 +383,7 @@ export const dailyTaskUpdate = onSchedule("0 0 * * *", async () => {
 
   let batch = db.batch();
 
-  tasks.forEach(doc => {
+  tasks.forEach(async (doc) => {
     const task = doc.data();
     let update: UpdateData | undefined;
 
@@ -396,7 +396,28 @@ export const dailyTaskUpdate = onSchedule("0 0 * * *", async () => {
       task.status === TaskStatus[2] &&
       now >= getDayBeforeSubmissionDeadline(task.submissionDeadline.toDate())
     ) {
-      // send email notification to creator
+      try {
+        const recipientEmailAddress = await getEmailFromWalletAddress(task.recipient);
+
+        if (recipientEmailAddress) {
+          const taskLink = `${process.env.BASE_URL}/taskDetails/${task.id}`;
+
+          const mailOptions = {
+            from: qubeMailAddress,
+            to: recipientEmailAddress,
+            subject: `Task Name: ${task.title}`,
+            text: `The task has not been submitted by the day before the submission deadline.\n\nTo go to the task: ${taskLink}\nIf you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+          };
+      
+          await transporter.sendMail(mailOptions);
+          logger.info(`Reminder email sent to ${task.creatorEmail}`);
+        } else {
+          logger.error(`No email address found for wallet address: ${task.recipient}`);
+        }
+        
+      } catch (error) {
+        logger.error("Error sending email:", error);
+      }
     } else if (
       task.status === TaskStatus[5] &&
       now >= task.reviewDeadline.toDate()
