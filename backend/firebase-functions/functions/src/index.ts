@@ -56,6 +56,11 @@ function stripHexPrefix(str: string): string {
   return str.startsWith("0x") ? str.substring(2) : str;
 }
 
+async function updateTaskStatus(taskId: string, statusData: StatusData) {
+  await db.collection("tasks").doc(taskId).update(statusData);
+  logger.log(`${statusData.status}: ${taskId}`);
+}
+
 export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
   let matchReasons: MatchReason[] = [];
 
