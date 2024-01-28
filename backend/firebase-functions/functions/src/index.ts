@@ -61,6 +61,14 @@ async function updateTaskStatus(taskId: string, statusData: StatusData) {
   logger.log(`${statusData.status}: ${taskId}`);
 }
 
+function createStatusData(statusKey: number, hashKey: string, hash: string) {
+  return {
+    status: TaskStatus[statusKey],
+    [`hashes.${hashKey}`]: hash,
+    endTimestamp: FieldValue.serverTimestamp()
+  };
+}
+
 export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
   let matchReasons: MatchReason[] = [];
 
@@ -107,39 +115,19 @@ export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
 
             switch (event.status) {
               case TaskStatus.PendingPayment:
-                statusData = { 
-                  status: TaskStatus[11], 
-                  "hashes.completed": event.hash, 
-                  endTimestamp: FieldValue.serverTimestamp() 
-                };
+                statusData = createStatusData(11, "completed", event.hash);
                 break;
               case TaskStatus.SubmissionOverdue:
-                statusData = { 
-                  status: TaskStatus[12],
-                  "hashes.completedWithoutSubmission": event.hash,
-                  endTimestamp: FieldValue.serverTimestamp()
-                };
+                statusData = createStatusData(12, "completedWithoutSubmission", event.hash);
                 break;
               case TaskStatus.ReviewOverdue:
-                statusData = { 
-                  status: TaskStatus[13],
-                  "hashes.completedWithoutReview": event.hash,
-                  endTimestamp: FieldValue.serverTimestamp()
-                };
+                statusData = createStatusData(13, "completedWithoutReview", event.hash);
                 break;
               case TaskStatus.PaymentOverdue:
-                statusData = { 
-                  status: TaskStatus[14],
-                  "hashes.completedWithoutPayment": event.hash,
-                  endTimestamp: FieldValue.serverTimestamp()
-                };
+                statusData = createStatusData(14, "completedWithoutPayment", event.hash);
                 break;
               case TaskStatus.LockedByDisapproval:
-                statusData = { 
-                  status: TaskStatus[15],
-                  "hashes.completedWithRewardReleaseAfterLock": event.hash,
-                  endTimestamp: FieldValue.serverTimestamp()
-                };
+                statusData = createStatusData(15, "completedWithRewardReleaseAfterLock", event.hash);
                 break;
               case TaskStatus.Created:
               case TaskStatus.Unconfirmed:
