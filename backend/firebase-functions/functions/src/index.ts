@@ -388,7 +388,7 @@ export const dailyTaskUpdate = onSchedule("0 0 * * *", async () => {
     let update: UpdateData | undefined;
 
     if (
-      task.status === TaskStatus[2] &&
+      (task.status === TaskStatus[2] || task.status === TaskStatus[3]) &&
       now >= task.submissionDeadline.toDate()
     ) {
       update = { status: TaskStatus[4] };
