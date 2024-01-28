@@ -363,6 +363,10 @@ export const checkSignByFreelancer = onSchedule("30 23 * * *", async () => {
   });
 });
 
+interface UpdateData {
+  [key: string]: any;
+}
+
 // const formatDateToUTC = (dateObj: Date) => {
 //   const year = dateObj.getUTCFullYear();
 //   const month = (dateObj.getUTCMonth() + 1).toString().padStart(2, '0');
