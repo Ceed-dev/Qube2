@@ -373,6 +373,55 @@ function getDayBeforeSubmissionDeadline(submissionDeadline: Date): Date {
   return dayBeforeSubmissionDeadline;
 }
 
+export const dailyTaskUpdate = onSchedule("0 0 * * *", async () => {
+  const tasksRef = db.collection("tasks");
+  const tasks = await tasksRef.get();
+
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+
+  let batch = db.batch();
+
+  tasks.forEach(doc => {
+    const task = doc.data();
+    let update: UpdateData | undefined;
+
+    if (
+      task.status === TaskStatus[2] &&
+      now >= task.submissionDeadline.toDate()
+    ) {
+      update = { status: TaskStatus[4] };
+    } else if (
+      task.status === TaskStatus[2] &&
+      now >= getDayBeforeSubmissionDeadline(task.submissionDeadline.toDate())
+    ) {
+      // send email notification to creator
+    } else if (
+      task.status === TaskStatus[5] &&
+      now >= task.reviewDeadline.toDate()
+    ) {
+      update = { status: TaskStatus[6] };
+    } else if (
+      task.status === TaskStatus[7] &&
+      now >= task.paymentDeadline.toDate()
+    ) {
+      update = { status: TaskStatus[8] };
+    }
+
+    if (update) {
+      batch.update(doc.ref, update);
+    }
+  });
+
+  try {
+    await batch.commit();
+    logger.log("Tasks updated successfully");
+  } catch (error) {
+    logger.error("Error updating tasks:", error);
+  }
+});
+
 // const formatDateToUTC = (dateObj: Date) => {
 //   const year = dateObj.getUTCFullYear();
 //   const month = (dateObj.getUTCMonth() + 1).toString().padStart(2, '0');
