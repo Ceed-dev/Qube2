@@ -46,6 +46,12 @@ interface TaskProcessed {
   tokensReleased: boolean;
 }
 
+interface StatusData {
+  status: string;
+  [key: string]: any;
+  endTimestamp: FieldValue;
+}
+
 function stripHexPrefix(str: string): string {
   return str.startsWith("0x") ? str.substring(2) : str;
 }
