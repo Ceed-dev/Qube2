@@ -1041,32 +1041,25 @@ export const sendEmailNotification = onDocumentUpdated("/tasks/{taskId}", async 
     }
   }
 
-  if (oldValue?.get("status") === "InProgress" && newValue?.get("status") === "SubmissionOverdue") {
-    logger.info(`The submission deadline for task with ID ${taskId} has been exceeded, preparing to send submission overdue emails.`);
+  if (oldValue?.get("status") === "SubmissionOverdue" && newValue?.get("status") === "CompletedWithoutSubmission") {
+    logger.info(`The reward for task with ID ${taskId} has been completed by the company without submission, preparing to send reward completion without submission email.`);
   
     try {
-      const projectDetails = await getProjectDetails(newValue?.get("projectId"));
-      const assignedUsersEmailAddresses = await getEmailsFromAssignedUsers(projectDetails.assignedUsers);
       const recipientEmailAddress = await getEmailFromWalletAddress(newValue.get("recipient"));
 
       if (recipientEmailAddress) {
-        assignedUsersEmailAddresses.push(recipientEmailAddress);
-      }
-  
-      const mailPromises = assignedUsersEmailAddresses.map(emailAddress => {
         const mailOptions = {
           from: qubeMailAddress,
-          to: emailAddress,
+          to: recipientEmailAddress,
           subject: `Task Name: ${newValue.get("title")}`,
-          text: `The submission deadline for this task has been exceeded.\n\nTo go to the task: ${taskLink}\nIf you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+          text: `The reward for this task has been completed.\n\nTo go to the task: ${taskLink}\nIf you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
         };
-    
-        return transporter.sendMail(mailOptions).then(() => {
-          logger.info(`Email sent to ${emailAddress}`);
-        });
-      });
-    
-      await Promise.all(mailPromises);
+        
+        await transporter.sendMail(mailOptions);
+        logger.info(`Email sent to ${recipientEmailAddress}`);
+      } else {
+        logger.error(`No email address found for wallet address: ${newValue.get("recipient")}`);
+      }
     } catch (error) {
       if (error instanceof Error) {
         logger.error("Error sending emails:", error);
