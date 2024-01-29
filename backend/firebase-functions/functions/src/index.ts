@@ -1098,9 +1098,9 @@ export const sendEmailNotification = onDocumentUpdated("/tasks/{taskId}", async 
     }
   }
 
-  if (oldValue?.get("status") === "UnderReview" && newValue?.get("status") === "ReviewOverdue") {
-    logger.info(`The review deadline for task with ID ${taskId} has been exceeded, preparing to send review overdue emails.`);
-  
+  if (oldValue?.get("status") === "ReviewOverdue" && newValue?.get("status") === "CompletedWithoutReview") {
+    logger.info(`The payment for task with ID ${taskId} has been completed by the creator without review, preparing to send payment completion without review emails.`);
+
     try {
       const projectDetails = await getProjectDetails(newValue?.get("projectId"));
       const assignedUsersEmailAddresses = await getEmailsFromAssignedUsers(projectDetails.assignedUsers);
@@ -1110,7 +1110,7 @@ export const sendEmailNotification = onDocumentUpdated("/tasks/{taskId}", async 
           from: qubeMailAddress,
           to: emailAddress,
           subject: `Task Name: ${newValue.get("title")}`,
-          text: `The review overdue for this task has been exceeded.\n\nTo go to the task: ${taskLink}\nIf you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+          text: `The payment for this task has been completed by the creator without review.\n\nTo go to the task: ${taskLink}\nIf you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
         };
     
         return transporter.sendMail(mailOptions).then(() => {
