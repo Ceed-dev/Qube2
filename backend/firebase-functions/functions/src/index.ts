@@ -1098,6 +1098,49 @@ export const sendEmailNotification = onDocumentUpdated("/tasks/{taskId}", async 
     }
   }
 
+  if (oldValue?.get("status") === "ReviewOverdue" && newValue?.get("status") === "CompletedWithoutReview") {
+    logger.info(`The payment for task with ID ${taskId} has been completed by the creator without review, preparing to send payment completion without review emails.`);
+
+    try {
+      const projectDetails = await getProjectDetails(newValue?.get("projectId"));
+      const assignedUsersEmailAddresses = await getEmailsFromAssignedUsers(projectDetails.assignedUsers);
+
+      const mailPromises = assignedUsersEmailAddresses.map(emailAddress => {
+        const mailOptions = {
+          from: qubeMailAddress,
+          to: emailAddress,
+          subject: `Task Name: ${newValue.get("title")}`,
+          text: `The payment for this task has been completed by the creator without review.\n\nTo go to the task: ${taskLink}\nIf you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+        };
+    
+        return transporter.sendMail(mailOptions).then(() => {
+          logger.info(`Email sent to ${emailAddress}`);
+        });
+      });
+    
+      await Promise.all(mailPromises);
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.error("Error sending emails:", error);
+
+        const errorLog = {
+          timestamp: FieldValue.serverTimestamp(),
+          error: error.message,
+          taskId: taskId,
+          functionName: "sendEmailNotification"
+        };
+      
+        db.collection("errorLogs").add(errorLog).then(() => {
+          logger.info("Error logged in Firestore");
+        }).catch(logError => {
+          logger.error("Error saving log to Firestore:", logError);
+        });
+      } else {
+        logger.error("An unknown error occurred");
+      }
+    }
+  }
+
   return null;
 });
 
