@@ -424,6 +424,7 @@ export const dailyTaskUpdate = onSchedule("0 0 * * *", async () => {
 
   tasks.forEach(async (doc) => {
     const task = doc.data();
+    const taskId = doc.id;
     let update: UpdateData | undefined;
 
     if (
@@ -439,7 +440,7 @@ export const dailyTaskUpdate = onSchedule("0 0 * * *", async () => {
         const recipientEmailAddress = await getEmailFromWalletAddress(task.recipient);
 
         if (recipientEmailAddress) {
-          const taskLink = `${process.env.BASE_URL}/taskDetails/${task.id}`;
+          const taskLink = `${process.env.BASE_URL}/taskDetails/${taskId}`;
 
           const mailOptions = {
             from: qubeMailAddress,
@@ -449,7 +450,7 @@ export const dailyTaskUpdate = onSchedule("0 0 * * *", async () => {
           };
       
           await transporter.sendMail(mailOptions);
-          logger.info(`Reminder email sent to ${task.creatorEmail}`);
+          logger.info(`Reminder email sent to ${recipientEmailAddress}`);
         } else {
           logger.error(`No email address found for wallet address: ${task.recipient}`);
         }
