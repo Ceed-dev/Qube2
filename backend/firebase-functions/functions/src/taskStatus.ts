@@ -14,5 +14,5 @@ export enum TaskStatus {
   CompletedWithoutSubmission, // 12
   CompletedWithoutReview, // 13
   CompletedWithoutPayment, // 14
-  CompletedWithRewardReleaseAfterLockq // 15
+  CompletedWithRewardReleaseAfterLock // 15
 }
