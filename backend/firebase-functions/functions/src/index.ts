@@ -137,6 +137,45 @@ export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
               case TaskStatus.Created:
               case TaskStatus.Unconfirmed:
               case TaskStatus.DeletionRequested:
+                try {
+                  const projectDetails = await getProjectDetails(querySnapshot.docs[0].get("projectId"));
+                  const assignedUsersEmailAddresses = await getEmailsFromAssignedUsers(projectDetails.assignedUsers);
+              
+                  const mailPromises = assignedUsersEmailAddresses.map(emailAddress => {
+                    const mailOptions = {
+                      from: qubeMailAddress,
+                      to: emailAddress,
+                      subject: `Task Name: ${querySnapshot.docs[0].get("title")}`,
+                      text: `The task has been deleted.\n\nIf you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+                    };
+                
+                    return transporter.sendMail(mailOptions).then(() => {
+                      logger.info(`Email sent to ${emailAddress}`);
+                    });
+                  });
+                
+                  await Promise.all(mailPromises);
+                } catch (error) {
+                  if (error instanceof Error) {
+                    logger.error("Error sending emails:", error);
+            
+                    const errorLog = {
+                      timestamp: FieldValue.serverTimestamp(),
+                      error: error.message,
+                      taskId: taskId,
+                      functionName: "sendEmailNotification"
+                    };
+                  
+                    db.collection("errorLogs").add(errorLog).then(() => {
+                      logger.info("Error logged in Firestore");
+                    }).catch(logError => {
+                      logger.error("Error saving log to Firestore:", logError);
+                    });
+                  } else {
+                    logger.error("An unknown error occurred");
+                  }
+                }
+
                 await db.collection("tasks").doc(taskId).delete();
                 logger.log(`Task with state [${TaskStatus[event.status]}] deleted: ${taskId}`);
                 break;
