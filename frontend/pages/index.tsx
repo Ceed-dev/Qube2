@@ -76,7 +76,7 @@ export default function Home() {
   }, [isConnected]);
 
   return (
-    <div className="font-nunito text-secondary">
+    <div className="font-nunito">
       {/* Notification */}
       <Notification />
       {/* IntroSection */}
