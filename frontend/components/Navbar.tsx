@@ -209,7 +209,7 @@ const Navbar = (): JSX.Element => {
 
   return (
     <>
-      <nav className="w-full absolute z-50 text-white flex flex-row lg:px-20 md:px-2 px-10 gap-5 items-center justify-between mt-3">
+      <nav className="w-full absolute z-50 flex flex-row lg:px-20 md:px-2 px-10 gap-5 items-center justify-between mt-3">
         {/* Logo/Icon */}
         <motion.div
           variants={hoverVariant()} 
@@ -226,7 +226,7 @@ const Navbar = (): JSX.Element => {
 
         {/* Navbar Links */}
         <ul
-          className={`list-none grow ${
+          className={`list-none gap-20 ${
             router.pathname === "/" ? "hidden md:flex" : "hidden"
           }`}
         >
@@ -236,7 +236,7 @@ const Navbar = (): JSX.Element => {
                 variants={hoverVariant()}
                 whileHover={"hover"}
                 key={link.id}
-                className="xl:text-xl lg:text-md sm:text-sm font-medium cursor-pointer mx-auto"
+                className="lg:text-lg sm:text-sm cursor-pointer hover:text-purple-600"
               >
                 <Link href={`#${link.id}`}>
                   <p>{link.title}</p>
