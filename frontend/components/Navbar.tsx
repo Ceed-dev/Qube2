@@ -330,13 +330,13 @@ const Navbar = (): JSX.Element => {
         />
 
         {/* Join Discord Button */}
-        <Link 
+        {/* <Link 
           href={`${process.env.NEXT_PUBLIC_DISCORD_LINK}`}
           target="_blank"
           className={`border border-white hover:bg-purple-500 ease-in duration-300 rounded-full lg:px-5 px-3 lg:py-2 py-1 ${router.pathname === "/" ? "hidden md:block": "hidden"}`}
         >
           JOIN DISCORD
-        </Link>
+        </Link> */}
 
         {/* Connect Button */}
         {router.pathname !== "/"
