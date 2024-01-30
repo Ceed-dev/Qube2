@@ -5,6 +5,7 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
 import { onRequest } from "firebase-functions/v2/https";
 import nodemailer from "nodemailer";
+import { ethers } from "ethers";
 // import axios from "axios";
 // import sharp from "sharp";
 // import { createCanvas, loadImage, CanvasRenderingContext2D } from "canvas";
@@ -26,6 +27,8 @@ import {
   withdrawToRecipientByOwner,
   getProjectDetails,
 } from "./Escrow";
+
+import { getTokenDetails } from "./ERC20";
 
 import { TaskStatus } from "./taskStatus";
 
@@ -89,6 +92,8 @@ export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
       const matchEvent = matchReasons.find(element => element.type === "event");
       const eventParams = matchEvent?.params;
       let event: TaskProcessed | undefined;
+
+      const depositEvent = matchReasons.find(element => element.signature === "depositAdditionalTokensToProject(string,address[],uint256[])");
 
       if (eventParams) {
 
@@ -197,10 +202,63 @@ export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
           res.status(400).send("Invalid event parameters");
         }
 
-      } else {
-        logger.warn("Event parameters not found in the request");
-        res.status(400).send("Event parameters not found");
+      } 
+
+      if (depositEvent) {
+        const depositParams = depositEvent.params;
+        const projectId = depositParams.projectId;
+        const tokenAddresses = depositParams.tokenAddresses;
+        const amounts = depositParams.amounts;
+
+        try {
+          const projectLink = `${process.env.BASE_URL}/projectDetails/${projectId}`;
+          const projectDetails = await getProjectDetails(projectId);
+          const assignedUsersEmailAddresses = await getEmailsFromAssignedUsers(projectDetails.assignedUsers);
+
+          let tokenListString = "";
+          for (let i = 0; i < tokenAddresses.length; i++) {
+            const tokenDetails = await getTokenDetails(tokenAddresses[i]); 
+            if (tokenDetails) {
+              tokenListString += `Token : ${tokenDetails.symbol}, Amount: ${ethers.utils.formatUnits(amounts[i], tokenDetails.decimals)}\n`;
+            }
+          }
+      
+          const mailPromises = assignedUsersEmailAddresses.map(emailAddress => {
+            const mailOptions = {
+              from: qubeMailAddress,
+              to: emailAddress,
+              subject: `[New Deposit] Project Name: ${projectId.split("_")[0]}`,
+              text: `New tokens have been deposited.\n\n${tokenListString}\nTo go to the project: ${projectLink}\nIf you have any questions feel free to reply to this mail. Don't forget to explain the issue you are having.`,
+            };
+        
+            return transporter.sendMail(mailOptions).then(() => {
+              logger.info(`Email sent to ${emailAddress}`);
+            });
+          });
+        
+          await Promise.all(mailPromises);
+        } catch (error) {
+          if (error instanceof Error) {
+            logger.error("Error sending emails:", error);
+    
+            const errorLog = {
+              timestamp: FieldValue.serverTimestamp(),
+              error: error.message,
+              projectId: projectId,
+              functionName: "sendEmailNotification"
+            };
+          
+            db.collection("errorLogs").add(errorLog).then(() => {
+              logger.info("Error logged in Firestore");
+            }).catch(logError => {
+              logger.error("Error saving log to Firestore:", logError);
+            });
+          } else {
+            logger.error("An unknown error occurred");
+          }
+        }
       }
+      
     } catch (error) {
       if (error instanceof Error) {
         logger.error("Error occurred:", error);
