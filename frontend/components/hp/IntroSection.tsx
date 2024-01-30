@@ -13,7 +13,7 @@ import { textVariant } from "../../utils";
 // Waitlist URL Import
 import { waitlistUrl } from "../../constants";
 
-import { Game } from "../../assets";
+import { Block } from "../../assets";
 
 const IntroSection = (): JSX.Element => {
   const router = useRouter();
@@ -37,8 +37,8 @@ const IntroSection = (): JSX.Element => {
         />
       } */}
       <Image
-        src={Game}
-        alt="Game"
+        src={Block}
+        alt="Block"
         className="absolute md:-right-20 -right-10 lg:bottom-28 -bottom-12 w-auto xl:h-[350px] lg:h-[250px] sm:h-[200px] h-[130px]"
       />
       <div className="absolute md:-left-20 -left-10 lg:bottom-28 -bottom-12">
