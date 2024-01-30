@@ -209,7 +209,7 @@ const Navbar = (): JSX.Element => {
 
   return (
     <>
-      <nav className="w-full absolute z-50 text-white flex flex-row lg:px-20 md:px-2 px-10 gap-5 items-center justify-between mt-3">
+      <nav className="w-full absolute z-50 flex flex-row lg:px-20 md:px-2 px-10 gap-5 items-center justify-between mt-3">
         {/* Logo/Icon */}
         <motion.div
           variants={hoverVariant()} 
@@ -226,7 +226,7 @@ const Navbar = (): JSX.Element => {
 
         {/* Navbar Links */}
         <ul
-          className={`list-none grow ${
+          className={`list-none gap-20 ${
             router.pathname === "/" ? "hidden md:flex" : "hidden"
           }`}
         >
@@ -236,7 +236,7 @@ const Navbar = (): JSX.Element => {
                 variants={hoverVariant()}
                 whileHover={"hover"}
                 key={link.id}
-                className="xl:text-xl lg:text-md sm:text-sm font-medium cursor-pointer mx-auto"
+                className="lg:text-lg sm:text-sm cursor-pointer hover:text-purple-600"
               >
                 <Link href={`#${link.id}`}>
                   <p>{link.title}</p>
@@ -330,13 +330,13 @@ const Navbar = (): JSX.Element => {
         />
 
         {/* Join Discord Button */}
-        <Link 
+        {/* <Link 
           href={`${process.env.NEXT_PUBLIC_DISCORD_LINK}`}
           target="_blank"
           className={`border border-white hover:bg-purple-500 ease-in duration-300 rounded-full lg:px-5 px-3 lg:py-2 py-1 ${router.pathname === "/" ? "hidden md:block": "hidden"}`}
         >
           JOIN DISCORD
-        </Link>
+        </Link> */}
 
         {/* Connect Button */}
         {router.pathname !== "/"
@@ -369,7 +369,7 @@ const Navbar = (): JSX.Element => {
         }
 
         {/* User Type Select Dropdown Button */}
-        <div className={`relative grow max-w-[140px] ${router.pathname === "/" ? "hidden md:block": "hidden"}`}>
+        {/* <div className={`relative grow max-w-[140px] ${router.pathname === "/" ? "hidden md:block": "hidden"}`}>
           <button type="button" className="relative w-full rounded-md cursor-default py-1.5 pl-3 pr-10 text-left shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6" aria-haspopup="listbox" aria-expanded="true" aria-labelledby="listbox-label" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
             <span className="ml-3 block truncate font-bold">{userType}</span>
             <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
@@ -390,7 +390,7 @@ const Navbar = (): JSX.Element => {
               </li>
             </ul>
           }
-        </div>
+        </div> */}
       </nav>
 
       {/* Email Modal */}

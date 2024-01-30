@@ -84,12 +84,8 @@ export { WagmiConfig, RainbowKitProvider };
 // Ref: https://www.rainbowkit.com/docs/custom-theme#extending-a-built-in-theme
 const customWalletTheme: Theme = merge(darkTheme(), {
   colors: {
-    accentColor: "linear-gradient(to right, #E220CF, #FFFFFF)",
+    accentColor: "white",
     accentColorForeground: "black",
-    connectButtonBackground: "black",
-    connectButtonBackgroundError: "black",
-    connectButtonInnerBackground: "black",
-    modalBackground: "black",
   },
   radii: {
     connectButton: "20px",
