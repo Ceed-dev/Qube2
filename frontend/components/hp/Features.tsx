@@ -10,13 +10,27 @@ import { featuresForClients, featuresForFreelancers } from "../../constants";
 import { motion } from "framer-motion";
 import { fadeIn, textVariant } from "../../utils";
 
+import { Feature1 } from "../../assets";
+
 const Features = () => {
   const router = useRouter();
   const { userType } = router.query;
 
   return (
-    <div id="features" className="bg-white">
+    <div id="features" className="bg-white px-20">
       <h1 className="text-center font-bold text-5xl py-20">Qubenの4つの特徴</h1>
+      <div className="flex flex-row">
+        <div className="px-40 my-auto">
+          <h2 className="font-bold text-4xl">豊富なデータベースから最適なインフルエンサーを検索</h2>
+          <div className="h-[5px] bg-purple-500 my-3"></div>
+          <ul className="text-xl list-disc list-inside">
+            <li>ブロックチェーンゲームのターゲットを抱えるインフルエンサーのデータベース</li>
+            <li>インド・フィリピン・インドネシアのローカルなインフルエンサーを検索</li>
+            <li>「告知ツイートの平均インプ数・所属コミュニティ」などのようなWeb3のマーケティングで必要な要素を検索</li>
+          </ul>
+        </div>
+        <Image src={Feature1} alt="Feature1" className="flex-none w-1/2" />
+      </div>
       {/* <motion.h1
         variants={textVariant()}
         initial="hidden"
