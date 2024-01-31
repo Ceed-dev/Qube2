@@ -36,6 +36,7 @@ import Trash from "./trash.svg";
 import Checkmark from "./Checkmark.svg";
 import ToggleOpen from "./ToggleOpen.svg";
 import ToggleClose from "./ToggleClose.svg";
+import Feature1 from "./feature1.svg";
 
 export {
   arrow,
@@ -76,4 +77,5 @@ export {
   Checkmark,
   ToggleOpen,
   ToggleClose,
+  Feature1
 };
