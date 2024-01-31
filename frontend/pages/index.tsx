@@ -88,17 +88,17 @@ export default function Home() {
       </SectionWrapper>
 
       {/* Why use Qube? */}
-      <SectionWrapper bgColor="bg-black" glowStyles={[]}>
+      {/* <SectionWrapper bgColor="bg-black" glowStyles={[]}>
         <CurrentSystemProblems />
-      </SectionWrapper>
+      </SectionWrapper> */}
 
       {/* Features */}
-      <SectionWrapper
+      {/* <SectionWrapper
         bgColor="bg-black"
         glowStyles={aesthetics.glow.featuresGlowStyles}
-      >
-        <Features />
-      </SectionWrapper>
+      > */}
+      <Features />
+      {/* </SectionWrapper> */}
 
       {/* How to Use */}
       <SectionWrapper
