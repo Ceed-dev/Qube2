@@ -26,7 +26,7 @@ import { SectionWrapperPropsInterface } from "../interfaces";
 import { useAccount, useDisconnect } from "wagmi";
 import { useRouter } from "next/router";
 import { useNotificationContext } from "../context";
-import { WideBlocks, Problems } from "../assets";
+import { WideBlocks, Problems, FeaturesForAgent } from "../assets";
 import { whitelist } from "../constants/whitelist";
 import Image from "next/image";
 
@@ -89,6 +89,8 @@ export default function Agent() {
       </SectionWrapper>
 
       <Image src={Problems} alt="Problems" className="bg-white h-screen w-screen py-20" />
+
+      <Image src={FeaturesForAgent} alt="FeaturesForAgent" className="bg-white h-screen w-screen py-20" />
 
       {/* Why use Qube? */}
       {/* <SectionWrapper bgColor="bg-black" glowStyles={[]}>
