@@ -45,6 +45,7 @@ import ArrowIconForFaq from "./ArrowIconForFaq.svg";
 import WideBlocks from "./WideBlocks.svg";
 import QubeForFooter from "./QubeForFooter.svg";
 import Problems from "./Problems.svg";
+import FeaturesForAgent from "./FeaturesForAgent.svg";
 
 export {
   arrow,
@@ -94,4 +95,5 @@ export {
   WideBlocks,
   QubeForFooter,
   Problems,
+  FeaturesForAgent,
 };
