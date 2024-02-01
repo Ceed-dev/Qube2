@@ -10,7 +10,7 @@ import { featuresForClients, featuresForFreelancers } from "../../constants";
 import { motion } from "framer-motion";
 import { fadeIn, textVariant } from "../../utils";
 
-import { Feature1 } from "../../assets";
+import { Feature1, Feature2, SmallBlock1 } from "../../assets";
 
 const Features = () => {
   const router = useRouter();
@@ -18,8 +18,10 @@ const Features = () => {
 
   return (
     <div id="features" className="bg-white px-20">
+
       <h1 className="text-center font-bold text-5xl py-20">Qubenの4つの特徴</h1>
-      <div className="flex flex-row">
+
+      <div className="flex flex-row mb-40">
         <div className="px-40 my-auto">
           <h2 className="font-bold text-4xl">豊富なデータベースから最適なインフルエンサーを検索</h2>
           <div className="h-[5px] bg-purple-500 my-3"></div>
@@ -31,6 +33,18 @@ const Features = () => {
         </div>
         <Image src={Feature1} alt="Feature1" className="flex-none w-1/2" />
       </div>
+
+      <div className="flex flex-row">
+        <Image src={Feature2} alt="Feature2" className="flex-none w-1/2" />
+        <div className="px-40 my-auto">
+          <h2 className="font-bold text-4xl">インフルエンサーを簡単に管理</h2>
+          <div className="h-[5px] bg-purple-500 my-3"></div>
+          <p className="text-xl">起用する全てのインフルエンサーへのタスクを、Qubeのダッシュボード上で一括で管理。</p>
+          <p className="text-xl">複数のチャットやアプリ間の往復がなくなり、管理がしやすい。複数人でも管理できます!</p>
+        </div>
+      </div>
+
+      <Image src={SmallBlock1} alt="SmallBlock1" className="ml-auto" />
       {/* <motion.h1
         variants={textVariant()}
         initial="hidden"
