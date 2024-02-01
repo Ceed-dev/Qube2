@@ -43,6 +43,7 @@ import Feature3 from "./Feature3.svg";
 import Feature4 from "./Feature4.svg";
 import ArrowIconForFaq from "./ArrowIconForFaq.svg";
 import WideBlocks from "./WideBlocks.svg";
+import QubeForFooter from "./QubeForFooter.svg";
 
 export {
   arrow,
@@ -90,4 +91,5 @@ export {
   Feature4,
   ArrowIconForFaq,
   WideBlocks,
+  QubeForFooter,
 };
