@@ -64,20 +64,12 @@ const Walkthrough = (): JSX.Element => {
   const { userType } = router.query;
 
   return (
-    <div id="howto">
-      <motion.h1
-        variants={textVariant()}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.25 }}
-        className="lg:text-6xl text-4xl text-center mb-10"
-      >
-        HOW TO ?
-      </motion.h1>
+    <div id="howto" className="bg-white py-20">
+      <h1 className="text-center font-bold text-5xl py-20">活用フロー</h1>
       <Image
         src={Workflow}
         alt="Workflow"
-        className="mx-auto"
+        className="w-screen"
       />
     </div>
   );

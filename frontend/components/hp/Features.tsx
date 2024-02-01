@@ -17,7 +17,7 @@ const Features = () => {
   const { userType } = router.query;
 
   return (
-    <div id="features" className="bg-white px-20">
+    <div id="features" className="bg-white p-20">
 
       <h1 className="text-center font-bold text-5xl py-20">Qubenの4つの特徴</h1>
 
