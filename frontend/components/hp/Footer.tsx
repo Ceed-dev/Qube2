@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/router";
 
 // Image Imports
 import { TwitterIcon, MediumIcon, X, QubeForFooter } from "../../assets";
@@ -47,6 +48,8 @@ const FooterLegal = (): JSX.Element => {
 };
 
 const Footer = () => {
+  const router = useRouter();
+
   return (
     <div className="bg-white">
       <div className="flex lg:flex-row flex-col pt-10 px-20 lg:gap-0 gap-10">
@@ -67,8 +70,8 @@ const Footer = () => {
             <p className="text-2xl font-bold mb-5">RESOURCES</p>
             <ul>
               <li className="text-xl hover:underline mb-5">
-                <Link href="https://github.com/Succery-dev/Qube" target="_blank">
-                  Qube Agent
+                <Link href={router.pathname === "/" ? "/agent" : "/"} target="_blank">
+                  Qube{router.pathname === "/" && " Agent"}
                 </Link>
               </li>
               <li className="text-xl hover:underline">
