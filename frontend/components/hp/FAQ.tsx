@@ -9,7 +9,6 @@ import Image from "next/image";
 
 const FAQ = () => {
   const router = useRouter();
-  const { userType } = router.query;
 
   const faqs = [
     {
@@ -34,6 +33,17 @@ const FAQ = () => {
     }
   ];
 
+  const faqsForAgent = [
+    {
+      question: "料金はどれくらいかかりますか？",
+      answer: "料金は内容によって大きく左右するので、まずは一度お話をお聞かせください。",
+    },
+    {
+      question: "どのようなインフルエンサーを抱えていますか？",
+      answer: "企画に合わせて最適なインフルエンサーをご紹介いたしますので、一度お話を伺わせてください。",
+    }
+  ];
+
   const [activeIndex, setActiveIndex] = useState(null);
 
   const toggleFAQ = (index) => {
@@ -47,7 +57,7 @@ const FAQ = () => {
   return (
     <div id="faqs" className="bg-white py-20 px-40">
       <h1 className="text-center font-bold text-5xl py-20">FAQ</h1>
-      {faqs.map((faq, index) => (
+      {(router.pathname === "/" ? faqs : faqsForAgent).map((faq, index) => (
         <div key={index} className="mb-5">
           <motion.div
             className="cursor-pointer xl:text-2xl lg:text-xl text-lg flex justify-between"
@@ -66,6 +76,15 @@ const FAQ = () => {
               className="xl:text-lg text-md"
             >
               {faq.answer}
+              {router.pathname === "/agent" && 
+                <Link 
+                  href="https://docs.google.com/forms/d/e/1FAIpQLScds_7cNpaP777tQf910xgbd_ciFfZC9likpocEDzkPonWBrw/viewform" 
+                  target="_blank"
+                  className="text-blue-500 hover:underline"
+                >
+                  問い合わせフォーム
+                </Link>
+              }
             </motion.p>
           )}
         </div>
