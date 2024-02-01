@@ -127,9 +127,9 @@ export default function Home() {
       </SectionWrapper> */}
 
       {/* FAQ */}
-      <SectionWrapper bgColor="bg-black" glowStyles={aesthetics.glow.featuresGlowStyles}>
-        <FAQ />
-      </SectionWrapper>
+      {/* <SectionWrapper bgColor="bg-black" glowStyles={aesthetics.glow.featuresGlowStyles}> */}
+      <FAQ />
+      {/* </SectionWrapper> */}
 
       {/* Footer */}
       <Footer />
