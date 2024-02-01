@@ -26,8 +26,9 @@ import { SectionWrapperPropsInterface } from "../interfaces";
 import { useAccount, useDisconnect } from "wagmi";
 import { useRouter } from "next/router";
 import { useNotificationContext } from "../context";
-import { IconNotificationWarning } from "../assets";
+import { WideBlocks } from "../assets";
 import { whitelist } from "../constants/whitelist";
+import Image from "next/image";
 
 const SectionWrapper: React.FC<SectionWrapperPropsInterface> = ({
   children,
@@ -130,6 +131,8 @@ export default function Home() {
       {/* <SectionWrapper bgColor="bg-black" glowStyles={aesthetics.glow.featuresGlowStyles}> */}
       <FAQ />
       {/* </SectionWrapper> */}
+
+      <Image src={WideBlocks} alt="blocks" className="bg-white w-screen px-40 pt-40 pb-20" />
 
       {/* Footer */}
       <Footer />

@@ -42,6 +42,7 @@ import SmallBlock1 from "./SmallBlock1.svg";
 import Feature3 from "./Feature3.svg";
 import Feature4 from "./Feature4.svg";
 import ArrowIconForFaq from "./ArrowIconForFaq.svg";
+import WideBlocks from "./WideBlocks.svg";
 
 export {
   arrow,
@@ -88,4 +89,5 @@ export {
   Feature3,
   Feature4,
   ArrowIconForFaq,
+  WideBlocks,
 };
