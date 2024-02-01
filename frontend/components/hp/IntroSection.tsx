@@ -17,7 +17,6 @@ import { Block } from "../../assets";
 
 const IntroSection = (): JSX.Element => {
   const router = useRouter();
-  const { userType } = router.query;
 
   return (
     <div className="relative h-full flex flex-col items-center justify-center lg:gap-12 sm:gap-8 gap-16 mt-5 md:mt-0 pb-40">
@@ -29,9 +28,22 @@ const IntroSection = (): JSX.Element => {
         {userType === "COMPANY" ? "bridges trust between P2P payments." : "Creators get paid on time."}
       </p> */}
       <div className="text-center">
-        <h2 className="text-4xl font-sans">ブロックチェーンゲームの<br/>インフルエンサーマーケティングなら</h2>
-        <h1 className="text-5xl my-3">Qube</h1>
-        <p className="text-2xl font-sans">Qubeはインフルエンサーマーケでの検索・契約・マネジメント<br/>・支払いまでの全てを一元化できるサービスです。</p>
+        <h2 className="text-4xl font-sans">
+          {router.pathname === "/" ? "ブロックチェーンゲームの" : "インド・フィリピン・インドネシアを狙う"}<br/>
+          {router.pathname === "/" ?"インフルエンサーマーケティングなら" : "なら"}
+        </h2>
+        <h1 className="text-5xl my-3">Qube{router.pathname === "/agent" && " Agent"}</h1>
+        <p className="text-2xl font-sans">
+          {router.pathname === "/" ? "Qubeはインフルエンサーマーケでの検索・契約・マネジメント" : "Qubeはインド・フィリピン・インドネシアでのマーケティング"}<br/>
+          {router.pathname === "/" ? "・支払いまでの全てを一元化できるサービスです。" : "の全てをお手伝いします。"}
+        </p>
+        {router.pathname === "/agent" &&
+          <Link href="https://docs.google.com/forms/d/e/1FAIpQLScds_7cNpaP777tQf910xgbd_ciFfZC9likpocEDzkPonWBrw/viewform" target="_blank">
+            <button className="border border-black rounded-full py-3 px-5 mt-5 bg-white hover:shadow-lg">
+              まずはお問い合わせから
+            </button>
+          </Link>
+        }
       </div>
       {/* { router.query.close === undefined &&
         <CustomButton
