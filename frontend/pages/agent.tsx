@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import Link from "next/link";
 
 // Components Imports
 import {
@@ -91,6 +92,18 @@ export default function Agent() {
       <Image src={Problems} alt="Problems" className="bg-white h-screen w-screen py-20" />
 
       <Image src={FeaturesForAgent} alt="FeaturesForAgent" className="bg-white h-screen w-screen py-20" />
+
+      <div className="flex flex-row bg-purple-200 justify-center items-center gap-20 py-20">
+        <div>
+          <p className="text-4xl font-bold mb-3">万全のサポートで、<br />安心してご利用いただけます！</p>
+          <p className="text-xl">要望に沿ったご提案をさせていただきます。<br />気軽にご相談ください。</p>
+        </div>
+        <Link href="https://docs.google.com/forms/d/e/1FAIpQLScds_7cNpaP777tQf910xgbd_ciFfZC9likpocEDzkPonWBrw/viewform" target="_blank">
+          <button className="border border-black rounded-full py-3 px-5 mt-5 bg-white hover:shadow-lg">
+            お問い合わせはこちら
+          </button>
+        </Link>
+      </div>
 
       {/* Why use Qube? */}
       {/* <SectionWrapper bgColor="bg-black" glowStyles={[]}>
