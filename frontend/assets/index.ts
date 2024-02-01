@@ -39,6 +39,7 @@ import ToggleClose from "./ToggleClose.svg";
 import Feature1 from "./feature1.svg";
 import Feature2 from "./Feature2.svg";
 import SmallBlock1 from "./SmallBlock1.svg";
+import Feature3 from "./Feature3.svg";
 
 export {
   arrow,
@@ -82,4 +83,5 @@ export {
   Feature1,
   Feature2,
   SmallBlock1,
+  Feature3,
 };
