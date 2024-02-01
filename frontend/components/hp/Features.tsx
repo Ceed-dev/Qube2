@@ -10,7 +10,7 @@ import { featuresForClients, featuresForFreelancers } from "../../constants";
 import { motion } from "framer-motion";
 import { fadeIn, textVariant } from "../../utils";
 
-import { Feature1, Feature2, SmallBlock1, Feature3 } from "../../assets";
+import { Feature1, Feature2, SmallBlock1, Feature3, Feature4 } from "../../assets";
 
 const Features = () => {
   const router = useRouter();
@@ -53,6 +53,16 @@ const Features = () => {
           <p className="text-xl">クリプトを用いた一般的な支払いから、マイルストーン支払い・アフィリエイト報酬と幅広い契約が可能です。</p>
         </div>
         <Image src={Feature3} alt="Feature3" className="flex-none w-1/2" />
+      </div>
+
+      <div className="flex flex-row">
+        <Image src={Feature4} alt="Feature4" className="flex-none w-1/2" />
+        <div className="px-40 my-auto">
+          <h2 className="font-bold text-4xl">匿名・仮名相手の取引も可能に</h2>
+          <div className="h-[5px] bg-purple-500 my-3"></div>
+          <p className="text-xl">世界中のどこの国の人とでも取引の際のコンプライアンスリスクは大きな課題です。</p>
+          <p className="text-xl">Web3では一般的になっている「匿名」相手でも、Qubeを通じて契約することでコンプライアンスリスクを解消できます！</p>
+        </div>
       </div>
       {/* <motion.h1
         variants={textVariant()}
