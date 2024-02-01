@@ -17,7 +17,7 @@ import Community from "./Community.svg";
 import API from "./API.svg";
 import NftGateway from "./NFT-Gated.svg";
 import Gasless from "./Gasless.svg";
-import MediumIcon from "./Medium-Icon.svg";
+import MediumIcon from "./MediumIcon.svg";
 import Discord from "./Discord.svg";
 import Spinner from "./Spinner.svg";
 import Game from "./Game.svg";
@@ -43,6 +43,7 @@ import Feature3 from "./Feature3.svg";
 import Feature4 from "./Feature4.svg";
 import ArrowIconForFaq from "./ArrowIconForFaq.svg";
 import WideBlocks from "./WideBlocks.svg";
+import QubeForFooter from "./QubeForFooter.svg";
 
 export {
   arrow,
@@ -90,4 +91,5 @@ export {
   Feature4,
   ArrowIconForFaq,
   WideBlocks,
+  QubeForFooter,
 };
