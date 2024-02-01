@@ -10,7 +10,7 @@ import { featuresForClients, featuresForFreelancers } from "../../constants";
 import { motion } from "framer-motion";
 import { fadeIn, textVariant } from "../../utils";
 
-import { Feature1, Feature2, SmallBlock1 } from "../../assets";
+import { Feature1, Feature2, SmallBlock1, Feature3 } from "../../assets";
 
 const Features = () => {
   const router = useRouter();
@@ -45,6 +45,15 @@ const Features = () => {
       </div>
 
       <Image src={SmallBlock1} alt="SmallBlock1" className="ml-auto" />
+
+      <div className="flex flex-row mb-40">
+        <div className="px-40 my-auto">
+          <h2 className="font-bold text-4xl">幅広い雇用契約形態に対応</h2>
+          <div className="h-[5px] bg-purple-500 my-3"></div>
+          <p className="text-xl">クリプトを用いた一般的な支払いから、マイルストーン支払い・アフィリエイト報酬と幅広い契約が可能です。</p>
+        </div>
+        <Image src={Feature3} alt="Feature3" className="flex-none w-1/2" />
+      </div>
       {/* <motion.h1
         variants={textVariant()}
         initial="hidden"
