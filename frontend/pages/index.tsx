@@ -101,12 +101,12 @@ export default function Home() {
       {/* </SectionWrapper> */}
 
       {/* How to Use */}
-      <SectionWrapper
+      {/* <SectionWrapper
         bgColor="bg-black"
         glowStyles={aesthetics.glow.walkthroughGlowStyles}
-      >
-        <Walkthrough />
-      </SectionWrapper>
+      > */}
+      <Walkthrough />
+      {/* </SectionWrapper> */}
 
       {/* Support & Call To Action */}
       {/* <SectionWrapper bgColor="bg-black" glowStyles={aesthetics.glow.walkthroughGlowStyles}>
