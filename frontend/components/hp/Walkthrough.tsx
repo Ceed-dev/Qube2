@@ -64,7 +64,7 @@ const Walkthrough = (): JSX.Element => {
   const { userType } = router.query;
 
   return (
-    <div id="howto" className="bg-white py-20">
+    <div id="flow" className="bg-white py-20">
       <h1 className="text-center font-bold text-5xl py-20">活用フロー</h1>
       <Image
         src={Workflow}
