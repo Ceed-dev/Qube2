@@ -19,7 +19,7 @@ const IntroSection = (): JSX.Element => {
   const router = useRouter();
 
   return (
-    <div id="home" className="relative h-full flex flex-col items-center justify-center lg:gap-12 sm:gap-8 gap-16 mt-5 md:mt-0 pb-40">
+    <div id="home" className="relative h-full flex flex-col items-center lg:gap-12 sm:gap-8 gap-16 mt-5 md:mt-0 pb-40 pt-28">
       {/* <h1 className="lg:text-6xl text-4xl">{userType === "COMPANY" ? "MAKE  Payments to Creators" : "Get paid on TIME"}</h1>
       <h2 className="lg:text-6xl text-4xl text-[#E220CF]">{userType === "COMPANY" ? "SECURE & EASY" : "STRESS FREE"}</h2>
       <p className="lg:text-2xl text-xl text-center font-extralight">
