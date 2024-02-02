@@ -104,7 +104,7 @@ const Footer = () => {
 
       <p className={`font-bold text-center pb-16 hover:underline ${router.pathname !== "/corporate" && "bg-gradient-to-t from-purple-200 to-transparent"}`}>
         <Link href="/">
-          2023 © SUCCERY FZCO - ALL RIGHTS RESERVED
+          2024 © Ceed Co.,Ltd. - ALL RIGHTS RESERVED
         </Link>
       </p>
     </div>
