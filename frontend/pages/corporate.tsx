@@ -28,12 +28,12 @@ export default function Corporate() {
   return (
     <div className="font-nunito bg-white">
 
-      <div className="h-screen flex flex-col justify-center items-center font-bold">
+      {/* <div className="h-screen flex flex-col justify-center items-center font-bold">
         <p className="text-2xl mb-3">Our Mission</p>
         <p className="text-4xl">Mission系をデカデカと書く</p>
-      </div>
+      </div> */}
 
-      <div className="w-8/12 mx-auto my-32">
+      <div className="w-8/12 mx-auto py-40">
         <h1 className="text-4xl font-bold font-sans mb-20">Products</h1>
         <div className="flex flex-row gap-40">
           <div>
