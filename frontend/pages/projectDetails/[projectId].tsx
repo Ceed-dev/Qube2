@@ -80,12 +80,16 @@ const Dashboard: NextPage = () => {
   const [newMemberAddress, setNewMemberAddress] = useState("");
   const [isAssigningNewMemberAddress, setIsAssigningNewMemberAddress] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const taskStatuses = [
+  const taskStatusLabels = [
     "Waiting For Sign", 
     "Waiting For Submission", 
     "Waiting For Review", 
     "Waiting For Payment",
     "Complete",
+    "Complete Without Submission",
+    "Complete Without Review",
+    "Complete Without Payment",
+    "Complete With Reward Release After Lock",
     "Waiting For Deletion",
     "Submission Overdue",
     "Review Overdue",
@@ -93,7 +97,7 @@ const Dashboard: NextPage = () => {
     "Waiting For Deadline Exntension",
     "Lock By Disapproval",
   ];
-  const [selectedStatus, setSelectedStatus] = useState<string>(taskStatuses[0]);
+  const [selectedStatusLabel, setSelectedStatusLabel] = useState<string>(taskStatusLabels[0]);
 
   // メンバーをプロジェクトに追加する処理
   const handleAddMember = async () => {
@@ -398,15 +402,15 @@ const Dashboard: NextPage = () => {
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="text-lg text-purple-700"
           >
-            {selectedStatus} ▼
+            {selectedStatusLabel} ▼
           </button>
           {isDropdownOpen && (
             <ul className="absolute z-10 bg-white border border-gray-200 rounded-md">
-              {taskStatuses.map((status, index) => (
+              {taskStatusLabels.map((status, index) => (
                 <li
                   key={index}
                   onClick={() => {
-                    setSelectedStatus(status);
+                    setSelectedStatusLabel(status);
                     setIsDropdownOpen(!isDropdownOpen);
                   }}
                   className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
@@ -440,12 +444,12 @@ const Dashboard: NextPage = () => {
               </tr>
             </thead>
             <tbody>
-              {tasks.filter(task => task?.status === selectedStatus).length === 0 ? (
+              {tasks.filter(task => task?.status === selectedStatusLabel).length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center text-gray-500">No contracts available.</td>
                 </tr>
               ) : (
-                tasks.filter(task => task?.status === selectedStatus).map((task, index) => (
+                tasks.filter(task => task?.status === selectedStatusLabel).map((task, index) => (
                   <tr 
                     key={index} 
                     className="h-[50px] hover:shadow-lg duration-300"
