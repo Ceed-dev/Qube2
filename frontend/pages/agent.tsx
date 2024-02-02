@@ -75,7 +75,7 @@ export default function Agent() {
 
       <Image src={Problems} alt="Problems" className="bg-white h-screen w-screen py-20" />
 
-      <Image src={FeaturesForAgent} alt="FeaturesForAgent" className="bg-white h-screen w-screen py-20" />
+      <Image id="feature" src={FeaturesForAgent} alt="FeaturesForAgent" className="bg-white h-screen w-screen py-20" />
 
       <div className="flex flex-row bg-purple-200 justify-center items-center gap-20 py-20">
         <div>
@@ -89,7 +89,7 @@ export default function Agent() {
         </Link>
       </div>
 
-      <Image src={AgentFlow} alt="AgentFlow" className="bg-white h-screen w-screen py-20 px-40" />
+      <Image id="flow" src={AgentFlow} alt="AgentFlow" className="bg-white h-screen w-screen py-20 px-40" />
 
       <FAQ />
 

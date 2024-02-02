@@ -227,7 +227,7 @@ const Navbar = (): JSX.Element => {
         {/* Navbar Links */}
         <ul
           className={`list-none gap-20 ${
-            router.pathname === "/" ? "hidden md:flex" : "hidden"
+            (router.pathname === "/" || router.pathname === "/agent") ? "hidden md:flex" : "hidden"
           }`}
         >
           {navLinks.map((link) => {
@@ -339,7 +339,7 @@ const Navbar = (): JSX.Element => {
         </Link> */}
 
         {/* Connect Button */}
-        {router.pathname !== "/"
+        {router.pathname !== "/" && router.pathname !== "/agent" && router.pathname !== "/corporate"
           ? (
               <div className="flex gap-5 items-center">
                 <div className={router.asPath.split("/")[1] === "profile" ? "hidden" : "block"}>
@@ -365,7 +365,7 @@ const Navbar = (): JSX.Element => {
               </div>
           ) : router.query.close === "beta"
             ? <ConnectButton accountStatus={{ smallScreen: "avatar" }} label="LAUNCH APP" />
-            : null
+            : <div></div>
         }
 
         {/* User Type Select Dropdown Button */}

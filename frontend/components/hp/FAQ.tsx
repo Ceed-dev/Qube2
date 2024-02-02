@@ -55,7 +55,7 @@ const FAQ = () => {
   };
 
   return (
-    <div id="faqs" className="bg-white py-20 px-40">
+    <div id="faq" className="bg-white py-20 px-40">
       <h1 className="text-center font-bold text-5xl py-20">FAQ</h1>
       {(router.pathname === "/" ? faqs : faqsForAgent).map((faq, index) => (
         <div key={index} className="mb-5">
