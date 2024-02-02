@@ -48,6 +48,7 @@ import Problems from "./Problems.svg";
 import FeaturesForAgent from "./FeaturesForAgent.svg";
 import AgentFlow from "./AgentFlow.svg";
 import CorporateProfile from "./CorporateProfile.svg";
+import SmallArrow from "./SamllArrow.svg";
 
 export {
   arrow,
@@ -100,4 +101,5 @@ export {
   FeaturesForAgent,
   AgentFlow,
   CorporateProfile,
+  SmallArrow,
 };

@@ -4,7 +4,7 @@ import { motion } from "framer-motion"; // Framer Motionを使用する場合
 import { textVariant } from "../../utils";
 import Link from "next/link";
 import { waitlistUrl } from "../../constants";
-import { ArrowIconForFaq } from "../../assets";
+import { SmallArrow } from "../../assets";
 import Image from "next/image";
 
 const FAQ = () => {
@@ -58,22 +58,22 @@ const FAQ = () => {
     <div id="faq" className="bg-white py-20 px-40">
       <h1 className="text-center font-bold text-5xl py-20">FAQ</h1>
       {(router.pathname === "/" ? faqs : faqsForAgent).map((faq, index) => (
-        <div key={index} className="mb-5">
+        <div key={index} className="mb-7">
           <motion.div
-            className="cursor-pointer xl:text-2xl lg:text-xl text-lg flex justify-between"
+            className="cursor-pointer xl:text-xl lg:text-lg text-md flex justify-between font-bold"
             onClick={() => toggleFAQ(index)}
             initial={{ scale: 1 }}
             whileHover={{ scale: 1.05 }}
           >
             {faq.question}
-            <Image src={ArrowIconForFaq} alt="arrow" />
+            <Image src={SmallArrow} alt="arrow" />
           </motion.div>
           {activeIndex === index && (
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
-              className="xl:text-lg text-md"
+              className="text-md my-10 text-slate-500 mr-8"
             >
               {faq.answer}
               {router.pathname === "/agent" && 
