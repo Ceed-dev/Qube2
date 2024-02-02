@@ -21,8 +21,8 @@ const Features = () => {
 
       <h1 className="text-center font-bold text-5xl py-20">Qubenの4つの特徴</h1>
 
-      <div className="flex flex-row mb-40">
-        <div className="px-40 my-auto">
+      <div className="flex flex-row mb-40 justify-between">
+        <div className="my-auto w-1/3">
           <h2 className="font-bold text-4xl">豊富なデータベースから最適なインフルエンサーを検索</h2>
           <div className="h-[5px] bg-purple-500 my-3"></div>
           <ul className="text-xl list-disc list-inside">
@@ -34,9 +34,9 @@ const Features = () => {
         <Image src={Feature1} alt="Feature1" className="flex-none w-1/2" />
       </div>
 
-      <div className="flex flex-row">
+      <div className="flex flex-row justify-between">
         <Image src={Feature2} alt="Feature2" className="flex-none w-1/2" />
-        <div className="px-40 my-auto">
+        <div className="my-auto w-1/3">
           <h2 className="font-bold text-4xl">インフルエンサーを簡単に管理</h2>
           <div className="h-[5px] bg-purple-500 my-3"></div>
           <p className="text-xl">起用する全てのインフルエンサーへのタスクを、Qubeのダッシュボード上で一括で管理。</p>
@@ -46,8 +46,8 @@ const Features = () => {
 
       <Image src={SmallBlock1} alt="SmallBlock1" className="ml-auto" />
 
-      <div className="flex flex-row mb-40">
-        <div className="px-40 my-auto">
+      <div className="flex flex-row mb-40 justify-between">
+        <div className="my-auto w-1/3">
           <h2 className="font-bold text-4xl">幅広い雇用契約形態に対応</h2>
           <div className="h-[5px] bg-purple-500 my-3"></div>
           <p className="text-xl">クリプトを用いた一般的な支払いから、マイルストーン支払い・アフィリエイト報酬と幅広い契約が可能です。</p>
@@ -55,9 +55,9 @@ const Features = () => {
         <Image src={Feature3} alt="Feature3" className="flex-none w-1/2" />
       </div>
 
-      <div className="flex flex-row">
+      <div className="flex flex-row justify-between">
         <Image src={Feature4} alt="Feature4" className="flex-none w-1/2" />
-        <div className="px-40 my-auto">
+        <div className="my-auto w-1/3">
           <h2 className="font-bold text-4xl">匿名・仮名相手の取引も可能に</h2>
           <div className="h-[5px] bg-purple-500 my-3"></div>
           <p className="text-xl">世界中のどこの国の人とでも取引の際のコンプライアンスリスクは大きな課題です。</p>
