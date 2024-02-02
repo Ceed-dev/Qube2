@@ -56,9 +56,9 @@ const IntroSection = (): JSX.Element => {
       <Image
         src={Block}
         alt="Block"
-        className="absolute md:-right-20 -right-10 lg:bottom-28 -bottom-12 w-auto xl:h-[350px] lg:h-[250px] sm:h-[200px] h-[130px]"
+        className="absolute md:-right-20 -right-10 lg:-bottom-20 -bottom-12 w-auto xl:h-[350px] lg:h-[250px] sm:h-[200px] h-[130px]"
       />
-      <div className="absolute md:-left-20 -left-10 lg:bottom-28 -bottom-12">
+      <div className="absolute md:-left-20 -left-10 lg:-bottom-32 -bottom-12">
         <motion.p
             variants={textVariant()}
             initial="hidden"
