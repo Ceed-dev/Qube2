@@ -4,12 +4,13 @@ import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { Block, Trash, Spinner } from '../../assets';
 import Image from 'next/image';
-import { getProjectDetails, assignUserToProject, unassignUserFromProject, getTaskDetails } from "../../contracts/Escrow";
+import { getProjectDetails, assignUserToProject, unassignUserFromProject } from "../../contracts/Escrow";
 import { getTokenDetails, formatTokenAmount } from "../../contracts/MockToken";
 import { useAccount } from 'wagmi';
 import { BigNumber } from 'ethers';
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { database } from '../../utils';
+import { TaskStatus } from "../../enums/taskStatus";
 
 interface Member {
   name: string;
@@ -31,42 +32,6 @@ interface ProjectDetails {
   startTimestamp: BigNumber; // Unixタイムスタンプと仮定
 }
 
-interface Task {
-  id: string,
-  title: string,
-  recipient: string,
-  recipientName: string,
-  lockedAmount: number,
-  symbol: string,
-  submissionDeadline: Date,
-  reviewDeadline: Date,
-  paymentDeadline: Date,
-  status: string,
-}
-
-enum TaskStatus {
-  Created = "Waiting For Sign",
-  Unconfirmed = "Waiting For Sign",
-  InProgress = "Waiting For Submission",
-  DeletionRequested = "Waiting For Deletion",
-  SubmissionOverdue = "Submission Overdue",
-  UnderReview = "Waiting For Review",
-  ReviewOverdue = "Review Overdue",
-  PendingPayment = "Waiting For Payment",
-  PaymentOverdue = "Payment Overdue",
-  DeadlineExtensionRequested = "Waiting For Deadline Exntension",
-  LockedByDisapproval = "Lock By Disapproval"
-}
-
-// enumのキーを配列として取得
-const statusKeys = Object.keys(TaskStatus);
-
-// インデックスに基づいてenumの値を取得する関数
-function getStatusByIndex(index: number): string | undefined {
-  const key = statusKeys[index];
-  return key ? TaskStatus[key as keyof typeof TaskStatus] : undefined;
-}
-
 const Dashboard: NextPage = () => {
   const router = useRouter();
   const { isDisconnected } = useAccount();
@@ -76,28 +41,67 @@ const Dashboard: NextPage = () => {
   // フォーマットされたトークンデポジット情報を格納するための状態変数
   const [formattedTokenDeposits, setFormattedTokenDeposits] = useState([]);
   const [members, setMembers] = useState<Member[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState([]);
   const [newMemberAddress, setNewMemberAddress] = useState("");
   const [isAssigningNewMemberAddress, setIsAssigningNewMemberAddress] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const taskStatusLabels = [
-    "Waiting For Sign", 
-    "Waiting For Submission", 
-    "Waiting For Review", 
-    "Waiting For Payment",
-    "Complete",
-    "Complete Without Submission",
-    "Complete Without Review",
-    "Complete Without Payment",
-    "Complete With Reward Release After Lock",
-    "Waiting For Deletion",
-    "Submission Overdue",
-    "Review Overdue",
-    "Payment Overdue",
-    "Waiting For Deadline Exntension",
-    "Lock By Disapproval",
+    "Waiting For Sign", // 0
+    "Waiting For Submission",  // 1
+    "Waiting For Review",  // 2
+    "Waiting For Payment", // 3
+    "Complete", // 4
+    "Complete Without Submission", // 5
+    "Complete Without Review", // 6
+    "Complete Without Payment", // 7
+    "Complete With Reward Release After Lock", // 8
+    "Waiting For Deletion", // 9
+    "Submission Overdue", // 10
+    "Review Overdue", // 11
+    "Payment Overdue", // 12
+    "Waiting For Deadline Exntension", // 13
+    "Lock By Disapproval", // 14
   ];
   const [selectedStatusLabel, setSelectedStatusLabel] = useState<string>(taskStatusLabels[0]);
+
+  function getLabelByStatus(status: string): string {
+    switch (status) {
+      case TaskStatus[0]:
+        return taskStatusLabels[0];
+      case TaskStatus[1]:
+        return taskStatusLabels[0];
+      case TaskStatus[2]:
+        return taskStatusLabels[1];
+      case TaskStatus[3]:
+        return taskStatusLabels[9];
+      case TaskStatus[4]:
+        return taskStatusLabels[10];
+      case TaskStatus[5]:
+        return taskStatusLabels[2];
+      case TaskStatus[6]:
+        return taskStatusLabels[11];
+      case TaskStatus[7]:
+        return taskStatusLabels[3];
+      case TaskStatus[8]:
+        return taskStatusLabels[12];
+      case TaskStatus[9]:
+        return taskStatusLabels[13];
+      case TaskStatus[10]:
+        return taskStatusLabels[14];
+      case TaskStatus[11]:
+        return taskStatusLabels[4];
+      case TaskStatus[12]:
+        return taskStatusLabels[5];
+      case TaskStatus[13]:
+        return taskStatusLabels[6];
+      case TaskStatus[14]:
+        return taskStatusLabels[7];
+      case TaskStatus[15]:
+        return taskStatusLabels[8];
+      default:
+        return "Invalid Value";
+    }
+  }
 
   // メンバーをプロジェクトに追加する処理
   const handleAddMember = async () => {
@@ -136,6 +140,39 @@ const Dashboard: NextPage = () => {
       fetchTokenDetails();
     }
   }, [projectDetails?.tokenDeposits]);
+
+  async function getTasksByProjectId() {
+    if (!projectId) {
+      console.warn("projectId is undefined or empty.");
+      return [];
+    }
+
+    const tasksCollectionRef = collection(database, "tasks");
+    const q = query(tasksCollectionRef, where("projectId", "==", projectId));
+    const querySnapshot = await getDocs(q);
+  
+    const tasks = await Promise.all(querySnapshot.docs.map(async (docData) => {
+      let recipientName = "";
+      if (docData.get("recipient")) {
+        const docRef = doc(database, "users", docData.get("recipient"));
+        const docSnapshot = await getDoc(docRef);
+        if (docSnapshot.exists()) {
+          const userData = docSnapshot.data();
+          recipientName = userData.username || "";
+        }
+      }
+      return {
+        id: docData.id,
+        ...docData.data(),
+        recipientName,
+        submissionDeadline: docData.get("submissionDeadline").toDate(),
+        reviewDeadline: docData.get("reviewDeadline").toDate(),
+        paymentDeadline: docData.get("paymentDeadline").toDate(),
+      };
+    }));
+  
+    return tasks;
+  }
 
   const loadProjectDetails = async () => {
     try {
@@ -177,38 +214,7 @@ const Dashboard: NextPage = () => {
       console.log("member:", memberData);
       setMembers(memberData);
 
-      const taskData = await Promise.all(
-        details.taskIds.map(async (taskId) => {
-          const docRef = doc(database, "tasks", taskId);
-          const contractTaskData = await getTaskDetails(taskId);
-          const docSnapshot = await getDoc(docRef);
-          if (docSnapshot.exists()) {
-            const docData = docSnapshot.data();
-            let recipientName;
-            if (docData.recipient) {
-              const docRef = doc(database, "users", docData.recipient);
-              const docSnapshot = await getDoc(docRef);
-              if (docSnapshot.exists()) {
-                const docData = docSnapshot.data();
-                recipientName = docData.username;
-              }
-            }
-            return {
-              id: taskId,
-              title: docData.title,
-              recipient: docData.recipient,
-              recipientName: recipientName,
-              lockedAmount: docData.lockedAmount,
-              symbol: docData.symbol,
-              submissionDeadline: docData.submissionDeadline.toDate(),
-              reviewDeadline: docData.reviewDeadline.toDate(),
-              paymentDeadline: docData.paymentDeadline.toDate(),
-              status: getStatusByIndex(contractTaskData.status),
-            }
-          }
-        })
-      );
-      console.log("tasks:", taskData);
+      const taskData = await getTasksByProjectId();
       setTasks(taskData);
     } catch (error) {
       console.error('Could not fetch project details', error);
@@ -444,12 +450,12 @@ const Dashboard: NextPage = () => {
               </tr>
             </thead>
             <tbody>
-              {tasks.filter(task => task?.status === selectedStatusLabel).length === 0 ? (
+              {tasks.filter(task => getLabelByStatus(task?.status) === selectedStatusLabel).length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center text-gray-500">No contracts available.</td>
                 </tr>
               ) : (
-                tasks.filter(task => task?.status === selectedStatusLabel).map((task, index) => (
+                tasks.filter(task => getLabelByStatus(task?.status) === selectedStatusLabel).map((task, index) => (
                   <tr 
                     key={index} 
                     className="h-[50px] hover:shadow-lg duration-300"
