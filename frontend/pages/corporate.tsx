@@ -28,17 +28,12 @@ export default function Corporate() {
   return (
     <div className="font-nunito bg-white">
 
-      {/* <div className="h-screen flex flex-col justify-center items-center font-bold">
-        <p className="text-2xl mb-3">Our Mission</p>
-        <p className="text-4xl">Mission系をデカデカと書く</p>
-      </div> */}
-
-      <div className="w-8/12 mx-auto py-40">
+      <div className="w-7/12 mx-auto pb-40 pt-60 px-10">
         <h1 className="text-4xl font-bold font-sans mb-20">Products</h1>
-        <div className="flex flex-row gap-40">
+        <div className="flex flex-row gap-20">
           <div>
             <Link href="/" target="_blank">
-              <h2 className="flex flex-row text-3xl font-bold justify-between hover:text-slate-500 hover:cursor-pointer">
+              <h2 className="flex flex-row text-2xl font-bold justify-between hover:text-slate-500 hover:cursor-pointer">
                 Qube
                 <Image src={ArrowIconForFaq} alt="arrow" />
               </h2>
@@ -48,7 +43,7 @@ export default function Corporate() {
           </div>
           <div>
             <Link href="/agent" target="_blank">
-              <h2 className="flex flex-row text-3xl font-bold justify-between hover:text-slate-500 hover:cursor-pointer">
+              <h2 className="flex flex-row text-2xl font-bold justify-between hover:text-slate-500 hover:cursor-pointer">
                 Qube Agent
                 <Image src={ArrowIconForFaq} alt="arrow" />
               </h2>
