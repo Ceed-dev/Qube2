@@ -47,6 +47,7 @@ import QubeForFooter from "./QubeForFooter.svg";
 import Problems from "./Problems.svg";
 import FeaturesForAgent from "./FeaturesForAgent.svg";
 import AgentFlow from "./AgentFlow.svg";
+import CorporateProfile from "./CorporateProfile.svg";
 
 export {
   arrow,
@@ -98,4 +99,5 @@ export {
   Problems,
   FeaturesForAgent,
   AgentFlow,
+  CorporateProfile,
 };

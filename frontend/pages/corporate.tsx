@@ -6,7 +6,7 @@ import { Footer } from "../components";
 import { useAccount, useDisconnect } from "wagmi";
 import { useRouter } from "next/router";
 import { useNotificationContext } from "../context";
-import { WideBlocks, Problems, FeaturesForAgent, AgentFlow } from "../assets";
+import { CorporateProfile } from "../assets";
 import Image from "next/image";
 
 export default function Corporate() {
@@ -31,6 +31,8 @@ export default function Corporate() {
         <p className="text-2xl mb-3">Our Mission</p>
         <p className="text-4xl">Mission系をデカデカと書く</p>
       </div>
+
+      <Image src={CorporateProfile} alt="CorporateProfile" className="mx-auto my-40" />
 
       <Footer />
     </div>
