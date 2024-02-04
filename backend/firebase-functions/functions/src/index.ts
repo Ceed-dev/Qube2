@@ -285,47 +285,6 @@ export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
   }
 });
 
-export const checkSubmissionDeadline = onSchedule("0 21 * * *", async () => {
-  const now = new Date();
-  // Filter the projects
-  const projects = await getFirestore()
-    .collection("projects")
-    .where("Status", "==", "Waiting for Submission")
-    .where("Deadline(UTC)", "<=", now.toISOString())
-    .get();
-
-  // Return tokens to clients "② No Submission By Lancer"
-  projects.forEach(async (doc) => {
-    // Log the project ID
-    logger.log("② No Submission By Lancer: ", doc.id);
-    // Withdraw tokens to depositor by owner
-    const withdrawResult = await withdrawToDepositorByOwner(doc.id);
-    // Log the result
-    logger.log("Withdraw Result: ", withdrawResult);
-    // Change the status to "Complete (No Submission By Lancer)"
-    await getFirestore()
-      .collection("projects")
-      .doc(doc.id)
-      .set({Status: "Complete (No Submission By Lancer)"}, {merge: true});
-    logger.log("Changed the status 'Complete (No Submission By Lancer)'");
-  });
-
-  // Filter the projects after the Deadline-Extension
-  const projectsAfterDE = await getFirestore()
-    .collection("projects")
-    .where("Status", "==", "Waiting for Submission (DER)")
-    .where("Deadline(UTC)", "<=", now.toISOString())
-    .get();
-
-  // Change the status to "Waiting for Payment"
-  projectsAfterDE.forEach(async (doc) => {
-    await getFirestore()
-      .collection("projects")
-      .doc(doc.id)
-      .set({Status: "Waiting for Payment"}, {merge: true});
-  });
-});
-
 export const checkPaymentDeadline = onSchedule("30 21 * * *", async () => {
   const now = new Date();
   // Filter the projects
