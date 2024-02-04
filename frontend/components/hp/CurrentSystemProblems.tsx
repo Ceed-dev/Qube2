@@ -1,7 +1,5 @@
 import React from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/router";
 
 // Custom Component Imports
 import { Glow } from "../aesthetics";
@@ -111,9 +109,6 @@ const whyUsForFreelancer = [
 ];
 
 const CurrentSystemProblems = (): JSX.Element => {
-  const router = useRouter();
-  const { userType } = router.query;
-
   return (
     <div id="whyus">
       <motion.h1
@@ -134,7 +129,7 @@ const CurrentSystemProblems = (): JSX.Element => {
           className="flex-1 mx-auto"
         />
         <div className="flex-1">
-          {(userType === "COMPANY" ? whyUsForClient : whyUsForFreelancer).map((why, index) => {
+          {whyUsForClient.map((why, index) => {
             return (
               <>
                 <motion.p

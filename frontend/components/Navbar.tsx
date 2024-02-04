@@ -35,7 +35,6 @@ const Navbar = (): JSX.Element => {
 
   const [userInfo, setUserInfo] = useState({
     email: "",
-    // userType: "",
     username: "",
   });
 
@@ -70,7 +69,6 @@ const Navbar = (): JSX.Element => {
         setUserInfo({
           email: res.data.email,
           // profileImageUrl: res.data.profileImageUrl,
-          // userType: res.data.userType,
           username: res.data.username,
           // projectNftIds: res.data.projectNftIds == undefined ? [] : res.data.projectNftIds,
         });
@@ -88,8 +86,6 @@ const Navbar = (): JSX.Element => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [confirmEmail, setConfirmEmail] = useState("");
-  const [selectedUserType, setSelectedUserType] = useState("");
-
   const [showEmailModal, setShowEmailModal] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -101,7 +97,6 @@ const Navbar = (): JSX.Element => {
     console.log("username: ", username);
     console.log("email: ", email);
     console.log("confirmEmail: ", confirmEmail);
-    console.log("userType: ", selectedUserType);
 
     // if (!imageSrc || !selectedFile) {
     //   alert("Image upload is mandatory. Please select an image.");
@@ -154,7 +149,6 @@ const Navbar = (): JSX.Element => {
         // profileImageUrl: downloadUrl,
         username: username,
         email: email,
-        userType: selectedUserType,
       });
 
       setShowEmailModal(false);
@@ -168,7 +162,6 @@ const Navbar = (): JSX.Element => {
     setUsername("");
     setEmail("");
     setConfirmEmail("");
-    setSelectedUserType("");
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
@@ -177,17 +170,6 @@ const Navbar = (): JSX.Element => {
   };
     
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [userType, setUserType] = useState("CREATOR");
-
-  useEffect(() => {
-    if (router.asPath === '/') {
-      router.push("/?userType=CREATOR");
-      setUserType("CREATOR");
-    } else {
-      const { userType } = router.query;
-      setUserType(userType as string);
-    }
-  }, [router.asPath, router.query]);
 
   // const [imageSrc, setImageSrc] = useState<string | null>(null);
   // const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -292,25 +274,6 @@ const Navbar = (): JSX.Element => {
                           </motion.li>
                         );
                       })}
-                      <div className="relative grow">
-                        <button type="button" className="relative w-full rounded-md cursor-default bg-slate-800 py-1.5 pl-3 pr-10 text-left shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6" aria-haspopup="listbox" aria-expanded="true" aria-labelledby="listbox-label" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
-                          <span className="ml-3 block truncate font-bold">{userType}</span>
-                          <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
-                            <svg className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                              <path fill-rule="evenodd" d="M10 3a.75.75 0 01.55.24l3.25 3.5a.75.75 0 11-1.1 1.02L10 4.852 7.3 7.76a.75.75 0 01-1.1-1.02l3.25-3.5A.75.75 0 0110 3zm-3.76 9.2a.75.75 0 011.06.04l2.7 2.908 2.7-2.908a.75.75 0 111.1 1.02l-3.25 3.5a.75.75 0 01-1.1 0l-3.25-3.5a.75.75 0 01.04-1.06z" clip-rule="evenodd" />
-                            </svg>
-                          </span>
-                        </button>
-                        {isDropdownOpen &&
-                          <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm" role="listbox" aria-labelledby="listbox-label" aria-activedescendant="listbox-option-3" tabIndex={-1}>
-                            <li className="text-gray-900 relative cursor-default select-none py-2 pl-3 pr-9" id="listbox-option-0" role="option" onClick={() => {
-                              const selectedType = userType === "COMPANY" ? "CREATOR" : "COMPANY"; router.push(`/?userType=${selectedType}`); setUserType(selectedType); setIsDropdownOpen(false);
-                            }}>
-                              <p className="ml-3 block truncate font-bold">{userType === "COMPANY" ? "CREATOR" : "COMPANY"}</p>
-                            </li>
-                          </ul>
-                        }
-                      </div>
                     </ul>
                   </div>
                 </div>
@@ -328,15 +291,6 @@ const Navbar = (): JSX.Element => {
           }`}
           onClick={toggleMobileNav}
         />
-
-        {/* Join Discord Button */}
-        {/* <Link 
-          href={`${process.env.NEXT_PUBLIC_DISCORD_LINK}`}
-          target="_blank"
-          className={`border border-white hover:bg-purple-500 ease-in duration-300 rounded-full lg:px-5 px-3 lg:py-2 py-1 ${router.pathname === "/" ? "hidden md:block": "hidden"}`}
-        >
-          JOIN DISCORD
-        </Link> */}
 
         {/* Connect Button */}
         {router.pathname !== "/" && router.pathname !== "/agent" && router.pathname !== "/corporate"
@@ -368,29 +322,6 @@ const Navbar = (): JSX.Element => {
             : <div></div>
         }
 
-        {/* User Type Select Dropdown Button */}
-        {/* <div className={`relative grow max-w-[140px] ${router.pathname === "/" ? "hidden md:block": "hidden"}`}>
-          <button type="button" className="relative w-full rounded-md cursor-default py-1.5 pl-3 pr-10 text-left shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6" aria-haspopup="listbox" aria-expanded="true" aria-labelledby="listbox-label" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
-            <span className="ml-3 block truncate font-bold">{userType}</span>
-            <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
-              <svg className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M10 3a.75.75 0 01.55.24l3.25 3.5a.75.75 0 11-1.1 1.02L10 4.852 7.3 7.76a.75.75 0 01-1.1-1.02l3.25-3.5A.75.75 0 0110 3zm-3.76 9.2a.75.75 0 011.06.04l2.7 2.908 2.7-2.908a.75.75 0 111.1 1.02l-3.25 3.5a.75.75 0 01-1.1 0l-3.25-3.5a.75.75 0 01.04-1.06z" clip-rule="evenodd" />
-              </svg>
-            </span>
-          </button>
-          {isDropdownOpen &&
-            <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm" role="listbox" aria-labelledby="listbox-label" aria-activedescendant="listbox-option-3">
-              <li className="text-gray-900 relative cursor-default select-none py-2 pl-3 pr-9" id="listbox-option-0" role="option" onClick={() => {
-                const selectedType = userType === "COMPANY" ? "CREATOR" : "COMPANY";
-                router.push(`/?userType=${selectedType}${router.query.close !== undefined ? "&close=beta" : ""}`);
-                setUserType(selectedType);
-                setIsDropdownOpen(false);
-              }}>
-                <p className="ml-3 block truncate font-bold">{userType === "COMPANY" ? "CREATOR" : "COMPANY"}</p>
-              </li>
-            </ul>
-          }
-        </div> */}
       </nav>
 
       {/* Email Modal */}
@@ -477,31 +408,6 @@ const Navbar = (): JSX.Element => {
                     />
                     <div className="h-[1px] bg-gray-500"></div>
                     <h3 className="text-xl">User Type</h3>
-                    <div className="flex items-center gap-x-3">
-                      <input 
-                        id="recipient" 
-                        name="userType" 
-                        type="radio" 
-                        className="h-4 w-4 border-gray-300"
-                        value="recipient"
-                        checked={selectedUserType === "recipient"}
-                        onChange={(e) => setSelectedUserType(e.target.value)}
-                        required 
-                      />
-                      <label htmlFor="recipient" className="block leading-6 text-white">Creator</label>
-                    </div>
-                    <div className="flex items-center gap-x-3">
-                      <input 
-                        id="depositor" 
-                        name="userType" 
-                        type="radio" 
-                        className="h-4 w-4 border-gray-300"
-                        value="depositor"
-                        checked={selectedUserType === "depositor"}
-                        onChange={(e) => setSelectedUserType(e.target.value)}
-                      />
-                      <label htmlFor="depositor" className="text-white">Company</label>
-                    </div>
                     <p className="text-sm text-center text-gray-400">
                       By sending your information, you agree to the<br/>
                       <Link href="https://veroo.notion.site/Terms-Conditions-4d914da1b7cc4f959e94f8bf513ca328?pvs=4" target="_blank" className="text-blue-300 hover:underline">Terms and Conditions</Link> and <Link href="https://veroo.notion.site/Privacy-and-Policy-0ef230ec7f81439baa1e0d4d6b78cfe8?pvs=4" target="_blank" className="text-blue-300 hover:underline">Privacy Policy</Link>
