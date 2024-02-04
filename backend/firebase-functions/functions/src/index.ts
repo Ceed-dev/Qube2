@@ -285,32 +285,6 @@ export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
   }
 });
 
-export const checkDisputeRefund = onSchedule("30 22 * * *", async () => {
-  const now = new Date();
-  // Filter the projects
-  const projects = await getFirestore()
-    .collection("projects")
-    .where("Status", "==", "In Dispute")
-    .where("Deadline(UTC) For Payment", "<=", now.toISOString())
-    .get();
-
-  // Refund tokens to clients "⑥ Deadline-Extension Request (Disapproval)"
-  projects.forEach(async (doc) => {
-    // Log the project ID
-    logger.log("⑥ Deadline-Extension Request (Disapproval)", doc.id);
-    // Withdraw tokens to client by owner
-    const withdrawResult = await withdrawToDepositorByOwner(doc.id);
-    // Log the result
-    logger.log("Withdraw Result: ", withdrawResult);
-    // Change the status to "Complete (Dispute)"
-    await getFirestore()
-      .collection("projects")
-      .doc(doc.id)
-      .set({Status: "Complete (Dispute)"}, {merge: true});
-    logger.log("Changed the status 'Complete (Dispute)'");
-  });
-});
-
 export const checkInDispute = onSchedule("0 23 * * *", async () => {
   const now = new Date();
   const oneWeekAgo = new Date(now);
