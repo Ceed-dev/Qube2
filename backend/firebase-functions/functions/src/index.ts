@@ -285,33 +285,6 @@ export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
   }
 });
 
-export const checkPaymentDeadline = onSchedule("30 21 * * *", async () => {
-  const now = new Date();
-  // Filter the projects
-  const projects = await getFirestore()
-    .collection("projects")
-    .where("Status", "==", "Waiting for Payment")
-    .where("InDispute", "==", false)
-    .where("Deadline(UTC) For Payment", "<=", now.toISOString())
-    .get();
-
-  // Pay tokens to freelancers "⑦ No Approval ( Ignored By Client)"
-  projects.forEach(async (doc) => {
-    // Log the project ID
-    logger.log("⑦ No Approval ( Ignored By Client): ", doc.id);
-    // Withdraw tokens to recipient by owner
-    const withdrawResult = await withdrawToRecipientByOwner(doc.id);
-    // Log the result
-    logger.log("Withdraw Result: ", withdrawResult);
-    // Change the status to "Complete (No Contact By Client)"
-    await getFirestore()
-      .collection("projects")
-      .doc(doc.id)
-      .set({Status: "Complete (No Contact By Client)"}, {merge: true});
-    logger.log("Changed the status 'Complete (No Contact By Client)'");
-  });
-});
-
 export const checkDisapproveRefund = onSchedule("0 22 * * *", async () => {
   const now = new Date();
   // Filter the projects
