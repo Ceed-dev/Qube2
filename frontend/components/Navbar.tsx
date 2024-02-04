@@ -293,34 +293,15 @@ const Navbar = (): JSX.Element => {
         />
 
         {/* Connect Button */}
-        {router.pathname !== "/" && router.pathname !== "/agent" && router.pathname !== "/corporate"
-          ? (
-              <div className="flex gap-5 items-center">
-                <div className={router.asPath.split("/")[1] === "profile" ? "hidden" : "block"}>
-                  <ConnectButton accountStatus={{ smallScreen: "avatar" }} label="CONNECT WALLET"/>
-                </div>
-                <Image
-                  src={ProfileImage}
-                  alt="Profile Image"
-                  className={`rounded-full bg-black border-2 border-pink-500 transition-transform duration-300 hover:scale-110 ${router.asPath.split("/")[1] === "dashboard" ? "block" : "hidden"}`}
-                  width={50}
-                  height={50}
-                  onClick={() => router.push(`/profile/${address}`)}
-                />
-                {/* Return to Dashboard Button */}
-                <button 
-                  className={`bg-gradient-to-r from-[#DF57EA] to-slate-200 mr-auto px-7 py-3 rounded-full text-black ${(router.asPath.split("/")[1] === "profile" && isConnected) ? "block" : "hidden"}`} 
-                  onClick={() => {
-                    router.push(`/dashboard/${address}`);
-                  }}
-                >
-                  DASHBOARD
-                </button>
-              </div>
-          ) : router.query.close === "beta"
-            ? <ConnectButton accountStatus={{ smallScreen: "avatar" }} label="LAUNCH APP" />
-            : <div></div>
+        {router.pathname !== "/agent" &&  router.pathname !== "/corporate" &&
+          <ConnectButton 
+            accountStatus={{ smallScreen: "avatar" }} 
+            label={router.pathname === "/" ? "LAUNCH APP" : "CONNECT WALLET"} 
+          />
         }
+
+        {/* To center navlinks when router.pathname is "/agent" */}
+        {router.pathname === "/agent" && <div></div>}
 
       </nav>
 
