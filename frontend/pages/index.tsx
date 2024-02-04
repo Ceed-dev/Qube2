@@ -26,8 +26,9 @@ import { SectionWrapperPropsInterface } from "../interfaces";
 import { useAccount, useDisconnect } from "wagmi";
 import { useRouter } from "next/router";
 import { useNotificationContext } from "../context";
-import { IconNotificationWarning } from "../assets";
+import { WideBlocks } from "../assets";
 import { whitelist } from "../constants/whitelist";
+import Image from "next/image";
 
 const SectionWrapper: React.FC<SectionWrapperPropsInterface> = ({
   children,
@@ -36,7 +37,7 @@ const SectionWrapper: React.FC<SectionWrapperPropsInterface> = ({
 }): JSX.Element => {
   return (
     <motion.div
-      className={`w-full grid grid-cols-12 xl:py-20 sm:py-14 py-14 overflow-hidden relative ${bgColor === "" ? "xl:min-h-[1024px] lg:min-h-[760px] sm:min-h-[500px]" : ""} ${bgColor || "bg-custom-background bg-contain"}`}
+      className={`w-full grid grid-cols-12 xl:py-20 sm:py-14 py-14 overflow-hidden relative h-[850px] ${bgColor || "bg-custom-background2 bg-contain"}`}
     >
       {/* {glowStyles && <Glow styles={glowStyles} />} */}
       <div className="col-start-2 col-end-12 font-semibold relative">
@@ -60,7 +61,8 @@ export default function Home() {
     // TODO: Fix this whitelist feature
     // if (isConnected && whitelist.includes(address)) {
     if (isConnected) {
-      router.push(`/dashboard/${address}`);
+      // router.push(`/dashboard/${address}`);
+      router.push(`/projects/${address}`);
     }
     // else if (isConnected && !whitelist.includes(address)) {
     //   disconnect();
@@ -75,7 +77,7 @@ export default function Home() {
   }, [isConnected]);
 
   return (
-    <div className="font-nunito text-secondary">
+    <div className="font-nunito">
       {/* Notification */}
       <Notification />
       {/* IntroSection */}
@@ -87,25 +89,25 @@ export default function Home() {
       </SectionWrapper>
 
       {/* Why use Qube? */}
-      <SectionWrapper bgColor="bg-black" glowStyles={[]}>
+      {/* <SectionWrapper bgColor="bg-black" glowStyles={[]}>
         <CurrentSystemProblems />
-      </SectionWrapper>
+      </SectionWrapper> */}
 
       {/* Features */}
-      <SectionWrapper
+      {/* <SectionWrapper
         bgColor="bg-black"
         glowStyles={aesthetics.glow.featuresGlowStyles}
-      >
-        <Features />
-      </SectionWrapper>
+      > */}
+      <Features />
+      {/* </SectionWrapper> */}
 
       {/* How to Use */}
-      <SectionWrapper
+      {/* <SectionWrapper
         bgColor="bg-black"
         glowStyles={aesthetics.glow.walkthroughGlowStyles}
-      >
-        <Walkthrough />
-      </SectionWrapper>
+      > */}
+      <Walkthrough />
+      {/* </SectionWrapper> */}
 
       {/* Support & Call To Action */}
       {/* <SectionWrapper bgColor="bg-black" glowStyles={aesthetics.glow.walkthroughGlowStyles}>
@@ -126,9 +128,11 @@ export default function Home() {
       </SectionWrapper> */}
 
       {/* FAQ */}
-      <SectionWrapper bgColor="bg-black" glowStyles={aesthetics.glow.featuresGlowStyles}>
-        <FAQ />
-      </SectionWrapper>
+      {/* <SectionWrapper bgColor="bg-black" glowStyles={aesthetics.glow.featuresGlowStyles}> */}
+      <FAQ />
+      {/* </SectionWrapper> */}
+
+      <Image src={WideBlocks} alt="blocks" className="bg-white w-screen px-40 pt-40 pb-20" />
 
       {/* Footer */}
       <Footer />

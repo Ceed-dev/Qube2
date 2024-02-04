@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/router";
 
 // Interfaces Imports
 import { WalkthroughInterface } from "../../interfaces";
@@ -60,24 +59,13 @@ const DemoVideo = (): JSX.Element => {
 };
 
 const Walkthrough = (): JSX.Element => {
-  const router = useRouter();
-  const { userType } = router.query;
-
   return (
-    <div id="howto">
-      <motion.h1
-        variants={textVariant()}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.25 }}
-        className="lg:text-6xl text-4xl text-center mb-10"
-      >
-        HOW TO ?
-      </motion.h1>
+    <div id="flow" className="bg-white py-20">
+      <h1 className="text-center font-bold text-5xl py-20">活用フロー</h1>
       <Image
         src={Workflow}
         alt="Workflow"
-        className="mx-auto"
+        className="w-screen"
       />
     </div>
   );

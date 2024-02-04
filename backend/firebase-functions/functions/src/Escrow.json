@@ -7,9 +7,29 @@
         "type": "address"
       },
       {
-        "internalType": "address",
-        "name": "initialOwner",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "_minSubmissionDeadlineDays",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_minReviewDeadlineDays",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_minPaymentDeadlineDays",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_lockPeriodDays",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_deadlineExtensionPeriodDays",
+        "type": "uint256"
       }
     ],
     "stateMutability": "nonpayable",
@@ -46,28 +66,6 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      }
-    ],
-    "name": "OwnableInvalidOwner",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "OwnableUnauthorizedAccount",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
         "name": "token",
         "type": "address"
       }
@@ -76,22 +74,50 @@
     "type": "error"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "length",
+        "type": "uint256"
+      }
+    ],
+    "name": "StringsInsufficientHexLength",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
         "indexed": true,
         "internalType": "string",
-        "name": "depositId",
+        "name": "projectId",
         "type": "string"
       },
       {
         "indexed": true,
         "internalType": "address",
-        "name": "recipient",
+        "name": "owner",
         "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "startTimestamp",
+        "type": "uint256"
       }
     ],
-    "name": "DepositWithdrawn",
+    "name": "ProjectCreated",
     "type": "event"
   },
   {
@@ -100,35 +126,53 @@
       {
         "indexed": true,
         "internalType": "string",
-        "name": "depositId",
+        "name": "taskId",
+        "type": "string"
+      },
+      {
+        "indexed": true,
+        "internalType": "string",
+        "name": "projectId",
         "type": "string"
       },
       {
         "indexed": true,
         "internalType": "address",
-        "name": "depositor",
+        "name": "creator",
         "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "recipient",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "address",
         "name": "tokenAddress",
         "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "lockedAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "submissionDeadline",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "reviewDeadline",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "paymentDeadline",
+        "type": "uint256"
       }
     ],
-    "name": "ERC20TokenDepositCreated",
+    "name": "TaskCreated",
     "type": "event"
   },
   {
@@ -137,19 +181,69 @@
       {
         "indexed": true,
         "internalType": "string",
-        "name": "depositId",
+        "name": "taskId",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum Escrow.TaskStatus",
+        "name": "status",
+        "type": "uint8"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "tokensReleased",
+        "type": "bool"
+      }
+    ],
+    "name": "TaskProcessed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "string",
+        "name": "taskId",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum Escrow.TaskStatus",
+        "name": "newStatus",
+        "type": "uint8"
+      }
+    ],
+    "name": "TaskStatusUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "string",
+        "name": "projectId",
         "type": "string"
       },
       {
         "indexed": true,
         "internalType": "address",
-        "name": "depositor",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "recipient",
+        "name": "tokenAddress",
         "type": "address"
       },
       {
@@ -159,71 +253,18 @@
         "type": "uint256"
       }
     ],
-    "name": "NativeTokenDepositCreated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "string",
-        "name": "action",
-        "type": "string"
-      },
-      {
-        "indexed": true,
-        "internalType": "string",
-        "name": "depositId",
-        "type": "string"
-      }
-    ],
-    "name": "OwnerAction",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "previousOwner",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
-    ],
-    "name": "OwnershipTransferred",
+    "name": "TokenDeposited",
     "type": "event"
   },
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_recipient",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_amount",
-        "type": "uint256"
-      },
-      {
         "internalType": "string",
-        "name": "_depositId",
+        "name": "taskId",
         "type": "string"
-      },
-      {
-        "internalType": "address",
-        "name": "_tokenAddress",
-        "type": "address"
       }
     ],
-    "name": "createERC20TokenDeposit",
+    "name": "approveDeadlineExtension",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -231,17 +272,209 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_recipient",
-        "type": "address"
-      },
-      {
         "internalType": "string",
-        "name": "_depositId",
+        "name": "taskId",
         "type": "string"
       }
     ],
-    "name": "createNativeTokenDeposit",
+    "name": "approveTask",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "taskId",
+        "type": "string"
+      }
+    ],
+    "name": "assignRecipientToTask",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "projectId",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "assignUserToProject",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "taskId",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "newSubmissionDeadline",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "newReviewDeadline",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "newPaymentDeadline",
+        "type": "uint256"
+      }
+    ],
+    "name": "changeTaskDeadlines",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "internalType": "address[]",
+        "name": "assignedUsers",
+        "type": "address[]"
+      },
+      {
+        "internalType": "address[]",
+        "name": "tokenAddresses",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "createAndDepositProject",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "taskId",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "projectId",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "tokenAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "lockedAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "submissionDeadline",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "reviewDeadline",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paymentDeadline",
+        "type": "uint256"
+      }
+    ],
+    "name": "createTask",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "deadlineExtensionPeriodDays",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "projectId",
+        "type": "string"
+      }
+    ],
+    "name": "deleteProject",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "projectId",
+        "type": "string"
+      },
+      {
+        "internalType": "address[]",
+        "name": "tokenAddresses",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "depositAdditionalTokensToProject",
     "outputs": [],
     "stateMutability": "payable",
     "type": "function"
@@ -250,17 +483,149 @@
     "inputs": [
       {
         "internalType": "string",
-        "name": "_depositId",
+        "name": "taskId",
         "type": "string"
       }
     ],
-    "name": "getDeposit",
+    "name": "disapproveSubmission",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getAllProjectIds",
+    "outputs": [
+      {
+        "internalType": "string[]",
+        "name": "",
+        "type": "string[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "getAssignedUserProjects",
+    "outputs": [
+      {
+        "internalType": "string[]",
+        "name": "",
+        "type": "string[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "getOwnerProjects",
+    "outputs": [
+      {
+        "internalType": "string[]",
+        "name": "",
+        "type": "string[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "projectId",
+        "type": "string"
+      }
+    ],
+    "name": "getProjectDetails",
     "outputs": [
       {
         "components": [
           {
             "internalType": "address",
-            "name": "depositor",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "address[]",
+            "name": "assignedUsers",
+            "type": "address[]"
+          },
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "tokenAddress",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "depositAmount",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct Escrow.TokenDepositInfo[]",
+            "name": "tokenDeposits",
+            "type": "tuple[]"
+          },
+          {
+            "internalType": "string[]",
+            "name": "taskIds",
+            "type": "string[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "startTimestamp",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct Escrow.ProjectDetails",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "taskId",
+        "type": "string"
+      }
+    ],
+    "name": "getTaskDetails",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "projectId",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "creator",
             "type": "address"
           },
           {
@@ -275,26 +640,53 @@
           },
           {
             "internalType": "uint256",
-            "name": "amount",
+            "name": "lockedAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "submissionDeadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "reviewDeadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "paymentDeadline",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deletionRequestTimestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "deadlineExtensionTimestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "enum Escrow.TaskStatus",
+            "name": "status",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "startTimestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lockReleaseTimestamp",
             "type": "uint256"
           }
         ],
-        "internalType": "struct Escrow.Deposit",
+        "internalType": "struct Escrow.Task",
         "name": "",
         "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getDepositIds",
-    "outputs": [
-      {
-        "internalType": "string[]",
-        "name": "",
-        "type": "string[]"
       }
     ],
     "stateMutability": "view",
@@ -321,12 +713,12 @@
   },
   {
     "inputs": [],
-    "name": "owner",
+    "name": "lockPeriodDays",
     "outputs": [
       {
-        "internalType": "address",
+        "internalType": "uint256",
         "name": "",
-        "type": "address"
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -334,7 +726,52 @@
   },
   {
     "inputs": [],
-    "name": "renounceOwnership",
+    "name": "minPaymentDeadlineDays",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "minReviewDeadlineDays",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "minSubmissionDeadlineDays",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "taskId",
+        "type": "string"
+      }
+    ],
+    "name": "rejectDeadlineExtension",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -342,13 +779,71 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
+        "internalType": "string",
+        "name": "taskId",
+        "type": "string"
       }
     ],
-    "name": "transferOwnership",
+    "name": "rejectDeletionRequest",
     "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "taskId",
+        "type": "string"
+      }
+    ],
+    "name": "requestDeadlineExtension",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "taskId",
+        "type": "string"
+      }
+    ],
+    "name": "requestTaskDeletion",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "taskId",
+        "type": "string"
+      }
+    ],
+    "name": "submitTask",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "taskId",
+        "type": "string"
+      }
+    ],
+    "name": "transferTokensAndDeleteTask",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -369,11 +864,16 @@
     "inputs": [
       {
         "internalType": "string",
-        "name": "_depositId",
+        "name": "projectId",
         "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
       }
     ],
-    "name": "withdrawToDepositorByOwner",
+    "name": "unassignUserFromProject",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -382,24 +882,21 @@
     "inputs": [
       {
         "internalType": "string",
-        "name": "_depositId",
+        "name": "projectId",
         "type": "string"
-      }
-    ],
-    "name": "withdrawToRecipientByDepositor",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
+      },
       {
-        "internalType": "string",
-        "name": "_depositId",
-        "type": "string"
+        "internalType": "address",
+        "name": "tokenAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
       }
     ],
-    "name": "withdrawToRecipientByOwner",
+    "name": "withdrawTokensFromProject",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

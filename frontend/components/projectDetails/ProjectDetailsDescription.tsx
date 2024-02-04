@@ -36,7 +36,7 @@ import { IconNotificationError, IconNotificationSuccess } from "../../assets";
 import { ethers } from "ethers";
 import { approve, allowance } from "../../contracts/MockToken";
 import { createNativeTokenDeposit, createERC20TokenDeposit, withdrawToRecipientByDepositor } from "../../contracts/Escrow";
-import deployedContracts from "../../../backend/deploy.polygon.json";
+import deployedContracts from "../../../backend/deploy.mumbai.json";
 import { StatusEnum } from "../../enums";
 import { getDataFromFireStore } from "../../utils";
 import { useAccount } from "wagmi";
@@ -77,8 +77,8 @@ const ProjectDetailsDescription = ({
     React.SetStateAction<DisplayTextDeliverableInterface[]>
   >;
 }) => {
-  delete projectDetails.fileDeliverable;
-  delete projectDetails.textDeliverable;
+  delete projectDetails.fileDeliverables;
+  delete projectDetails.textDeliverables;
   const descriptionProjectDetails: DescriptionProjectDetailsInterface =
     projectDetails;
 
@@ -573,7 +573,6 @@ const ProjectDetailsDescription = ({
         title={title}
         description={description}
         onConfirm={onConfirm}
-        projectId={projectId}
       />
     </>
   );

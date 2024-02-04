@@ -1,7 +1,6 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import Tilt from "react-parallax-tilt";
 
 // Interfaces Imports
 import { SupportInterface } from "../../interfaces";
@@ -30,14 +29,12 @@ const SupportCard = ({
         className="sm:basis-[28%] flex flex-col sm:items-start items-center gap-8 sm:py-0 py-16"
         key={support.id}
       >
-        <Tilt key={support.id}>
-          <Image
-            src={support.image}
-            width="300"
-            height="300"
-            alt={support.id}
-          />
-        </Tilt>
+        <Image
+          src={support.image}
+          width="300"
+          height="300"
+          alt={support.id}
+        />
         <p className="font-extrabold xl:text-3xl lg:text-2xl sm:text-xl text-xl grow sm:w-full w-2/3">
           {support.name}
         </p>

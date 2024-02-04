@@ -44,20 +44,20 @@ export const waitlistUrl: string =
 
 export const navLinks = [
   {
-    id: "whyus",
-    title: "WHY US ?",
+    id: "home",
+    title: "Home",
   },
   {
-    id: "features",
-    title: "FEATURES",
+    id: "feature",
+    title: "特徴",
   },
   {
-    id: "howto",
-    title: "HOW TO ?",
+    id: "flow",
+    title: "フロー",
   },
   {
-    id: "faqs",
-    title: "FAQs",
+    id: "faq",
+    title: "FAQ",
   },
 ];
 
@@ -461,8 +461,8 @@ export const DisplayProjectDetailsInterfaceKeys: DisplayProjectDetailsInterfaceK
     // "NFT(Contract Address)",
     "Client's Wallet Address",
     "Lancer's Wallet Address",
-    "fileDeliverable",
-    "textDeliverable",
+    "fileDeliverables",
+    "textDeliverables",
   ];
 
 export const DescriptionProjectDetailsInterfaceKeys: DescriptionProjectDetailsInterfaceKeysType[] =

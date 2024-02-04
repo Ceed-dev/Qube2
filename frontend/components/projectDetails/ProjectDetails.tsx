@@ -151,7 +151,7 @@ const ProjectDetails = ({ projectId }: { projectId: string }): JSX.Element => {
     }
 
     // Update the status to "Waiting for Payment"
-    if (projectDetails.fileDeliverable === undefined && projectDetails.textDeliverable === undefined) {
+    if (projectDetails.fileDeliverables === undefined && projectDetails.textDeliverables === undefined) {
       const updatedSubsetProjectDetail: Partial<StoreProjectDetailsInterface> =
         {
           "Status": StatusEnum.WaitingForPayment,
@@ -245,7 +245,7 @@ const ProjectDetails = ({ projectId }: { projectId: string }): JSX.Element => {
     ];
 
     await updateProjectDetails(projectId, {
-      fileDeliverable: updatedFileDeliverables,
+      fileDeliverables: updatedFileDeliverables,
     });
 
     await populateStates(
@@ -270,7 +270,7 @@ const ProjectDetails = ({ projectId }: { projectId: string }): JSX.Element => {
       }
 
       // Update the status to "Waiting for Payment"
-      if (projectDetails.fileDeliverable === undefined && projectDetails.textDeliverable === undefined) {
+      if (projectDetails.fileDeliverables === undefined && projectDetails.textDeliverables === undefined) {
         const updatedSubsetProjectDetail: Partial<StoreProjectDetailsInterface> =
           {
             "Status": StatusEnum.WaitingForPayment,
@@ -287,7 +287,7 @@ const ProjectDetails = ({ projectId }: { projectId: string }): JSX.Element => {
       );
       const updatedTextDeliverables = [...prevTextDeliverableStorage, text];
       await updateProjectDetails(projectId, {
-        textDeliverable: updatedTextDeliverables,
+        textDeliverables: updatedTextDeliverables,
       });
       await populateStates(
         projectId,
@@ -424,6 +424,7 @@ const ProjectDetails = ({ projectId }: { projectId: string }): JSX.Element => {
                   setFiles={setFiles}
                   displayFiles={displayFiles}
                   isDropable={isDropable}
+                  showDropbox={true}
                 />
                 <SubmitTextArea
                   textDeliverables={textDeliverables}
@@ -487,7 +488,6 @@ const ProjectDetails = ({ projectId }: { projectId: string }): JSX.Element => {
             })
             .finally(() => setShowNotification(true))
         }
-        projectId={projectId}
       />
     </SectionWrapper>
   );

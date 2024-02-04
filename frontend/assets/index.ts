@@ -17,7 +17,7 @@ import Community from "./Community.svg";
 import API from "./API.svg";
 import NftGateway from "./NFT-Gated.svg";
 import Gasless from "./Gasless.svg";
-import MediumIcon from "./Medium-Icon.svg";
+import MediumIcon from "./MediumIcon.svg";
 import Discord from "./Discord.svg";
 import Spinner from "./Spinner.svg";
 import Game from "./Game.svg";
@@ -30,6 +30,25 @@ import X from "./X.svg";
 import Checkbox from "./Checkbox.svg";
 import Workflow from "./Workflow.svg";
 import Envelope from "./Envelope.svg";
+import ProfileImage from "./Profile.png";
+import Block from "./block.svg";
+import Trash from "./trash.svg";
+import Checkmark from "./Checkmark.svg";
+import ToggleOpen from "./ToggleOpen.svg";
+import ToggleClose from "./ToggleClose.svg";
+import Feature1 from "./feature1.svg";
+import Feature2 from "./Feature2.svg";
+import SmallBlock1 from "./SmallBlock1.svg";
+import Feature3 from "./Feature3.svg";
+import Feature4 from "./Feature4.svg";
+import ArrowIconForFaq from "./ArrowIconForFaq.svg";
+import WideBlocks from "./WideBlocks.svg";
+import QubeForFooter from "./QubeForFooter.svg";
+import Problems from "./Problems.svg";
+import FeaturesForAgent from "./FeaturesForAgent.svg";
+import AgentFlow from "./AgentFlow.svg";
+import CorporateProfile from "./CorporateProfile.svg";
+import SmallArrow from "./SamllArrow.svg";
 
 export {
   arrow,
@@ -64,4 +83,23 @@ export {
   Checkbox,
   Workflow,
   Envelope,
+  ProfileImage,
+  Block,
+  Trash,
+  Checkmark,
+  ToggleOpen,
+  ToggleClose,
+  Feature1,
+  Feature2,
+  SmallBlock1,
+  Feature3,
+  Feature4,
+  ArrowIconForFaq,
+  WideBlocks,
+  QubeForFooter,
+  Problems,
+  FeaturesForAgent,
+  AgentFlow,
+  CorporateProfile,
+  SmallArrow,
 };

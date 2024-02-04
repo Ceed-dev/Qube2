@@ -43,3 +43,29 @@ export async function allowance(owner: string, spender: string, tokenAddress: st
   const contract = getMockTokenContract(signer, tokenAddress);
   return await contract.allowance(owner, spender);
 }
+
+// トークンの詳細を表すインターフェース
+interface TokenDetails {
+  decimals: number;
+  symbol: string;
+}
+
+// トークンのディテールを取得する関数
+export async function getTokenDetails(tokenAddress: string): Promise<TokenDetails | undefined> {
+  const signer = getSigner();
+  const contract = getMockTokenContract(signer, tokenAddress);
+
+  try {
+    const decimals = await contract.decimals();
+    const symbol = await contract.symbol();
+    return { decimals, symbol };
+  } catch (error) {
+    console.error('Error fetching token details:', error);
+    return undefined;
+  }
+}
+
+// BigNumberを適切な数値に変換する関数
+export function formatTokenAmount(amount, decimals) {
+  return ethers.utils.formatUnits(amount, decimals);
+}

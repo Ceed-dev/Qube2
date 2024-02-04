@@ -6,8 +6,9 @@ import {
 interface DisplayProjectDetailsInterface extends CreateProjectFormInterface {
   "Client's Wallet Address": `0x${string}`;
   "Lancer's Wallet Address": `0x${string}`;
-  fileDeliverable: StoreFileDeliverableInterface[];
-  textDeliverable: string[];
+  fileDeliverables: StoreFileDeliverableInterface[];
+  textDeliverables: string[];
+  linkDeliverables: string[];
   DeadlineExtensionRequest: boolean;
   InDispute: boolean;
   RequestedDeadlineExtension: string;

@@ -17,10 +17,12 @@ const Dropbox = ({
   setFiles,
   displayFiles,
   isDropable,
+  showDropbox,
 }: {
   setFiles: React.Dispatch<React.SetStateAction<FileWithPath[]>>;
   displayFiles: any; // TODO: Create type
   isDropable: boolean;
+  showDropbox: boolean;
 }) => {
   const onDrop = useCallback((acceptedFiles: FileWithPath[]) => {
     setFiles(prevFiles => [...prevFiles, ...acceptedFiles]);
@@ -30,49 +32,44 @@ const Dropbox = ({
 
   return (
     <>
-      <div className="xl:mb-12 lg:mb-10 mb-8 mx-auto flex flex-col justify-between items-center">
-        <p className="text-white text-md md:text-2xl mr-auto my-4">File</p>
-        <motion.div
-          variants={fadeIn("down", 1.25)}
-          className={`grid place-items-center w-full ${
-            isDropable ? "bg-[#DF57EA]" : "bg-slate-500"
-          } lg:p-[3.5px] p-[3px] rounded-lg cursor-pointer`}
+      {showDropbox && <motion.div
+        variants={fadeIn("down", 1.25)}
+        className={"grid place-items-center w-full rounded-lg cursor-pointer"}
+      >
+        <div
+          {...getRootProps({
+            className:
+              `w-full h-[150px] sm:h-[200px] md:h-[250px] border border-slate-300 ${isDropable && "hover:shadow-md"} rounded-lg flex items-center justify-center`,
+          })}
         >
-          <div
-            {...getRootProps({
-              className:
-                "w-full h-[150px] sm:h-[200px] md:h-[250px] border-none bg-bg_primary hover:bg-[#080e26] rounded-lg flex items-center justify-center",
-            })}
-          >
-            <input {...getInputProps()} />
-            <div className="grid place-items-center gap-4 xl:gap-8 text-center">
-              <Image src={IconUploadFile} alt="" className="h-12 xl:h-20" />
-              {isDropable ? (
-                <p className="text-[#c7c7cd] text-sm lg:text-base xl:text-lg">
-                  Drag and Drop Files
-                  <br />
-                  OR
-                  <br />
-                  <span>Click to Browse</span>
-                </p>
-              ) : (
-                <p className="text-[#c7c7cd] text-sm lg:text-base xl:text-lg">
-                  Loading...
-                </p>
-              )}
-            </div>
+          <input {...getInputProps()} />
+          <div className="grid place-items-center gap-4 xl:gap-8 text-center">
+            <Image src={IconUploadFile} alt="UploadIcon" className="h-12 xl:h-20" />
+            {isDropable ? (
+              <p className="text-[#c7c7cd] text-sm lg:text-base xl:text-lg">
+                Drag and Drop Files
+                <br />
+                OR
+                <br />
+                <span>Click to Browse</span>
+              </p>
+            ) : (
+              <p className="text-[#c7c7cd] text-sm lg:text-base xl:text-lg">
+                Loading...
+              </p>
+            )}
           </div>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>}
 
-      {displayFiles && displayFiles.length > 0 && (
-        <aside className="w-full">
+      {displayFiles && displayFiles.length > 0 ? (
+        <aside className="w-full mt-5">
           <motion.div
             variants={fadeIn("down", 0.4)}
-            className="w-full my-4 flex flex-col"
+            className="w-full flex flex-col"
           >
             {/* Headers */}
-            <div className="w-full flex flex-row gap-4 text-white text-base">
+            <div className="w-full flex flex-row gap-4 text-base">
               <h2 className="basis-0 flex-grow lg:max-w-[40%] max-w-[60%]">
                 Name
               </h2>
@@ -122,11 +119,9 @@ const Dropbox = ({
                       <Link
                         href={displayFile.downloadUrl}
                         key={`downloadUrl-${index}`}
-                        className="basis-0 flex-grow text-sm xl:text-base lg:max-w-[30%] max-w-[40%]"
+                        className="border border-slate-300 rounded-xl px-5 text-sm hover:bg-slate-200"
                       >
-                        <p className="bg-[#E220CF] text-white text-center rounded-sm text-sm xl:text-base w-full">
-                          Download
-                        </p>
+                        Download
                       </Link>
                     )}
                   </div>
@@ -135,6 +130,8 @@ const Dropbox = ({
             </div>
           </motion.div>
         </aside>
+      ) : (
+        <p className="text-md text-center text-slate-500 mt-5">No File Submitted</p>
       )}
     </>
   );

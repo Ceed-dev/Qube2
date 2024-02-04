@@ -35,7 +35,7 @@ async function main() {
     console.log("Deploying contracts with the account:", deployer.address);
 
     const forwarder = await deploy(hre, ContractNames.ERC2771Forwarder, ContractNames.ERC2771Forwarder);
-    const escrow = await deploy(hre, ContractNames.Escrow, forwarder.address, deployer.address);
+    const escrow = await deploy(hre, ContractNames.Escrow, forwarder.address);
 
     writeFileSync("deploy.mumbai.json", JSON.stringify({
       ERC2771Forwarder: forwarder.address,
@@ -44,8 +44,11 @@ async function main() {
 
     console.log(`${ContractNames.ERC2771Forwarder}: ${forwarder.address}\n${ContractNames.Escrow}: ${escrow.address}`);
 
+    console.log("Waiting for Polygonscan to catch up...");
+    await new Promise(resolve => setTimeout(resolve, 60000)); // Wait 60 seconds
+    
     await verifyContract(hre, forwarder.address, ContractNames.ERC2771Forwarder);
-    await verifyContract(hre, escrow.address, forwarder.address, deployer.address);
+    await verifyContract(hre, escrow.address, forwarder.address);
 
     process.exit(0);
   } catch (error) {
