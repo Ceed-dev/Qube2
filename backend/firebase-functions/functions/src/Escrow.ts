@@ -30,36 +30,6 @@ function getEscrowContract(
   );
 }
 
-/**
- * Withdraws tokens to the depositor by the owner.
- *
- * @param {string} depositId - The ID of the deposit.
- * @return {Promise<TransactionResponse>}
- *  A promise that resolves to a transaction response.
- */
-export async function withdrawToDepositorByOwner(depositId: string) {
-  const contract = getEscrowContract(ownerWallet);
-  const tx = await contract.withdrawToDepositorByOwner(depositId, {
-    gasPrice: ethers.utils.parseUnits("90", "gwei")
-  });
-  return await tx.wait();
-}
-
-/**
- * Withdraws tokens to the recipient by the owner.
- *
- * @param {string} depositId - The ID of the deposit.
- * @return {Promise<TransactionResponse>}
- *  A promise that resolves to a transaction response.
- */
-export async function withdrawToRecipientByOwner(depositId: string) {
-  const contract = getEscrowContract(ownerWallet);
-  const tx = await contract.withdrawToRecipientByOwner(depositId, {
-    gasPrice: ethers.utils.parseUnits("90", "gwei")
-  });
-  return await tx.wait();
-}
-
 export async function getProjectDetails(projectId: string) {
   const contract = getEscrowContract(ownerWallet);
   
