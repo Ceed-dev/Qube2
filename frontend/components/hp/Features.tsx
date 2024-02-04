@@ -1,7 +1,5 @@
 import React from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/router";
 
 // Content Imports
 import { featuresForClients, featuresForFreelancers } from "../../constants";
@@ -13,9 +11,6 @@ import { fadeIn, textVariant } from "../../utils";
 import { Feature1, Feature2, SmallBlock1, Feature3, Feature4 } from "../../assets";
 
 const Features = () => {
-  const router = useRouter();
-  const { userType } = router.query;
-
   return (
     <div id="feature" className="bg-white p-20">
 
