@@ -285,26 +285,6 @@ export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
   }
 });
 
-export const checkDisapproveRefund = onSchedule("0 22 * * *", async () => {
-  const now = new Date();
-  // Filter the projects
-  const projects = await getFirestore()
-    .collection("projects")
-    .where("Status", "==", "Complete (Disapproval)")
-    .where("Deadline(UTC) For Payment", "<=", now.toISOString())
-    .get();
-
-  // Refund tokens to clients "④ Disapprove The Submission"
-  projects.forEach(async (doc) => {
-    // Log the project ID
-    logger.log("④ Disapprove The Submission: ", doc.id);
-    // Withdraw tokens to client by owner
-    const withdrawResult = await withdrawToDepositorByOwner(doc.id);
-    // Log the result
-    logger.log("Withdraw Result: ", withdrawResult);
-  });
-});
-
 export const checkDisputeRefund = onSchedule("30 22 * * *", async () => {
   const now = new Date();
   // Filter the projects
