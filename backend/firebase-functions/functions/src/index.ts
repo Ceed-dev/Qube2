@@ -285,36 +285,6 @@ export const onTransferTokensAndTaskDeletion = onRequest(async (req, res) => {
   }
 });
 
-export const checkInDispute = onSchedule("0 23 * * *", async () => {
-  const now = new Date();
-  const oneWeekAgo = new Date(now);
-  oneWeekAgo.setDate(now.getDate() - 7);
-  // Filter the projects
-  const projects = await getFirestore()
-    .collection("projects")
-    .where("InDispute", "==", true)
-    .where("RequestedDeadlineExtension", "<=", oneWeekAgo.toISOString())
-    .get();
-
-  // Change the status to "Waiting for Submission (DER)"
-  projects.forEach(async (doc) => {
-    const submissionDeadline = new Date(doc.data()["Deadline(UTC)"]);
-    const paymentDeadline = new Date(doc.data()["Deadline(UTC) For Payment"]);
-    submissionDeadline.setDate(submissionDeadline.getDate() + 14);
-    paymentDeadline.setDate(paymentDeadline.getDate() + 14);
-
-    await getFirestore()
-      .collection("projects")
-      .doc(doc.id)
-      .set({
-        "Status": "Waiting for Submission (DER)",
-        "Deadline(UTC)": submissionDeadline.toISOString(),
-        "Deadline(UTC) For Payment": paymentDeadline.toISOString(),
-        "InDispute": false,
-      }, {merge: true});
-  });
-});
-
 export const checkSignByFreelancer = onSchedule("30 23 * * *", async () => {
   const now = new Date();
   const oneWeekAgo = new Date(now);
