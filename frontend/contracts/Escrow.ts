@@ -1,7 +1,8 @@
 import { ethers, Contract, BigNumber } from "ethers";
 import { getSigner } from "../utils/ethers";
 import { signMetaTxRequest } from "../utils/signer";
-import deployedContracts from "../../backend/deploy.mumbai.json";
+// import deployedContracts from "../../backend/deploy.mumbai.json";
+import deployedContracts from "../../backend/deploy.polygon.json";
 import EscrowAbi from "./abi/escrow.json";
 import { getForwarderContract } from "./Forwarder";
 import { TokenAddress } from "../enums";
