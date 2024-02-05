@@ -1,6 +1,6 @@
 {
   "projects": {
-    "default": "qube2-development"
+    "default": "qube2-production"
   },
   "targets": {},
   "etags": {}
