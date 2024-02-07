@@ -6,7 +6,7 @@ import { Block, Trash, Spinner } from '../../assets';
 import Image from 'next/image';
 import { getProjectDetails, assignUserToProject, unassignUserFromProject } from "../../contracts/Escrow";
 import { getTokenDetails, formatTokenAmount } from "../../contracts/MockToken";
-import { useAccount } from 'wagmi';
+import { useAccount, useDisconnect } from 'wagmi';
 import { BigNumber } from 'ethers';
 import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { database } from '../../utils';
@@ -34,7 +34,8 @@ interface ProjectDetails {
 
 const Dashboard: NextPage = () => {
   const router = useRouter();
-  const { isDisconnected } = useAccount();
+  const { address, isDisconnected } = useAccount();
+  const { disconnect } = useDisconnect();
   const { projectId } = router.query;
 
   const [projectDetails, setProjectDetails] = useState<ProjectDetails | null>(null);
@@ -232,6 +233,12 @@ const Dashboard: NextPage = () => {
       router.push("/");
     }
   }, [isDisconnected, router]);
+
+  useEffect(() => {
+    if (projectDetails?.assignedUsers && !(projectDetails?.assignedUsers.includes(address))) {
+      disconnect();
+    }
+  }, [address, projectDetails?.assignedUsers]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
