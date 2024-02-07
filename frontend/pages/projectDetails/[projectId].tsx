@@ -11,6 +11,7 @@ import { BigNumber } from 'ethers';
 import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { database } from '../../utils';
 import { TaskStatus } from "../../enums/taskStatus";
+import { initializeWeb3Provider, getSigner } from '../../utils/ethers';
 
 interface Member {
   name: string;
@@ -177,6 +178,11 @@ const Dashboard: NextPage = () => {
 
   const loadProjectDetails = async () => {
     try {
+      try {
+        getSigner();
+      } catch (e) {
+        await initializeWeb3Provider();
+      }
       const response = await getProjectDetails(projectId as string);
       const details: ProjectDetails = {
         owner: response.owner,
