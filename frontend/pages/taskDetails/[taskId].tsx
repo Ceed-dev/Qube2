@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { ToggleOpen, ToggleClose, Checkmark, Spinner, Trash } from '../../assets';
 import Image from 'next/image';
-import { doc, getDoc, updateDoc, arrayUnion, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion, onSnapshot } from "firebase/firestore";
 import { database, storage, updateProjectDetails } from '../../utils';
 import { initializeWeb3Provider, getSigner } from '../../utils/ethers';
 import { useAccount } from 'wagmi';
@@ -71,6 +71,7 @@ const TaskDetailsPage: React.FC = () => {
   const [showReviewOverdueModal, setShowReviewOverdueModal] = useState(false);
   const [showPaymentOverdueModal, setShowPaymentOverdueModal] = useState(false);
   const [showTaskDeadlineUpdate, setShowTaskDeadlineUpdate] = useState(false);
+  const [projectId, setProjectId] = useState("");
 
   const handleUpdateDeadline = async (event) => {
     event.preventDefault();
@@ -192,6 +193,10 @@ const TaskDetailsPage: React.FC = () => {
       let lockReleaseTimestamp;
       if (firebaseTaskData.lockReleaseTimestamp) {
         lockReleaseTimestamp = firebaseTaskData.lockReleaseTimestamp.toDate();
+      }
+
+      if (firebaseTaskData.projectId) {
+        setProjectId(firebaseTaskData.projectId);
       }
 
       setTask({
@@ -344,6 +349,20 @@ const TaskDetailsPage: React.FC = () => {
     }
   }
 
+  useEffect(() => {
+    const taskDocRef = doc(database, "tasks", `${taskId}`);
+  
+    const unsubscribe = onSnapshot(taskDocRef, (doc) => {
+      if (!doc.exists()) {
+        setIsTransferingTokensAndDeletingTask(false);
+        alert("Successfully deleted task");
+        router.push(`/projectDetails/${projectId}`);
+      }
+    });
+  
+    return () => unsubscribe();
+  }, [taskId, projectId, router]);
+
   const handleTransferTokensAndDeleteTask = async (event) => {
     event.preventDefault();
 
@@ -357,7 +376,6 @@ const TaskDetailsPage: React.FC = () => {
     } catch (error) {
       console.error("Error transfering tokens and deleting task: ", error);
       alert("Error transfering tokens and deleting task");
-    } finally {
       setIsTransferingTokensAndDeletingTask(false);
     }
   }
@@ -743,8 +761,6 @@ const TaskDetailsPage: React.FC = () => {
                   alert("Successfully requested task deletion");
                 } else {
                   await handleTransferTokensAndDeleteTask(event);
-                  alert("Successfully deleted task");
-                  router.push(`/projectDetails/${task.projectId}`);
                 }
               }}
               disabled={isTransferingTokensAndDeletingTask}
