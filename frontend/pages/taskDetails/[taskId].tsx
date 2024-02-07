@@ -720,12 +720,15 @@ const TaskDetailsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen p-20">
-      <button
-        onClick={() => router.push(`/projectDetails/${task.projectId}`)}
-        className="text-white bg-indigo-500 hover:bg-indigo-600 px-4 py-1 rounded-md transition duration-300 ease-in-out"
-      >
-        Back
-      </button>
+      {isAssigned && 
+        <button
+          onClick={() => router.push(`/projectDetails/${task.projectId}`)}
+          className="text-white bg-indigo-500 hover:bg-indigo-600 px-4 py-1 rounded-md transition duration-300 ease-in-out"
+        >
+          Back
+        </button>
+      }
+      
 
       <div className="bg-white rounded-lg shadow-lg max-w-4xl mx-auto p-10">
 
