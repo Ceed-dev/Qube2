@@ -4,6 +4,7 @@ import type { NextPage } from "next";
 import { useAccount } from "wagmi";
 import { useRouter } from "next/router";
 import { getAssignedUserProjects } from "../../contracts/Escrow";
+import { getSigner, initializeWeb3Provider } from "../../utils/ethers";
 
 const Projects: NextPage = () => {
   const { address, isDisconnected } = useAccount();
@@ -15,6 +16,12 @@ const Projects: NextPage = () => {
       // ユーザーのアドレスが有効な場合にのみプロジェクトを読み込む
       const loadProjects = async () => {
         try {
+          try {
+            getSigner();
+          } catch (e) {
+            await initializeWeb3Provider();
+          }
+
           const assignedProjects = await getAssignedUserProjects(address);
           setProjects(assignedProjects);
         } catch (error) {
