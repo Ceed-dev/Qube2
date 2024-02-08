@@ -225,7 +225,12 @@ const TaskDetailsPage: React.FC = () => {
           setRecipientName(docData.username);
         }
       }
-      if (statusIndex == TaskStatus.PendingPayment) {
+      if (
+        statusIndex == TaskStatus.PendingPayment ||
+        statusIndex == TaskStatus.Completed ||
+        statusIndex == TaskStatus.CompletedWithoutPayment ||
+        statusIndex == TaskStatus.CompletedWithRewardReleaseAfterLock
+      ) {
         setIsSubmissionApproved(true);
         setIsSubmissionApprovedOpen(false);
       }
