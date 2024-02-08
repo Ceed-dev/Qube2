@@ -804,7 +804,7 @@ const TaskDetailsPage: React.FC = () => {
               {isContractSigned && <Image src={Checkmark} alt="Checkmark" />}
             </div>
             <p>Sign to the contract</p>
-            <Image src={isContractSignedOpen ? ToggleClose : ToggleOpen} alt="Toggle" />
+            <Image src={isContractSignedOpen ? ToggleClose : ToggleOpen} alt="Toggle" height={10} />
           </button>
           {isContractSignedOpen && (
             <div className="mt-4">
@@ -918,7 +918,7 @@ const TaskDetailsPage: React.FC = () => {
               {isSubmissionApproved && <Image src={Checkmark} alt="Checkmark" />}
             </div>
             <p>{isAssigned ? "Approve Submission" : "Submit tasks"}</p>
-            <Image src={isSubmissionApprovedOpen ? ToggleClose : ToggleOpen} alt="Toggle" />
+            <Image src={isSubmissionApprovedOpen ? ToggleClose : ToggleOpen} alt="Toggle" height={10} />
           </button>
           {isSubmissionApprovedOpen && (
             <form>
