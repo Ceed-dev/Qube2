@@ -421,7 +421,7 @@ async function handler(event: HandlerEvent): Promise<{ txHash: string }> {
   // Initialize Relayer provider and signer, and forwarder contract
   const credentials = { apiKey: `${process.env.RELAYER_API_KEY}`, apiSecret: `${process.env.RELAYER_API_SECRET}` };
   const provider = new DefenderRelayProvider(credentials);
-  const signer = new DefenderRelaySigner(credentials, provider, { speed: "fast" });
+  const signer = new DefenderRelaySigner(credentials, provider, { speed: "fastest" });
   const forwarder = new Contract(ForwarderAddress, ForwarderAbi, signer);
 
   // Relay transaction!
