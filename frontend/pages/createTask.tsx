@@ -339,7 +339,7 @@ const CreateTask: React.FC = () => {
                   minDate={getTomorrow()}
                   startFrom={getTomorrow()}
                   placeholder="Press to choose the date"
-                  displayFormat="YYYY/MM/DD 21:00"
+                  displayFormat="YYYY/MM/DD 00:00"
                 />
               </label>
             </div>
@@ -352,8 +352,8 @@ const CreateTask: React.FC = () => {
                   value={getDatePlusDays(selectedDate?.toString(), 7)}
                   onChange={() => {}}
                   asSingle={true}
-                  placeholder="YYYY/MM/DD 21:30"
-                  displayFormat="YYYY/MM/DD 21:30"
+                  placeholder="YYYY/MM/DD 00:00"
+                  displayFormat="YYYY/MM/DD 00:00"
                   disabled={true}
                 />
               </label>
@@ -367,8 +367,8 @@ const CreateTask: React.FC = () => {
                   value={getDatePlusDays(selectedDate?.toString(), 14)}
                   onChange={() => {}}
                   asSingle={true}
-                  placeholder="YYYY/MM/DD 21:30"
-                  displayFormat="YYYY/MM/DD 21:30"
+                  placeholder="YYYY/MM/DD 00:00"
+                  displayFormat="YYYY/MM/DD 00:00"
                   disabled={true}
                 />
               </label>
