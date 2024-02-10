@@ -378,8 +378,8 @@ const ForwarderAbi = [
   }
 ];
 
-const ForwarderAddress: string = "0xBD524e3cDD5Dcd840377378171fDE749e5189a41";
-const EscrowAddress: string = "0xe29f6Ccf1cC1a4110652e08E5A542AC8808e1872";
+const ForwarderAddress: string = "0x41eF3F38DC0497F0B9F724Fa62635d4D76A2257b";
+const EscrowAddress: string = "0x003023dBa0A9fC58a981D94231F9a32C57B60382";
 
 interface RelayRequest {
   from: string;
