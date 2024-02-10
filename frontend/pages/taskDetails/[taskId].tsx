@@ -240,6 +240,18 @@ const TaskDetailsPage: React.FC = () => {
   };
 
   useEffect(() => {
+    if (task && task.recipient === address && task.status === TaskStatus.UnderReview) {
+      setIsSubmissionApproved(true);
+      setIsSubmissionApprovedOpen(false);
+    }
+
+    if (isSubmissionApproved && task.status === TaskStatus.UnderReview && address !== task.recipient) {
+      setIsSubmissionApproved(false);
+      setIsSubmissionApprovedOpen(true);
+    }
+  }, [task, address]);
+
+  useEffect(() => {
     if (taskId) {
       loadTaskDetails();
     }
