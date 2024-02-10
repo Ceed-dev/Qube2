@@ -28,7 +28,10 @@ const Dropbox = ({
     setFiles(prevFiles => [...prevFiles, ...acceptedFiles]);
   }, []);
 
-  const { getRootProps, getInputProps } = useDropzone({ onDrop });
+  const { getRootProps, getInputProps } = useDropzone({ 
+    onDrop, 
+    noClick: true // This fixes a bug where the file selection modal would be displayed twice when using getRootProps.
+  });
 
   return (
     <>
