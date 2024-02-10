@@ -921,7 +921,8 @@ const TaskDetailsPage: React.FC = () => {
             <Image src={isSubmissionApprovedOpen ? ToggleClose : ToggleOpen} alt="Toggle" height={10} />
           </button>
           {isSubmissionApprovedOpen && (
-            <form>
+            // To prevent the page from reloading when you press the enter key in items within the form tag, especially in the Link part.
+            <form onSubmit={(e) => e.preventDefault()}>
               <div className="my-4">
                 <label className="block text-gray-700 text-xl">
                   File
