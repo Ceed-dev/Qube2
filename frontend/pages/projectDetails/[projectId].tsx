@@ -6,11 +6,12 @@ import { Block, Trash, Spinner } from '../../assets';
 import Image from 'next/image';
 import { getProjectDetails, assignUserToProject, unassignUserFromProject } from "../../contracts/Escrow";
 import { getTokenDetails, formatTokenAmount } from "../../contracts/MockToken";
-import { useAccount } from 'wagmi';
+import { useAccount, useDisconnect } from 'wagmi';
 import { BigNumber } from 'ethers';
 import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { database } from '../../utils';
 import { TaskStatus } from "../../enums/taskStatus";
+import { initializeWeb3Provider, getSigner } from '../../utils/ethers';
 
 interface Member {
   name: string;
@@ -34,7 +35,8 @@ interface ProjectDetails {
 
 const Dashboard: NextPage = () => {
   const router = useRouter();
-  const { isDisconnected } = useAccount();
+  const { address, isDisconnected } = useAccount();
+  const { disconnect } = useDisconnect();
   const { projectId } = router.query;
 
   const [projectDetails, setProjectDetails] = useState<ProjectDetails | null>(null);
@@ -176,6 +178,11 @@ const Dashboard: NextPage = () => {
 
   const loadProjectDetails = async () => {
     try {
+      try {
+        getSigner();
+      } catch (e) {
+        await initializeWeb3Provider();
+      }
       const response = await getProjectDetails(projectId as string);
       const details: ProjectDetails = {
         owner: response.owner,
@@ -232,6 +239,12 @@ const Dashboard: NextPage = () => {
       router.push("/");
     }
   }, [isDisconnected, router]);
+
+  useEffect(() => {
+    if (projectDetails?.assignedUsers && !(projectDetails?.assignedUsers.includes(address))) {
+      disconnect();
+    }
+  }, [address, projectDetails?.assignedUsers]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -371,7 +384,7 @@ const Dashboard: NextPage = () => {
       <div className="min-h-screen p-20">
         <div className="flex justify-between items-center mb-20">
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push(`/projects/${address}`)}
             className="text-white bg-indigo-500 hover:bg-indigo-600 px-4 py-1 rounded-md transition duration-300 ease-in-out"
           >
             Back

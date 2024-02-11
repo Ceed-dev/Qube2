@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { ToggleOpen, ToggleClose, Checkmark, Spinner, Trash } from '../../assets';
 import Image from 'next/image';
-import { doc, getDoc, updateDoc, arrayUnion, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion, onSnapshot } from "firebase/firestore";
 import { database, storage, updateProjectDetails } from '../../utils';
 import { initializeWeb3Provider, getSigner } from '../../utils/ethers';
 import { useAccount } from 'wagmi';
@@ -71,6 +71,7 @@ const TaskDetailsPage: React.FC = () => {
   const [showReviewOverdueModal, setShowReviewOverdueModal] = useState(false);
   const [showPaymentOverdueModal, setShowPaymentOverdueModal] = useState(false);
   const [showTaskDeadlineUpdate, setShowTaskDeadlineUpdate] = useState(false);
+  const [projectId, setProjectId] = useState("");
 
   const handleUpdateDeadline = async (event) => {
     event.preventDefault();
@@ -194,6 +195,10 @@ const TaskDetailsPage: React.FC = () => {
         lockReleaseTimestamp = firebaseTaskData.lockReleaseTimestamp.toDate();
       }
 
+      if (firebaseTaskData.projectId) {
+        setProjectId(firebaseTaskData.projectId);
+      }
+
       setTask({
         taskId: taskId as string,
         projectId: firebaseTaskData.projectId,
@@ -220,7 +225,12 @@ const TaskDetailsPage: React.FC = () => {
           setRecipientName(docData.username);
         }
       }
-      if (statusIndex == TaskStatus.PendingPayment) {
+      if (
+        statusIndex == TaskStatus.PendingPayment ||
+        statusIndex == TaskStatus.Completed ||
+        statusIndex == TaskStatus.CompletedWithoutPayment ||
+        statusIndex == TaskStatus.CompletedWithRewardReleaseAfterLock
+      ) {
         setIsSubmissionApproved(true);
         setIsSubmissionApprovedOpen(false);
       }
@@ -228,6 +238,18 @@ const TaskDetailsPage: React.FC = () => {
       console.error('Could not fetch task details', error);
     }
   };
+
+  useEffect(() => {
+    if (task && task.recipient === address && task.status === TaskStatus.UnderReview) {
+      setIsSubmissionApproved(true);
+      setIsSubmissionApprovedOpen(false);
+    }
+
+    if (isSubmissionApproved && task.status === TaskStatus.UnderReview && address !== task.recipient) {
+      setIsSubmissionApproved(false);
+      setIsSubmissionApprovedOpen(true);
+    }
+  }, [task, address]);
 
   useEffect(() => {
     if (taskId) {
@@ -344,6 +366,20 @@ const TaskDetailsPage: React.FC = () => {
     }
   }
 
+  useEffect(() => {
+    const taskDocRef = doc(database, "tasks", `${taskId}`);
+  
+    const unsubscribe = onSnapshot(taskDocRef, (doc) => {
+      if (!doc.exists()) {
+        setIsTransferingTokensAndDeletingTask(false);
+        alert("Successfully deleted task");
+        router.push(`/projectDetails/${projectId}`);
+      }
+    });
+  
+    return () => unsubscribe();
+  }, [taskId, projectId, router]);
+
   const handleTransferTokensAndDeleteTask = async (event) => {
     event.preventDefault();
 
@@ -357,7 +393,6 @@ const TaskDetailsPage: React.FC = () => {
     } catch (error) {
       console.error("Error transfering tokens and deleting task: ", error);
       alert("Error transfering tokens and deleting task");
-    } finally {
       setIsTransferingTokensAndDeletingTask(false);
     }
   }
@@ -720,12 +755,15 @@ const TaskDetailsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen p-20">
-      <button
-        onClick={() => router.push(`/projectDetails/${task.projectId}`)}
-        className="text-white bg-indigo-500 hover:bg-indigo-600 px-4 py-1 rounded-md transition duration-300 ease-in-out"
-      >
-        Back
-      </button>
+      {isAssigned && 
+        <button
+          onClick={() => router.push(`/projectDetails/${task.projectId}`)}
+          className="text-white bg-indigo-500 hover:bg-indigo-600 px-4 py-1 rounded-md transition duration-300 ease-in-out"
+        >
+          Back
+        </button>
+      }
+      
 
       <div className="bg-white rounded-lg shadow-lg max-w-4xl mx-auto p-10">
 
@@ -740,8 +778,6 @@ const TaskDetailsPage: React.FC = () => {
                   alert("Successfully requested task deletion");
                 } else {
                   await handleTransferTokensAndDeleteTask(event);
-                  alert("Successfully deleted task");
-                  router.push(`/projectDetails/${task.projectId}`);
                 }
               }}
               disabled={isTransferingTokensAndDeletingTask}
@@ -780,7 +816,7 @@ const TaskDetailsPage: React.FC = () => {
               {isContractSigned && <Image src={Checkmark} alt="Checkmark" />}
             </div>
             <p>Sign to the contract</p>
-            <Image src={isContractSignedOpen ? ToggleClose : ToggleOpen} alt="Toggle" />
+            <Image src={isContractSignedOpen ? ToggleClose : ToggleOpen} alt="Toggle" height={10} />
           </button>
           {isContractSignedOpen && (
             <div className="mt-4">
@@ -894,10 +930,11 @@ const TaskDetailsPage: React.FC = () => {
               {isSubmissionApproved && <Image src={Checkmark} alt="Checkmark" />}
             </div>
             <p>{isAssigned ? "Approve Submission" : "Submit tasks"}</p>
-            <Image src={isSubmissionApprovedOpen ? ToggleClose : ToggleOpen} alt="Toggle" />
+            <Image src={isSubmissionApprovedOpen ? ToggleClose : ToggleOpen} alt="Toggle" height={10} />
           </button>
           {isSubmissionApprovedOpen && (
-            <form>
+            // To prevent the page from reloading when you press the enter key in items within the form tag, especially in the Link part.
+            <form onSubmit={(e) => e.preventDefault()}>
               <div className="my-4">
                 <label className="block text-gray-700 text-xl">
                   File
